@@ -132,6 +132,51 @@ async def callback(event):
             return
 
         # -----------------------------------------------------
+        # SETTINGS PANEL
+        # -----------------------------------------------------
+        elif data == "menu_settings":
+            user_data = get_user_data(chat_id)
+            delay_enabled = user_data.get("smart_delay_enabled", False)
+            status = "✅ ON" if delay_enabled else "❌ OFF"
+            
+            text = (
+                "⚙️ **Advanced Settings Panel**\n\n"
+                "**1. Smart Delay (Anti-Ban)**\n"
+                "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human reading and typing.\n"
+                f"Current Status: {status}"
+            )
+            
+            buttons = [
+                [Button.inline(f"Toggle Smart Delay: {status}", b"toggle_smart_delay")],
+                [Button.inline("🔙 Back", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+            
+        elif data == "toggle_smart_delay":
+            user_data = get_user_data(chat_id)
+            user_data["smart_delay_enabled"] = not user_data.get("smart_delay_enabled", False)
+            save_user_data(chat_id, user_data)
+            
+            delay_enabled = user_data.get("smart_delay_enabled", False)
+            status = "✅ ON" if delay_enabled else "❌ OFF"
+            await event.answer(f"Smart Delay turned {status}!", alert=True)
+            
+            # Refresh menu
+            text = (
+                "⚙️ **Advanced Settings Panel**\n\n"
+                "**1. Smart Delay (Anti-Ban)**\n"
+                "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human reading and typing.\n"
+                f"Current Status: {status}"
+            )
+            buttons = [
+                [Button.inline(f"Toggle Smart Delay: {status}", b"toggle_smart_delay")],
+                [Button.inline("🔙 Back", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
+        # -----------------------------------------------------
         # CONNECT / DISCONNECT ACCOUNT LOGIC
         # -----------------------------------------------------
         elif data == "connect_account":

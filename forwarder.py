@@ -71,6 +71,14 @@ async def handle_message(event, chat_id):
             
     client = active_clients[chat_id]
     
+    smart_delay = user_data.get("smart_delay_enabled", False)
+    if smart_delay:
+        import random
+        # Wait between 1 to 3 minutes (60 to 180 seconds)
+        delay_seconds = random.randint(60, 180)
+        print(f"[Tenant {chat_id}] Smart Delay: Waiting {delay_seconds} seconds before forwarding...")
+        await asyncio.sleep(delay_seconds)
+    
     try:
         success = False
         if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
