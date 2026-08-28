@@ -1,0 +1,20 @@
+{
+    "api_id": 37854648,
+    "api_hash": "9b1536d95162c1b1d79ae45847078651",
+    "session_string": "1BJWap1wBuxYua3v8thbxwCPDsE94d2WTOgMqR9K6wf1u4Jx1XUPrUJv74kUlaCKX1UTfI_km2yhByuxLVLgGH2O4T9gOTHQn64eRud6XM3S6lagwcrT9tPCn0L5ZFrobzz0woTp9pjhavAw6XHn5lF0KDOPIgObVpaeKPiMS9PpdbjjZTzsH7oINpEzuv-I-hXkIqITWktQNLkvGNnU5n_RBTlXYezPdIN-CCCOpNuNocDcUqICoOxsxe5vqR7jEIn0O62WqXzKgxeaRSsFWBv51RkhUmFHtmmpZkyCvVJ7th4UAJY_RsdcQ9gwGA5ugJy6W-1Dre5va0hBX3TAZPunYa7wXtRQ=",
+    "sources": [
+        "-1002257843688"
+    ],
+    "targets": [
+        "@apklord55",
+        "@mrunknown75755"
+    ],
+    "text_swaps": {
+        "Hello": "Fidel"
+    },
+    "image_swap_url": "",
+    "image_swap_path": "database\\images\\7531221514.jpg",
+    "replace_all_links_with": "your ass",
+    "replace_all_usernames_with": "fool",
+    "is_active": false
+}

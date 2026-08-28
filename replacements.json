@@ -1,0 +1,11 @@
+{
+  "text_swaps": {
+    "Teddy Payment's": "My Payment's",
+    "Razorpay": "MyPay",
+    "testing": "webtest"
+  },
+  "replace_all_usernames_with": "@mrunknown75755",
+  "replace_all_links_with": "https://my-linkmrunknown.com",
+  "image_swap_path": "",
+  "image_swap_url": ""
+}
