@@ -34,6 +34,114 @@ def apply_rules(text, user_data):
     return text
 
 
+
+async def ai_process_image(client, message, chat_id, user_data):
+    mode = user_data.get("ai_watermark_mode", "off")
+    target = user_data.get("ai_watermark_target", "")
+    
+    if mode == "off" or not target:
+        return message.media
+        
+    import os
+    import ast
+    import re
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    from google import genai
+    from dotenv import load_dotenv
+    
+    load_dotenv('.env')
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        print("No GEMINI_API_KEY found, skipping AI watermark.")
+        return message.media
+        
+    try:
+        # Download media
+        print(f"[Tenant {chat_id}] Downloading image for AI watermark processing...")
+        temp_path = await client.download_media(message, file=f"temp_{message.id}_{chat_id}.png")
+        if not temp_path:
+            return message.media
+            
+        img = Image.open(temp_path).convert("RGB")
+        width, height = img.size
+        
+        genai_client = genai.Client(api_key=api_key)
+        prompt = f"Find the exact bounding box for the text block '{target}' including its background. Return only the bounding box in the format [ymin, xmin, ymax, xmax] normalized to 1000."
+        
+        import asyncio
+        response = await asyncio.to_thread(
+            genai_client.models.generate_content,
+            model='gemini-2.5-flash',
+            contents=[img, prompt]
+        )
+        
+        text = response.text
+        match = re.search(r'\[\s*\d+,\s*\d+,\s*\d+,\s*\d+\s*\]', text)
+        if match:
+            box = ast.literal_eval(match.group(0))
+            ymin, xmin, ymax, xmax = box
+            
+            top = int(ymin * height / 1000)
+            left = int(xmin * width / 1000)
+            bottom = int(ymax * height / 1000)
+            right = int(xmax * width / 1000)
+            
+            # Add padding
+            padding = 10
+            left = max(0, left - padding)
+            top = max(0, top - padding)
+            right = min(width, right + padding)
+            bottom = min(height, bottom + padding)
+            
+            if mode == "remove":
+                # Apply a heavy blur to remove it
+                box_img = img.crop((left, top, right, bottom))
+                blurred = box_img.filter(ImageFilter.GaussianBlur(radius=20))
+                img.paste(blurred, (left, top))
+            elif mode == "replace":
+                replacement_text = user_data.get("ai_watermark_replace", "")
+                
+                # Try to pick a solid background color from the edge of the box
+                sample_color = img.getpixel((max(0, left-2), max(0, top-2)))
+                
+                draw = ImageDraw.Draw(img)
+                draw.rectangle([left, top, right, bottom], fill=sample_color)
+                
+                if replacement_text:
+                    # Draw text in the middle
+                    # We just use default font as it scales better than nothing
+                    # Or try loading a truetype if available
+                    font = None
+                    try:
+                        font = ImageFont.truetype("arial.ttf", size=int((bottom-top)*0.6))
+                    except:
+                        font = ImageFont.load_default()
+                        
+                    # Calculate center
+                    text_x = left + (right - left) // 2
+                    text_y = top + (bottom - top) // 2
+                    
+                    # Ensure text is visible (white on dark, black on light)
+                    brightness = sum(sample_color) / 3
+                    text_color = (0,0,0) if brightness > 128 else (255,255,255)
+                    
+                    draw.text((text_x, text_y), replacement_text, fill=text_color, font=font, anchor="mm")
+                    
+        out_path = f"processed_{message.id}_{chat_id}.png"
+        img.save(out_path)
+        
+        # Cleanup temp
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            
+        print(f"[Tenant {chat_id}] AI Watermark processing complete.")
+        return out_path
+        
+    except Exception as e:
+        print(f"[Tenant {chat_id}] AI Watermark error: {e}")
+        return message.media
+
+
 async def execute_forward(message, chat_id, user_data):
     import os
     from database_manager import save_user_data
@@ -42,9 +150,12 @@ async def execute_forward(message, chat_id, user_data):
     modified_text = apply_rules(message.text, user_data)
     media_to_send = message.media
     
+    client = active_clients.get(chat_id)
+    if not client: return
+
     if message.media:
         is_enabled = user_data.get("image_override_enabled", True)
-        if is_enabled:
+        if is_enabled and (user_data.get("image_swap_path", "").strip() or user_data.get("image_swap_url", "").strip()):
             image_swap_path = user_data.get("image_swap_path", "").strip()
             image_swap_url = user_data.get("image_swap_url", "").strip()
             
@@ -52,10 +163,11 @@ async def execute_forward(message, chat_id, user_data):
                 media_to_send = image_swap_path
             elif image_swap_url:
                 media_to_send = image_swap_url
+        else:
+            # If standard image override is OFF, process AI watermark if enabled
+            media_to_send = await ai_process_image(client, message, chat_id, user_data)
+
                 
-    client = active_clients.get(chat_id)
-    if not client: return
-    
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
         import random
@@ -96,6 +208,13 @@ async def execute_forward(message, chat_id, user_data):
         if modified_text:
             for target in target_channels:
                 await client.send_message(target, modified_text)
+    finally:
+        # Cleanup AI processed images
+        if isinstance(media_to_send, str) and media_to_send.startswith("processed_") and os.path.exists(media_to_send):
+            try:
+                os.remove(media_to_send)
+            except:
+                pass
 
 
 async def handle_message(event, chat_id):

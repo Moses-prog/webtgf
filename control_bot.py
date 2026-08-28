@@ -289,16 +289,47 @@ async def callback(event):
             toggle_btn = "🔴 Turn OFF" if is_enabled else "🟢 Turn ON"
             
             await event.edit(
-                f"**🖼 Image Branding**\n\nCurrent Image: `{status}`\nStatus: {'**ENABLED**' if is_enabled else '**DISABLED**'}\n\n"
-                "👉 **How to set a global image:**\n"
+                f"**🖼 Image Branding**\n\n"
+                f"📸 **Image Overwrite:** `{status}`\nStatus: {'**ENABLED**' if is_enabled else '**DISABLED**'}\n\n"
+                "👉 **How to set a global overwrite image:**\n"
                 "Simply **Send a Photo** to the bot right now!\n"
-                "*(Or manually reply with a direct image URL, or type `CLEAR` to remove it)*",
+                "*(Or manually reply with a direct image URL, or type `CLEAR` to remove it)*\n\n"
+                "---\n"
+                "🤖 **AI Watermark Tools (Pro)**\n"
+                "Automatically hunt and remove/replace competitor text on images!",
                 buttons=[
                     [Button.inline(toggle_btn, b"toggle_image")],
+                    [Button.inline("🪄 AI Watermark Remover", b"ai_watermark_remover")],
+                    [Button.inline("✍️ AI Watermark Replacer", b"ai_watermark_replacer")],
                     [Button.inline("🔙 Back", b"back")]
                 ]
             )
             
+        elif data == "ai_watermark_remover":
+            user_states[chat_id] = "waiting_for_watermark_remove"
+            await event.edit(
+                "🪄 **AI Watermark Remover**\n\n"
+                "The AI will scan incoming images, find the text you specify, and automatically blend it out to remove it.\n\n"
+                "**What text should the AI hunt for?**\n"
+                "*(e.g., `Earn with Nazzy`)*\n\n"
+                "Reply with the text, or type `CLEAR` to disable.",
+                buttons=[[Button.inline("🔙 Cancel", b"menu_image")]]
+            )
+            return
+
+        elif data == "ai_watermark_replacer":
+            user_states[chat_id] = "waiting_for_watermark_replace"
+            await event.edit(
+                "✍️ **AI Watermark Replacer**\n\n"
+                "The AI will scan incoming images, find a competitor's text, and overwrite it with YOUR text!\n\n"
+                "**Reply in this format:**\n"
+                "`OldText | NewText`\n\n"
+                "*(e.g., `Earn with Nazzy | Earn with Webtgf`)*\n\n"
+                "Reply with the text, or type `CLEAR` to disable.",
+                buttons=[[Button.inline("🔙 Cancel", b"menu_image")]]
+            )
+            return
+
         elif data == "toggle_image":
             is_enabled = user_data.get("image_override_enabled", True)
             user_data["image_override_enabled"] = not is_enabled
@@ -485,7 +516,44 @@ async def text_handler(event):
     # -----------------------------------------------------
     # OTP LOGIN FLOW (Multi-step dict state)
     # -----------------------------------------------------
-    if isinstance(state, dict):
+    if state == "waiting_for_watermark_remove":
+        if text.upper() == "CLEAR":
+            user_data["ai_watermark_mode"] = "off"
+            user_data["ai_watermark_target"] = ""
+            user_data["ai_watermark_replace"] = ""
+            await event.respond("✅ AI Watermark tools disabled.", buttons=get_main_keyboard(chat_id))
+        else:
+            user_data["ai_watermark_mode"] = "remove"
+            user_data["ai_watermark_target"] = text.strip()
+            await event.respond(f"✅ Active! The AI will now hunt for `{text}` and remove it from images.", buttons=get_main_keyboard(chat_id))
+        
+        save_user_data(chat_id, user_data)
+        user_states[chat_id] = None
+        
+    elif state == "waiting_for_watermark_replace":
+        if text.upper() == "CLEAR":
+            user_data["ai_watermark_mode"] = "off"
+            user_data["ai_watermark_target"] = ""
+            user_data["ai_watermark_replace"] = ""
+            await event.respond("✅ AI Watermark tools disabled.", buttons=get_main_keyboard(chat_id))
+        else:
+            if "|" not in text:
+                await event.respond("❌ Please use the format: `OldText | NewText`")
+                return
+                
+            parts = text.split("|")
+            old_t = parts[0].strip()
+            new_t = parts[1].strip()
+            
+            user_data["ai_watermark_mode"] = "replace"
+            user_data["ai_watermark_target"] = old_t
+            user_data["ai_watermark_replace"] = new_t
+            await event.respond(f"✅ Active! The AI will now hunt for `{old_t}` and replace it with `{new_t}`.", buttons=get_main_keyboard(chat_id))
+            
+        save_user_data(chat_id, user_data)
+        user_states[chat_id] = None
+        
+    elif isinstance(state, dict):
         step = state.get("step")
         
         # --- DRIP POSTING ---
