@@ -55,6 +55,7 @@ def get_main_keyboard(chat_id):
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
             [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
             [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("⚙️ Settings Panel", b"menu_settings")],
+            [Button.inline("🕒 Drip Posting (Pro)", b"menu_drip_posting")],
             [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
             [Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
         ])
@@ -132,8 +133,12 @@ async def callback(event):
             return
 
         # -----------------------------------------------------
-        # SETTINGS PANEL
+        # SETTINGS PANEL & PRO FEATURES
         # -----------------------------------------------------
+        elif data == "menu_drip_posting":
+            await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+            return
+
         elif data == "menu_settings":
             user_data = get_user_data(chat_id)
             delay_enabled = user_data.get("smart_delay_enabled", False)
