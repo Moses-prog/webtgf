@@ -183,9 +183,23 @@ async def execute_forward(message, chat_id, user_data):
                 media_to_send = image_swap_url
         else:
             # If standard image override is OFF, process AI watermark if enabled
-            media_to_send = await ai_process_image(client, message, chat_id, user_data)
-
+            mode = user_data.get("ai_watermark_mode", "off")
+            if mode != "off":
+                status_msg = None
+                try:
+                    # Send a temporary status message to the source chat so the user knows it's working
+                    status_msg = await client.send_message(message.chat_id, "🤖 *AI is cleaning watermark from image...*", reply_to=message.id)
+                except Exception:
+                    pass
+                    
+                media_to_send = await ai_process_image(client, message, chat_id, user_data)
                 
+                if status_msg:
+                    try:
+                        await status_msg.delete()
+                    except Exception:
+                        pass
+    
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
         import random
