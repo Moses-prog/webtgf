@@ -7,7 +7,7 @@ from telethon.sessions import StringSession
 from telethon.errors import MessageNotModifiedError, SessionPasswordNeededError
 from dotenv import load_dotenv, set_key
 
-from database_manager import get_user_data, save_user_data, get_all_users, get_tenants, save_tenants
+from database_manager import get_user_data, save_user_data, get_all_users, get_tenants, save_tenants, get_feature_toggles, save_feature_toggles
 
 ENV_FILE = '.env'
 TENANTS_FILE = 'tenants.json'
@@ -136,6 +136,11 @@ async def callback(event):
         # SETTINGS PANEL & PRO FEATURES
         # -----------------------------------------------------
         elif data == "menu_drip_posting":
+            toggles = get_feature_toggles()
+            if not toggles.get("drip_posting_unlocked", False) and not is_admin(chat_id):
+                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                return
+                
             user_data = get_user_data(chat_id)
             interval = user_data.get("drip_interval", 0)
             queue_len = len(user_data.get("drip_queue", []))
@@ -332,6 +337,7 @@ async def callback(event):
             buttons = [
                 [Button.inline("➕ Add Tenant", b"admin_add"), Button.inline("➖ Remove Tenant", b"admin_remove")],
                 [Button.inline("👥 View Tenants", b"admin_view"), Button.inline("📊 Analytics", b"admin_analytics")],
+                [Button.inline("⚙️ Feature Toggles", b"admin_features")],
                 [Button.inline("📢 Broadcast", b"admin_broadcast"), Button.inline("✨ AI Generate", b"admin_ai_broadcast")],
                 [Button.inline("🔙 Back to Dashboard", b"back")]
             ]
@@ -361,6 +367,35 @@ async def callback(event):
                 f"🔥 **Messages Forwarded Today:** `{stats['today']}`\n"
             )
             await event.edit(msg, buttons=[[Button.inline("🔙 Back", b"admin_panel")]])
+            
+        elif data == "admin_features" and is_admin(chat_id):
+            toggles = get_feature_toggles()
+            drip_locked = not toggles.get("drip_posting_unlocked", False)
+            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            
+            await event.edit(
+                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                buttons=[
+                    [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline("🔙 Back", b"admin_panel")]
+                ]
+            )
+            
+        elif data == "toggle_admin_drip" and is_admin(chat_id):
+            toggles = get_feature_toggles()
+            toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip_locked = not toggles.get("drip_posting_unlocked", False)
+            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            
+            await event.edit(
+                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                buttons=[
+                    [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline("🔙 Back", b"admin_panel")]
+                ]
+            )
             
         elif data == "admin_ai_broadcast" and is_admin(chat_id):
             if not os.getenv('GEMINI_API_KEY'):

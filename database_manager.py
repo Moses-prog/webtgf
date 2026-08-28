@@ -92,3 +92,16 @@ def save_stats(stats):
     try:
         supabase.table('platform_state').upsert({'key': 'stats', 'value': stats}).execute()
     except: pass
+def get_feature_toggles():
+    if not supabase: return {}
+    try:
+        response = supabase.table('platform_state').select('value').eq('key', 'toggles').execute()
+        return response.data[0]['value'] if response.data else {}
+    except:
+        return {}
+
+def save_feature_toggles(toggles):
+    if not supabase: return
+    try:
+        supabase.table('platform_state').upsert({'key': 'toggles', 'value': toggles}).execute()
+    except: pass
