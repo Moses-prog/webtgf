@@ -66,20 +66,38 @@ async def ai_process_image(client, message, chat_id, user_data):
         width, height = img.size
         
         genai_client = genai.Client(api_key=api_key)
-        prompt = f"Find the exact bounding box for the text block '{target}' including its background. Return only the bounding box in the format [ymin, xmin, ymax, xmax] normalized to 1000."
+        prompt = f"Find the exact bounding box for the text block '{target}' including its background. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (where ymin is top, xmin is left, ymax is bottom, xmax is right). For horizontal text, xmax-xmin is usually much larger than ymax-ymin."
         
         import asyncio
         response = await asyncio.to_thread(
             genai_client.models.generate_content,
             model='gemini-2.5-flash',
-            contents=[img, prompt]
+            contents=[img, prompt],
+            config={"response_mime_type": "application/json"}
         )
         
-        text = response.text
-        match = re.search(r'\[\s*\d+,\s*\d+,\s*\d+,\s*\d+\s*\]', text)
-        if match:
-            box = ast.literal_eval(match.group(0))
-            ymin, xmin, ymax, xmax = box
+        try:
+            import json
+            box = json.loads(response.text)
+            # Sometimes Gemini swaps coordinates if confused, let's enforce ymin < ymax and xmin < xmax
+            # And if height > width (vertical stripe), swap them back!
+            if isinstance(box, list) and len(box) == 4:
+                # box is [a, b, c, d]. We expect [ymin, xmin, ymax, xmax]
+                # To be completely safe:
+                # The text is horizontal, so width (x) > height (y)
+                val1, val2, val3, val4 = box
+                
+                # Sort values to find the actual dimensions
+                # If val3 - val1 (height) > val4 - val2 (width), it likely swapped x and y.
+                if (val3 - val1) > (val4 - val2):
+                    ymin, xmin, ymax, xmax = val2, val1, val4, val3
+                else:
+                    ymin, xmin, ymax, xmax = val1, val2, val3, val4
+                    
+                ymin, ymax = min(ymin, ymax), max(ymin, ymax)
+                xmin, xmax = min(xmin, xmax), max(xmin, xmax)
+                
+                # Now we know ymin, xmin, ymax, xmax are correct!
             
             top = int(ymin * height / 1000)
             left = int(xmin * width / 1000)
