@@ -136,7 +136,21 @@ async def callback(event):
         # SETTINGS PANEL & PRO FEATURES
         # -----------------------------------------------------
         elif data == "menu_drip_posting":
-            await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+            user_data = get_user_data(chat_id)
+            interval = user_data.get("drip_interval", 0)
+            queue_len = len(user_data.get("drip_queue", []))
+            
+            status = f"✅ ON ({interval} mins)" if interval > 0 else "❌ OFF"
+            text = (
+                "🕒 **Drip Posting (Pro Feature)**\n\n"
+                "Instead of forwarding messages instantly, Drip Posting queues incoming messages and sends them one by one at a specific interval to maximize engagement.\n\n"
+                f"**Status:** {status}\n"
+                f"**Messages in Queue:** {queue_len}\n\n"
+                "To change this, please **reply to this message** with the number of minutes you want to wait between each post (e.g., `60` for 1 hour). Send `0` to disable."
+            )
+            
+            user_states[chat_id] = {"step": "waiting_for_drip"}
+            await event.edit(text, buttons=[[Button.inline("🔙 Cancel", b"back")]])
             return
 
         elif data == "menu_settings":
@@ -439,8 +453,26 @@ async def text_handler(event):
     if isinstance(state, dict):
         step = state.get("step")
         
+        # --- DRIP POSTING ---
+        if step == "waiting_for_drip":
+            if not text.isdigit():
+                await event.respond("❌ Please enter a valid number (e.g., 60).")
+                return
+                
+            interval = int(text)
+            user_data = get_user_data(chat_id)
+            user_data["drip_interval"] = interval
+            if interval == 0:
+                user_data["drip_queue"] = [] # Clear queue if disabled
+            save_user_data(chat_id, user_data)
+            
+            status = f"✅ Drip Posting ENABLED! Messages will be queued and sent every {interval} minutes." if interval > 0 else "❌ Drip Posting DISABLED."
+            await event.respond(status, buttons=get_main_keyboard(chat_id))
+            user_states[chat_id] = None
+            return
+
         # --- LOGIN STEPS ---
-        if step == "waiting_for_api_id":
+        elif step == "waiting_for_api_id":
             if not text.isdigit():
                 await event.respond("❌ `API_ID` must be numbers only. Try again.")
                 return

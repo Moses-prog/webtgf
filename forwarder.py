@@ -33,32 +33,16 @@ def apply_rules(text, user_data):
         
     return text
 
-async def handle_message(event, chat_id):
-    user_data = get_user_data(chat_id)
-    
-    source_channels = user_data.get('sources', [])
+
+async def execute_forward(message, chat_id, user_data):
+    import os
+    from database_manager import save_user_data
     target_channels = user_data.get('targets', [])
     
-    if not source_channels or not target_channels:
-        return
-
-    # Check if message is from a source
-    is_source = False
-    if str(event.chat_id) in source_channels:
-        is_source = True
-    elif hasattr(event, 'chat') and event.chat and hasattr(event.chat, 'username') and event.chat.username:
-        if f"@{event.chat.username}" in source_channels or event.chat.username in source_channels:
-            is_source = True
-            
-    if not is_source:
-        return
-        
-    print(f"[Tenant {chat_id}] Received message from source: {event.chat_id}")
+    modified_text = apply_rules(message.text, user_data)
+    media_to_send = message.media
     
-    modified_text = apply_rules(event.message.text, user_data)
-    media_to_send = event.message.media
-    
-    if event.message.media:
+    if message.media:
         is_enabled = user_data.get("image_override_enabled", True)
         if is_enabled:
             image_swap_path = user_data.get("image_swap_path", "").strip()
@@ -68,17 +52,18 @@ async def handle_message(event, chat_id):
                 media_to_send = image_swap_path
             elif image_swap_url:
                 media_to_send = image_swap_url
-            
-    client = active_clients[chat_id]
+                
+    client = active_clients.get(chat_id)
+    if not client: return
     
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
         import random
-        # Wait between 1 to 3 minutes (60 to 180 seconds)
+        import asyncio
         delay_seconds = random.randint(60, 180)
         print(f"[Tenant {chat_id}] Smart Delay: Waiting {delay_seconds} seconds before forwarding...")
         await asyncio.sleep(delay_seconds)
-    
+        
     try:
         success = False
         if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
@@ -112,6 +97,40 @@ async def handle_message(event, chat_id):
             for target in target_channels:
                 await client.send_message(target, modified_text)
 
+
+async def handle_message(event, chat_id):
+    from database_manager import save_user_data
+    user_data = get_user_data(chat_id)
+    
+    source_channels = user_data.get('sources', [])
+    target_channels = user_data.get('targets', [])
+    
+    if not source_channels or not target_channels:
+        return
+
+    is_source = False
+    if str(event.chat_id) in source_channels:
+        is_source = True
+    elif hasattr(event, 'chat') and event.chat and hasattr(event.chat, 'username') and event.chat.username:
+        if f"@{event.chat.username}" in source_channels or event.chat.username in source_channels:
+            is_source = True
+            
+    if not is_source:
+        return
+        
+    print(f"[Tenant {chat_id}] Received message from source: {event.chat_id}")
+    
+    drip_interval = user_data.get("drip_interval", 0)
+    if drip_interval > 0:
+        queue = user_data.get("drip_queue", [])
+        queue.append({"msg_id": event.message.id, "source_chat_id": event.chat_id})
+        user_data["drip_queue"] = queue
+        save_user_data(chat_id, user_data)
+        print(f"[Tenant {chat_id}] Message queued for Drip Posting. (Queue size: {len(queue)})")
+        return
+        
+    await execute_forward(event.message, chat_id, user_data)
+
 async def monitor_users():
     print("Starting Multi-Tenant Forwarding Engine...")
     while True:
@@ -124,6 +143,30 @@ async def monitor_users():
             # 2. Check all tenants
             all_users = get_all_users()
             
+            import time
+            from database_manager import save_user_data
+            # Process Drip Queues
+            for chat_id, client in list(active_clients.items()):
+                udata = get_user_data(chat_id)
+                interval = udata.get("drip_interval", 0)
+                if interval > 0:
+                    last_drip = udata.get("last_drip_time", 0)
+                    if time.time() - last_drip >= interval * 60:
+                        queue = udata.get("drip_queue", [])
+                        if queue:
+                            item = queue.pop(0)
+                            udata["last_drip_time"] = time.time()
+                            udata["drip_queue"] = queue
+                            save_user_data(chat_id, udata)
+                            
+                            print(f"[Tenant {chat_id}] Drip Posting: Executing queued message {item['msg_id']}...")
+                            try:
+                                msgs = await client.get_messages(item["source_chat_id"], ids=item["msg_id"])
+                                if msgs:
+                                    asyncio.create_task(execute_forward(msgs, chat_id, udata))
+                            except Exception as e:
+                                print(f"[Tenant {chat_id}] Failed to fetch drip message: {e}")
+
             # Start new clients
             for chat_id in all_users:
                 user_data = get_user_data(chat_id)
