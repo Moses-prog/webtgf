@@ -66,12 +66,12 @@ async def ai_process_image(client, message, chat_id, user_data):
         width, height = img.size
         
         genai_client = genai.Client(api_key=api_key)
-        prompt = f"Find the exact bounding box for the text block '{target}' including its background. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (where ymin is top, xmin is left, ymax is bottom, xmax is right). For horizontal text, xmax-xmin is usually much larger than ymax-ymin."
+        prompt = f"Find the bounding box for the text '{target}' and its surrounding background banner. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (ymin=top, xmin=left, ymax=bottom, xmax=right). IMPORTANT: Add a generous margin around the text so you completely cover the watermark! For horizontal text, make sure the width (xmax-xmin) is very wide to cover the whole background block."
         
         import asyncio
         response = await asyncio.to_thread(
             genai_client.models.generate_content,
-            model='gemini-1.5-pro',
+            model='gemini-2.5-flash',
             contents=[img, prompt],
             config={
                 "response_mime_type": "application/json",
@@ -119,8 +119,8 @@ async def ai_process_image(client, message, chat_id, user_data):
             bottom = int(ymax * height / 1000)
             right = int(xmax * width / 1000)
             
-            # Add padding
-            padding = 10
+            # Add extra generous padding to catch hallucinated coordinates
+            padding = 40
             left = max(0, left - padding)
             top = max(0, top - padding)
             right = min(width, right + padding)
@@ -180,6 +180,10 @@ async def ai_process_image(client, message, chat_id, user_data):
         
     except Exception as e:
         print(f"[Tenant {chat_id}] AI Watermark error: {e}")
+        try:
+            await client.send_message(message.chat_id, f"❌ API Error: {e}")
+        except:
+            pass
         return message.media
 
 
