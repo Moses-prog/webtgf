@@ -101,10 +101,6 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
     except:
         pass
     await tmp_client.disconnect()
-    
-    if chat_id in tenant_tasks:
-        tenant_tasks[chat_id].cancel()
-    tenant_tasks[chat_id] = asyncio.create_task(forwarder_task(chat_id))
 @bot.on(events.NewMessage(pattern='/start'))
 async def start(event):
     chat_id = event.chat_id
@@ -749,10 +745,6 @@ async def text_handler(event):
                     await tmp_client.disconnect()
                     await event.respond("✅ **Session Successfully Connected!**", buttons=get_main_keyboard(chat_id))
                     
-                    # Restart the forwarder task
-                    if chat_id in tenant_tasks:
-                        tenant_tasks[chat_id].cancel()
-                    tenant_tasks[chat_id] = asyncio.create_task(forwarder_task(chat_id))
                 else:
                     await tmp_client.disconnect()
                     await event.respond("❌ Invalid session string (Not authorized).", buttons=[[Button.inline("🔙 Cancel", b"back")]])
