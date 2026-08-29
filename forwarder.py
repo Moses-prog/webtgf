@@ -96,6 +96,8 @@ async def ai_process_image(client, message, chat_id, user_data):
                     
                 ymin, ymax = min(ymin, ymax), max(ymin, ymax)
                 xmin, xmax = min(xmin, xmax), max(xmin, xmax)
+            else:
+                return message.media
                 
                 # Now we know ymin, xmin, ymax, xmax are correct!
             
@@ -111,12 +113,13 @@ async def ai_process_image(client, message, chat_id, user_data):
             right = min(width, right + padding)
             bottom = min(height, bottom + padding)
             
-            if mode == "remove":
-                # Apply a heavy blur to remove it
-                box_img = img.crop((left, top, right, bottom))
-                blurred = box_img.filter(ImageFilter.GaussianBlur(radius=20))
-                img.paste(blurred, (left, top))
-            elif mode == "replace":
+            if mode == "remove" or mode == "replace":
+                # Sample the background color from the edge to completely paint over the old text
+                sample_color = img.getpixel((max(0, left-2), max(0, top-2)))
+                draw = ImageDraw.Draw(img)
+                draw.rectangle([left, top, right, bottom], fill=sample_color)
+                
+            if mode == "replace":
                 replacement_text = user_data.get("ai_watermark_replace", "")
                 
                 # Try to pick a solid background color from the edge of the box
