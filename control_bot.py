@@ -306,6 +306,10 @@ async def callback(event):
             )
             
         elif data == "ai_watermark_remover":
+            toggles = get_feature_toggles()
+            if not toggles.get("ai_watermark_unlocked", False) and not is_admin(chat_id):
+                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                return
             user_states[chat_id] = "waiting_for_watermark_remove"
             await event.edit(
                 "🪄 **AI Watermark Remover**\n\n"
@@ -318,6 +322,10 @@ async def callback(event):
             return
 
         elif data == "ai_watermark_replacer":
+            toggles = get_feature_toggles()
+            if not toggles.get("ai_watermark_unlocked", False) and not is_admin(chat_id):
+                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                return
             user_states[chat_id] = "waiting_for_watermark_replace"
             await event.edit(
                 "✍️ **AI Watermark Replacer**\n\n"
@@ -402,12 +410,16 @@ async def callback(event):
         elif data == "admin_features" and is_admin(chat_id):
             toggles = get_feature_toggles()
             drip_locked = not toggles.get("drip_posting_unlocked", False)
+            ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
             
             await event.edit(
                 "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
@@ -418,12 +430,34 @@ async def callback(event):
             save_feature_toggles(toggles)
             
             drip_locked = not toggles.get("drip_posting_unlocked", False)
+            ai_locked = not toggles.get("ai_watermark_unlocked", False)
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
             
             await event.edit(
                 "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline("🔙 Back", b"admin_panel")]
+                ]
+            )
+
+        elif data == "toggle_admin_ai" and is_admin(chat_id):
+            toggles = get_feature_toggles()
+            toggles["ai_watermark_unlocked"] = not toggles.get("ai_watermark_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip_locked = not toggles.get("drip_posting_unlocked", False)
+            ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            
+            await event.edit(
+                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                buttons=[
+                    [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
