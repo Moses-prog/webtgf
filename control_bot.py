@@ -221,6 +221,32 @@ async def callback(event):
             save_user_data(chat_id, user_data)
             await event.edit("🔌 **Account Disconnected!**\n\nYour forwarding engine has been stopped.", buttons=get_main_keyboard(chat_id))
             return
+            
+        elif data == "resend_code":
+            session_data = login_sessions.get(chat_id)
+            if not session_data:
+                await event.answer("❌ Session expired. Please start over.", alert=True)
+                return
+                
+            tmp_client = session_data["client"]
+            phone = session_data["phone"]
+            
+            try:
+                res = await tmp_client.send_code_request(phone)
+                session_data["phone_code_hash"] = res.phone_code_hash
+                login_sessions[chat_id] = session_data
+                
+                delivery_method = str(type(res.type).__name__)
+                where = "your Telegram App"
+                if "Sms" in delivery_method:
+                    where = "an SMS text message"
+                elif "Call" in delivery_method:
+                    where = "a Phone Call"
+                    
+                await event.answer(f"✅ Code resent via {where}!", alert=True)
+            except Exception as e:
+                await event.answer(f"❌ Failed to resend: {e}", alert=True)
+            return
 
         # -----------------------------------------------------
         # CONFIGURATION MENUS
@@ -659,7 +685,10 @@ async def text_handler(event):
                     "👉 **You MUST put spaces between the numbers.**\n"
                     "For example, if your code is `12345`, you must reply with:\n`1 2 3 4 5`\n\n"
                     "*(The bot will automatically remove the spaces for you)*", 
-                    buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                    buttons=[
+                        [Button.inline("🔁 Resend Code", b"resend_code")],
+                        [Button.inline("🔙 Cancel", b"back")]
+                    ]
                 )
             except Exception as e:
                 await event.respond(f"❌ Failed to request code: {e}")
