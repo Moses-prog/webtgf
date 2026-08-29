@@ -71,9 +71,12 @@ async def ai_process_image(client, message, chat_id, user_data):
         import asyncio
         response = await asyncio.to_thread(
             genai_client.models.generate_content,
-            model='gemini-2.5-flash',
+            model='gemini-1.5-pro',
             contents=[img, prompt],
-            config={"response_mime_type": "application/json"}
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": list[int]
+            }
         )
         
         try:
@@ -102,6 +105,11 @@ async def ai_process_image(client, message, chat_id, user_data):
                 ymin, ymax = min(ymin, ymax), max(ymin, ymax)
                 xmin, xmax = min(xmin, xmax), max(xmin, xmax)
             else:
+                print(f"[Tenant {chat_id}] Invalid box format from Gemini: {box}")
+                try:
+                    await client.send_message(message.chat_id, f"❌ AI Error: Could not find the exact text block in the image.")
+                except:
+                    pass
                 return message.media
                 
                 # Now we know ymin, xmin, ymax, xmax are correct!
