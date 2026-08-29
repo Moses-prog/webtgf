@@ -78,7 +78,8 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
         login_sessions[chat_id] = {
             "client": tmp_client,
             "api_id": api_id,
-            "api_hash": api_hash
+            "api_hash": api_hash,
+            "msg_id": msg.id
         }
         await bot.send_message(chat_id, "🔒 **Two-Step Verification Enabled**\n\nPlease enter your Telegram password to complete the QR login:")
         return
@@ -97,8 +98,8 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
     
     await bot.send_message(chat_id, "✅ **Account Successfully Connected via QR Code!**", buttons=get_main_keyboard(chat_id))
     try:
-        await msg.delete()
-    except:
+        await bot.delete_messages(chat_id, msg.id)
+    except Exception as e:
         pass
     await tmp_client.disconnect()
 @bot.on(events.NewMessage(pattern='/start'))
@@ -872,6 +873,13 @@ async def text_handler(event):
                 await tmp_client.sign_in(password=password)
                 session_string = tmp_client.session.save()
                 await tmp_client.disconnect()
+                  
+                if "msg_id" in session_data:
+                    try:
+                        await bot.delete_messages(chat_id, session_data["msg_id"])
+                    except:
+                        pass
+                        
                 del login_sessions[chat_id]
                 
                 user_data = get_user_data(chat_id)
