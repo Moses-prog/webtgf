@@ -642,8 +642,19 @@ async def text_handler(event):
                     "api_hash": state["api_hash"]
                 }
                 state["step"] = "waiting_for_code"
+                
+                # Determine where the code went
+                delivery_method = str(type(res.type).__name__)
+                where = "your Telegram App (Official 'Telegram' Service Account)"
+                if "Sms" in delivery_method:
+                    where = "an SMS text message"
+                elif "Call" in delivery_method:
+                    where = "a Phone Call"
+                    
                 await event.respond(
-                    "📩 **Telegram has sent you a login code!**\n\n"
+                    f"📬 **Telegram has sent your login code!**\n\n"
+                    f"**Number used:** `{state['phone']}`\n"
+                    f"**Delivery Method:** {where} (`{delivery_method}`)\n\n"
                     "⚠️ **CRITICAL INSTRUCTION:** Telegram's security system will instantly block the login if you just send the code normally.\n\n"
                     "👉 **You MUST put spaces between the numbers.**\n"
                     "For example, if your code is `12345`, you must reply with:\n`1 2 3 4 5`\n\n"
