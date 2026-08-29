@@ -243,9 +243,9 @@ async def callback(event):
                 elif "Call" in delivery_method:
                     where = "a Phone Call"
                     
-                await event.answer(f"✅ Code resent via {where}!", alert=True)
+                await event.respond(f"✅ Code resent via {where}!")
             except Exception as e:
-                await event.answer(f"❌ Failed to resend: {e}", alert=True)
+                await event.respond(f"❌ Failed to resend: {e}")
             return
 
         # -----------------------------------------------------
