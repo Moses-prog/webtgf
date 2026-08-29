@@ -66,16 +66,15 @@ async def ai_process_image(client, message, chat_id, user_data):
         width, height = img.size
         
         genai_client = genai.Client(api_key=api_key)
-        prompt = f"Find the bounding box for the text '{target}' and its surrounding background banner. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (ymin=top, xmin=left, ymax=bottom, xmax=right). IMPORTANT: Add a generous margin around the text so you completely cover the watermark! For horizontal text, make sure the width (xmax-xmin) is very wide to cover the whole background block."
+        prompt = f"Find the exact bounding box for the text block '{target}'. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (where ymin is top, xmin is left, ymax is bottom, xmax is right). For horizontal text, xmax-xmin is usually much larger than ymax-ymin."
         
         import asyncio
         response = await asyncio.to_thread(
             genai_client.models.generate_content,
-            model='gemini-2.5-flash',
+            model='gemini-3.5-flash',
             contents=[img, prompt],
             config={
-                "response_mime_type": "application/json",
-                "response_schema": list[int]
+                "response_mime_type": "application/json"
             }
         )
         
@@ -87,6 +86,11 @@ async def ai_process_image(client, message, chat_id, user_data):
                 raw_text = raw_text.strip("`").removeprefix("json").strip()
                 
             box = json.loads(raw_text)
+            
+            # Handle list of dicts: [{"box_2d": [ymin, xmin, ymax, xmax]}]
+            if isinstance(box, list) and len(box) > 0 and isinstance(box[0], dict) and "box_2d" in box[0]:
+                box = box[0]["box_2d"]
+                
             # Sometimes Gemini swaps coordinates if confused, let's enforce ymin < ymax and xmin < xmax
             # And if height > width (vertical stripe), swap them back!
             if isinstance(box, list) and len(box) == 4:
@@ -120,7 +124,7 @@ async def ai_process_image(client, message, chat_id, user_data):
             right = int(xmax * width / 1000)
             
             # Add extra generous padding to catch hallucinated coordinates
-            padding = 40
+            padding = 15
             left = max(0, left - padding)
             top = max(0, top - padding)
             right = min(width, right + padding)
