@@ -73,7 +73,7 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
         await bot.send_message(chat_id, "❌ QR Code expired. Please try connecting again.")
         await tmp_client.disconnect()
         return
-    except telethon.errors.SessionPasswordNeededError:
+    except SessionPasswordNeededError:
         user_states[chat_id] = {"step": "waiting_for_password"}
         login_sessions[chat_id] = {
             "client": tmp_client,
