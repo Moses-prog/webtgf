@@ -49,6 +49,7 @@ def get_main_keyboard(chat_id):
     
     if not has_session:
         buttons.append([Button.inline("🔑 Connect Account", b"connect_account")])
+        buttons.append([Button.inline("🛠️ Manual Session Login", b"manual_session")])
         buttons.append([Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")])
     else:
         buttons.extend([
@@ -209,6 +210,16 @@ async def callback(event):
                 "🔑 **Connect Your Telegram Account**\n\n"
                 "To forward messages, we need to securely connect your account. First, we need your `API_ID`.\n\n"
                 "Please reply with your `API_ID` (numbers only).\n*(You can get this from my.telegram.org)*",
+                buttons=[[Button.inline("🔙 Cancel", b"back")]]
+            )
+            return
+            
+        elif data == "manual_session":
+            user_states[chat_id] = {"step": "waiting_for_manual_session"}
+            await event.edit(
+                "🛠️ **Manual Session Login**\n\n"
+                "If Telegram is blocking SMS/App codes from this server, you can generate a session locally on your own PC and paste it here.\n\n"
+                "Please reply with your `StringSession` (the long block of letters/numbers).",
                 buttons=[[Button.inline("🔙 Cancel", b"back")]]
             )
             return
@@ -635,6 +646,32 @@ async def text_handler(event):
             return
 
         # --- LOGIN STEPS ---
+        elif step == "waiting_for_manual_session":
+            await event.respond("⏳ Testing your session string, please wait...")
+            try:
+                # Use standard Telegram Android API ID for testing the session
+                tmp_client = TelegramClient(StringSession(text), 6, "eb06d4abfb49dc3eeb1aeb98ae0f581e")
+                await tmp_client.connect()
+                if await tmp_client.is_user_authorized():
+                    user_data["session_string"] = text
+                    user_data["api_id"] = 6
+                    user_data["api_hash"] = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
+                    save_user_data(chat_id, user_data)
+                    user_states[chat_id] = None
+                    await tmp_client.disconnect()
+                    await event.respond("✅ **Session Successfully Connected!**", buttons=get_main_keyboard(chat_id))
+                    
+                    # Restart the forwarder task
+                    if chat_id in tenant_tasks:
+                        tenant_tasks[chat_id].cancel()
+                    tenant_tasks[chat_id] = asyncio.create_task(forwarder_task(chat_id))
+                else:
+                    await tmp_client.disconnect()
+                    await event.respond("❌ Invalid session string (Not authorized).", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            except Exception as e:
+                await event.respond(f"❌ Failed to connect session: {e}", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            return
+        
         elif step == "waiting_for_api_id":
             if not text.isdigit():
                 await event.respond("❌ `API_ID` must be numbers only. Try again.")
