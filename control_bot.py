@@ -733,6 +733,7 @@ async def text_handler(event):
         elif step == "waiting_for_manual_session":
             await event.respond("⏳ Testing your session string, please wait...")
             try:
+                user_data = get_user_data(chat_id)
                 # Use standard Telegram Android API ID for testing the session
                 tmp_client = TelegramClient(StringSession(text), 6, "eb06d4abfb49dc3eeb1aeb98ae0f581e")
                 await tmp_client.connect()
@@ -841,6 +842,7 @@ async def text_handler(event):
                 del login_sessions[chat_id]
                 
                 # Save to user database
+                user_data = get_user_data(chat_id)
                 user_data["api_id"] = session_data["api_id"]
                 user_data["api_hash"] = session_data["api_hash"]
                 user_data["session_string"] = session_string
@@ -872,6 +874,7 @@ async def text_handler(event):
                 await tmp_client.disconnect()
                 del login_sessions[chat_id]
                 
+                user_data = get_user_data(chat_id)
                 user_data["api_id"] = session_data["api_id"]
                 user_data["api_hash"] = session_data["api_hash"]
                 user_data["session_string"] = session_string
