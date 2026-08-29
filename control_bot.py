@@ -65,7 +65,46 @@ def get_main_keyboard(chat_id):
         buttons.append([Button.inline("👑 Admin Panel", b"admin_panel")])
         
     return buttons
+    
+async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api_hash):
+    try:
+        await qr_login.wait(120)
+    except asyncio.TimeoutError:
+        await bot.send_message(chat_id, "❌ QR Code expired. Please try connecting again.")
+        await tmp_client.disconnect()
+        return
+    except telethon.errors.SessionPasswordNeededError:
+        user_states[chat_id] = {"step": "waiting_for_password"}
+        login_sessions[chat_id] = {
+            "client": tmp_client,
+            "api_id": api_id,
+            "api_hash": api_hash
+        }
+        await bot.send_message(chat_id, "🔒 **Two-Step Verification Enabled**\n\nPlease enter your Telegram password to complete the QR login:")
+        return
+    except Exception as e:
+        await bot.send_message(chat_id, f"❌ Failed to login via QR: {e}")
+        await tmp_client.disconnect()
+        return
 
+    # Success
+    user_data = get_user_data(chat_id)
+    user_data["session_string"] = tmp_client.session.save()
+    user_data["api_id"] = api_id
+    user_data["api_hash"] = api_hash
+    save_user_data(chat_id, user_data)
+    user_states[chat_id] = None
+    
+    await bot.send_message(chat_id, "✅ **Account Successfully Connected via QR Code!**", buttons=get_main_keyboard(chat_id))
+    try:
+        await msg.delete()
+    except:
+        pass
+    await tmp_client.disconnect()
+    
+    if chat_id in tenant_tasks:
+        tenant_tasks[chat_id].cancel()
+    tenant_tasks[chat_id] = asyncio.create_task(forwarder_task(chat_id))
 @bot.on(events.NewMessage(pattern='/start'))
 async def start(event):
     chat_id = event.chat_id
@@ -212,6 +251,55 @@ async def callback(event):
                 "Please reply with your `API_ID` (numbers only).\n*(You can get this from my.telegram.org)*",
                 buttons=[[Button.inline("🔙 Cancel", b"back")]]
             )
+            return
+            
+        elif data == "login_phone":
+            user_states[chat_id]["step"] = "waiting_for_phone"
+            await event.edit(
+                "Perfect. Now reply with your **Phone Number** (including the country code, e.g., `+1234567890`).", 
+                buttons=[[Button.inline("🔙 Cancel", b"back")]]
+            )
+            return
+            
+        elif data == "login_qr":
+            state = user_states.get(chat_id)
+            if not state or "api_id" not in state:
+                await event.answer("❌ Session expired. Please start over.", alert=True)
+                return
+                
+            user_states[chat_id]["step"] = "waiting_for_qr"
+            await event.edit("⏳ Generating QR code, please wait...")
+            
+            import qrcode
+            import io
+            
+            try:
+                tmp_client = TelegramClient(StringSession(), state["api_id"], state["api_hash"])
+                await tmp_client.connect()
+                qr_login = await tmp_client.qr_login()
+                
+                # generate qr image
+                img = qrcode.make(qr_login.url)
+                bio = io.BytesIO()
+                bio.name = 'qr.png'
+                img.save(bio, 'PNG')
+                bio.seek(0)
+                
+                msg = await event.respond(
+                    "📱 **Scan this QR Code**\n\n"
+                    "1. Open Telegram on your phone\n"
+                    "2. Go to **Settings** > **Devices**\n"
+                    "3. Tap **Link Desktop Device** and scan this code.",
+                    file=bio,
+                    buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                )
+                
+                # We can't wait here because it blocks the callback loop. 
+                # We'll spawn an asyncio task.
+                asyncio.create_task(wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, state["api_id"], state["api_hash"]))
+                
+            except Exception as e:
+                await event.respond(f"❌ Failed to generate QR: {e}")
             return
             
         elif data == "manual_session":
@@ -683,8 +771,17 @@ async def text_handler(event):
             
         elif step == "waiting_for_api_hash":
             state["api_hash"] = text
-            state["step"] = "waiting_for_phone"
-            await event.respond("Perfect. Now reply with your **Phone Number** (including the country code, e.g., `+1234567890`).", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            state["step"] = "waiting_for_login_method"
+            await event.respond(
+                "Great! How would you like to connect your account?\n\n"
+                "📱 **QR Code (Recommended):** Bypass SMS limits instantly.\n"
+                "✉️ **Phone Number:** Standard SMS login.", 
+                buttons=[
+                    [Button.inline("📱 QR Code Login", b"login_qr")],
+                    [Button.inline("✉️ Phone Number", b"login_phone")],
+                    [Button.inline("🔙 Cancel", b"back")]
+                ]
+            )
             return
             
         elif step == "waiting_for_phone":
