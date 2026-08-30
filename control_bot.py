@@ -171,7 +171,7 @@ async def callback(event):
             return
 
         
-        elif data == b"menu_sleep":
+        elif data == "menu_sleep":
             user_data = get_user_data(chat_id)
             sleep_mode = user_data.get("sleep_mode", {})
             
@@ -199,7 +199,7 @@ async def callback(event):
             await event.edit(text, buttons=buttons)
             return
 
-        elif data == b"sleep_toggle":
+        elif data == "sleep_toggle":
             user_data = get_user_data(chat_id)
             sleep_mode = user_data.get("sleep_mode", {})
             sleep_mode["enabled"] = not sleep_mode.get("enabled", False)
@@ -231,7 +231,7 @@ async def callback(event):
             await event.edit(text, buttons=buttons)
             return
             
-        elif data == b"sleep_edit":
+        elif data == "sleep_edit":
             user_states[chat_id] = {"step": "waiting_for_sleep_settings"}
             await event.edit(
                 "✏️ **Edit Sleep Settings**\n\n"
@@ -247,7 +247,7 @@ async def callback(event):
             )
             return
 
-        elif data == b"menu_queue":
+        elif data == "menu_queue":
             user_data = get_user_data(chat_id)
             queue = user_data.get("drip_queue", [])
             
@@ -270,7 +270,7 @@ async def callback(event):
             await event.edit(text, buttons=buttons)
             return
             
-        elif data == b"queue_forward_all":
+        elif data == "queue_forward_all":
             user_data = get_user_data(chat_id)
             user_data["drip_interval"] = 0
             user_data["sleep_mode"] = user_data.get("sleep_mode", {})
@@ -280,7 +280,7 @@ async def callback(event):
             await event.edit("✅ **Queue Flushed**\n\nAll messages will be sent momentarily.", buttons=[[Button.inline("🔙 Back", b"back")]])
             return
             
-        elif data == b"queue_clear":
+        elif data == "queue_clear":
             user_data = get_user_data(chat_id)
             user_data["drip_queue"] = []
             save_user_data(chat_id, user_data)
@@ -290,6 +290,29 @@ async def callback(event):
 
           # -----------------------------------------------------
           # SETTINGS PANEL & PRO FEATURES
+
+        elif data == "menu_modifications":
+            text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
+            buttons = [
+                [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
+                [Button.inline("🔗 Link & Branding", b"menu_links")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
+        elif data == "menu_autoposting":
+            user_data = get_user_data(chat_id)
+            queue_len = len(user_data.get("drip_queue", []))
+            text = f"🚀 **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
+            buttons = [
+                [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
+                [Button.inline(f"📥 View Queue ({queue_len})", b"menu_queue")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
         elif data == "menu_drip_posting":
             toggles = get_feature_toggles()
             if not toggles.get("drip_posting_unlocked", False) and not is_admin(chat_id):
