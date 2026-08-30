@@ -54,10 +54,9 @@ def get_main_keyboard(chat_id):
     else:
         buttons.extend([
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
-            [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-            [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("⚙️ Settings Panel", b"menu_settings")],
-            [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
-            [Button.inline("📥 View Queue", b"menu_queue")],
+            [Button.inline("✨ Modification Rules", b"menu_modifications")],
+            [Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
+            [Button.inline("⚙️ Settings Panel", b"menu_settings")],
             [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
             [Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
         ])
