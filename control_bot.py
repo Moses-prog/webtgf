@@ -56,7 +56,8 @@ def get_main_keyboard(chat_id):
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
             [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
             [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("⚙️ Settings Panel", b"menu_settings")],
-            [Button.inline("🕒 Drip Posting (Pro)", b"menu_drip_posting")],
+            [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
+            [Button.inline("📥 View Queue", b"menu_queue")],
             [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
             [Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
         ])
@@ -169,8 +170,165 @@ async def callback(event):
             await event.edit("👋 Welcome to the **Webtgf Dashboard**!", buttons=get_main_keyboard(chat_id))
             return
 
-        # -----------------------------------------------------
-        # SETTINGS PANEL & PRO FEATURES
+        
+        elif data == b"menu_sleep":
+            user_data = get_user_data(chat_id)
+            sleep_mode = user_data.get("sleep_mode", {})
+            
+            is_enabled = sleep_mode.get("enabled", False)
+            start_t = sleep_mode.get("start_time", "22:00")
+            end_t = sleep_mode.get("end_time", "08:00")
+            offset = sleep_mode.get("timezone_offset", 0)
+            
+            status = "? ON" if is_enabled else "? OFF"
+            text = (
+                "?? **Sleep Mode / Blackout Window**
+
+"
+                "Hold all incoming messages during specific hours and drip them out in the morning.
+
+"
+                f"**Status:** {status}
+"
+                f"**Start Time:** {start_t}
+"
+                f"**End Time:** {end_t}
+"
+                f"**Timezone Offset (UTC):** {offset}
+
+"
+                "Use the buttons below to configure your sleep window."
+            )
+            
+            buttons = [
+                [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
+                [Button.inline("?? Edit Times", b"sleep_edit")],
+                [Button.inline("?? Back", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
+        elif data == b"sleep_toggle":
+            user_data = get_user_data(chat_id)
+            sleep_mode = user_data.get("sleep_mode", {})
+            sleep_mode["enabled"] = not sleep_mode.get("enabled", False)
+            user_data["sleep_mode"] = sleep_mode
+            save_user_data(chat_id, user_data)
+            await event.answer("Sleep Mode toggled!", alert=False)
+            
+            # Refresh menu
+            is_enabled = sleep_mode.get("enabled", False)
+            start_t = sleep_mode.get("start_time", "22:00")
+            end_t = sleep_mode.get("end_time", "08:00")
+            offset = sleep_mode.get("timezone_offset", 0)
+            status = "? ON" if is_enabled else "? OFF"
+            text = (
+                "?? **Sleep Mode / Blackout Window**
+
+"
+                "Hold all incoming messages during specific hours and drip them out in the morning.
+
+"
+                f"**Status:** {status}
+"
+                f"**Start Time:** {start_t}
+"
+                f"**End Time:** {end_t}
+"
+                f"**Timezone Offset (UTC):** {offset}
+
+"
+                "Use the buttons below to configure your sleep window."
+            )
+            buttons = [
+                [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
+                [Button.inline("?? Edit Times", b"sleep_edit")],
+                [Button.inline("?? Back", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+            
+        elif data == b"sleep_edit":
+            user_states[chat_id] = {"step": "waiting_for_sleep_settings"}
+            await event.edit(
+                "?? **Edit Sleep Settings**
+
+"
+                "Please reply with your settings in this exact format:
+"
+                "[Start Time] - [End Time] - [UTC Offset]
+
+"
+                "**Example:**
+"
+                "22:00 - 08:00 - -5
+"
+                "*(This means 10 PM to 8 AM in EST timezone)*
+
+"
+                "**Example 2 (London/UTC):**
+"
+                "23:00 - 07:00 - 0
+
+"
+                "Please reply with your times (24-hour format):",
+                buttons=[[Button.inline("?? Cancel", b"back")]]
+            )
+            return
+
+        elif data == b"menu_queue":
+            user_data = get_user_data(chat_id)
+            queue = user_data.get("drip_queue", [])
+            
+            if not queue:
+                await event.edit("?? **Message Queue**
+
+Your queue is currently empty.", buttons=[[Button.inline("?? Back", b"back")]])
+                return
+                
+            text = f"?? **Message Queue** ({len(queue)} messages)
+
+"
+            for i, q in enumerate(queue[:10]):
+                text += f"**{i+1}.** {q.get('preview', '[Media]')}
+"
+                
+            if len(queue) > 10:
+                text += f"
+*...and {len(queue)-10} more.*"
+                
+            buttons = [
+                [Button.inline("?? Forward All Now", b"queue_forward_all")],
+                [Button.inline("? Cancel All", b"queue_clear")],
+                [Button.inline("?? Back", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+            
+        elif data == b"queue_forward_all":
+            user_data = get_user_data(chat_id)
+            user_data["drip_interval"] = 0
+            user_data["sleep_mode"] = user_data.get("sleep_mode", {})
+            user_data["sleep_mode"]["enabled"] = False
+            save_user_data(chat_id, user_data)
+            await event.answer("Queue flushing initiated! Sleep mode & Drip interval have been disabled to allow instant sending.", alert=True)
+            await event.edit("? **Queue Flushed**
+
+All messages will be sent momentarily.", buttons=[[Button.inline("?? Back", b"back")]])
+            return
+            
+        elif data == b"queue_clear":
+            user_data = get_user_data(chat_id)
+            user_data["drip_queue"] = []
+            save_user_data(chat_id, user_data)
+            await event.answer("Queue cleared!", alert=True)
+            await event.edit("??? **Queue Cleared**
+
+All held messages have been deleted.", buttons=[[Button.inline("?? Back", b"back")]])
+            return
+
+          # -----------------------------------------------------
+          # SETTINGS PANEL & PRO FEATURES
         # -----------------------------------------------------
         elif data == "menu_drip_posting":
             toggles = get_feature_toggles()
@@ -894,6 +1052,34 @@ async def text_handler(event):
                 await event.respond(f"❌ Invalid Password: {e}")
             return
 
+        # --- SLEEP MODE SETTINGS ---
+        elif step == "waiting_for_sleep_settings":
+            try:
+                parts = text.split("-")
+                if len(parts) != 3:
+                    raise ValueError
+                start_t = parts[0].strip()
+                end_t = parts[1].strip()
+                offset = parts[2].strip()
+                
+                import re as regex
+                if not regex.match(r'^\d{1,2}:\d{2}$', start_t) or not regex.match(r'^\d{1,2}:\d{2}$', end_t):
+                    raise ValueError
+                float(offset) # test if it's a number
+                
+                user_data["sleep_mode"] = user_data.get("sleep_mode", {})
+                user_data["sleep_mode"]["start_time"] = start_t
+                user_data["sleep_mode"]["end_time"] = end_t
+                user_data["sleep_mode"]["timezone_offset"] = offset
+                user_data["sleep_mode"]["enabled"] = True
+                save_user_data(chat_id, user_data)
+                
+                user_states[chat_id] = None
+                await event.respond("✅ **Sleep settings updated!**\n\nMessages will now be queued during this window.", buttons=get_main_keyboard(chat_id))
+            except:
+                await event.respond("❌ **Invalid format.**\nPlease use the exact format:\n`22:00 - 08:00 - -5`", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            return
+
         # --- WORD SWAPPER STEPS ---
         elif step == "waiting_for_old_word":
             state["old_word"] = text
@@ -1085,3 +1271,4 @@ async def text_handler(event):
 print("Starting Webtgf Control Bot with OTP capabilities...")
 bot.start(bot_token=BOT_TOKEN)
 bot.run_until_disconnected()
+

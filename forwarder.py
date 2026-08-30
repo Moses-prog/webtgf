@@ -9,6 +9,25 @@ from database_manager import get_all_users, get_user_data
 
 active_clients = {}
 
+import datetime
+import time
+
+def is_in_sleep_mode(user_data):
+    sleep_mode = user_data.get("sleep_mode", {})
+    if not sleep_mode.get("enabled"): return False
+    
+    offset = float(sleep_mode.get("timezone_offset", 0))
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=offset)
+    current_time = now.strftime("%H:%M")
+    
+    start = sleep_mode.get("start_time", "22:00")
+    end = sleep_mode.get("end_time", "08:00")
+    
+    if start < end:
+        return start <= current_time <= end
+    else:
+        return current_time >= start or current_time <= end
+
 def apply_rules(text, user_data):
     if not text:
         return text
@@ -303,12 +322,21 @@ async def handle_message(event, chat_id):
     print(f"[Tenant {chat_id}] Received message from source: {event.chat_id}")
     
     drip_interval = user_data.get("drip_interval", 0)
-    if drip_interval > 0:
+    in_sleep = is_in_sleep_mode(user_data)
+    
+    if drip_interval > 0 or in_sleep:
         queue = user_data.get("drip_queue", [])
-        queue.append({"msg_id": event.message.id, "source_chat_id": event.chat_id})
+        preview = event.message.text[:50] + "..." if event.message.text else "[Media/No Text]"
+        queue.append({
+            "msg_id": event.message.id, 
+            "source_chat_id": event.chat_id,
+            "preview": preview,
+            "added_at": time.time()
+        })
         user_data["drip_queue"] = queue
         save_user_data(chat_id, user_data)
-        print(f"[Tenant {chat_id}] Message queued for Drip Posting. (Queue size: {len(queue)})")
+        reason = "Sleep Mode" if in_sleep else "Drip Posting"
+        print(f"[Tenant {chat_id}] Message queued for {reason}. (Queue size: {len(queue)})")
         return
         
     await execute_forward(event.message, chat_id, user_data)
@@ -327,27 +355,31 @@ async def monitor_users():
             
             import time
             from database_manager import save_user_data
-            # Process Drip Queues
+                        # Process Drip Queues
             for chat_id, client in list(active_clients.items()):
                 udata = get_user_data(chat_id)
                 interval = udata.get("drip_interval", 0)
-                if interval > 0:
+                queue = udata.get("drip_queue", [])
+                
+                if queue and not is_in_sleep_mode(udata):
                     last_drip = udata.get("last_drip_time", 0)
-                    if time.time() - last_drip >= interval * 60:
-                        queue = udata.get("drip_queue", [])
-                        if queue:
-                            item = queue.pop(0)
-                            udata["last_drip_time"] = time.time()
-                            udata["drip_queue"] = queue
-                            save_user_data(chat_id, udata)
-                            
-                            print(f"[Tenant {chat_id}] Drip Posting: Executing queued message {item['msg_id']}...")
-                            try:
-                                msgs = await client.get_messages(item["source_chat_id"], ids=item["msg_id"])
-                                if msgs:
-                                    asyncio.create_task(execute_forward(msgs, chat_id, udata))
-                            except Exception as e:
-                                print(f"[Tenant {chat_id}] Failed to fetch drip message: {e}")
+                    
+                    # If interval is 0, we are just waking up from sleep mode, flush 1 message quickly (e.g. every 2 secs)
+                    eff_interval = interval * 60 if interval > 0 else 2
+                    
+                    if time.time() - last_drip >= eff_interval:
+                        item = queue.pop(0)
+                        udata["last_drip_time"] = time.time()
+                        udata["drip_queue"] = queue
+                        save_user_data(chat_id, udata)
+                        
+                        print(f"[Tenant {chat_id}] Popping queued message {item['msg_id']}...")
+                        try:
+                            msgs = await client.get_messages(item["source_chat_id"], ids=item["msg_id"])
+                            if msgs:
+                                asyncio.create_task(execute_forward(msgs, chat_id, udata))
+                        except Exception as e:
+                            print(f"[Tenant {chat_id}] Failed to fetch queued message: {e}")
 
             # Start new clients
             for chat_id in all_users:
@@ -384,3 +416,7 @@ async def monitor_users():
 
 if __name__ == '__main__':
     asyncio.run(monitor_users())
+
+
+
+
