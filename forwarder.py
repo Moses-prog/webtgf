@@ -344,24 +344,35 @@ async def handle_message(event, chat_id):
         return
 
     is_source = False
-    
-    incoming_id_clean = str(event.chat_id).replace("-100", "").replace("-", "")
+    incoming_str = str(event.chat_id)
+    # Build all possible representations of the incoming channel ID
+    incoming_variants = {incoming_str}
+    if incoming_str.startswith('-100'):
+        incoming_variants.add(incoming_str[4:])   # bare digits without -100
+        incoming_variants.add(incoming_str[1:])   # without leading dash
+    elif incoming_str.lstrip('-').isdigit():
+        incoming_variants.add(f"-100{incoming_str.lstrip('-')}")  # add -100 prefix
+
     for src in source_channels:
-        if str(src).startswith("@") or not any(char.isdigit() for char in str(src)):
-            continue
-        src_clean = str(src).replace("-100", "").replace("-", "")
-        print(f"[DEBUG-MATCH] Comparing incoming: {incoming_id_clean} with saved: {src_clean}")
-        if src_clean == incoming_id_clean:
-            print(f"[DEBUG-MATCH] SUCCESS! {src_clean} == {incoming_id_clean}")
+        src_str = str(src).strip()
+        # Numeric match against all variants
+        if src_str in incoming_variants or src_str.lstrip('-') in {v.lstrip('-') for v in incoming_variants}:
             is_source = True
+            print(f"[MATCH-ID] {src_str} matched {incoming_str}")
             break
-            
-    if not is_source and str(event.chat_id) in source_channels:
-        is_source = True
-        
-    if not is_source and hasattr(event, 'chat') and event.chat and hasattr(event.chat, 'username') and event.chat.username:
-        if f"@{event.chat.username}" in source_channels or event.chat.username in source_channels:
-            is_source = True
+        # Username match
+        if src_str.startswith('@') or not any(ch.isdigit() for ch in src_str):
+            if hasattr(event, 'chat') and event.chat and getattr(event.chat, 'username', None):
+                uname = event.chat.username
+                if src_str == f'@{uname}' or src_str == uname:
+                    is_source = True
+                    print(f"[MATCH-USERNAME] {src_str}")
+                    break
+        # Debug unmatched numeric sources
+        if any(ch.isdigit() for ch in src_str) and not src_str.startswith('@'):
+            src_digits = src_str.lstrip('-').lstrip('100')
+            in_digits = incoming_str.lstrip('-').lstrip('100')
+            print(f"[DEBUG-MATCH] incoming={incoming_str} ({in_digits}) vs saved={src_str} ({src_digits})")
             
     if not is_source:
         return
@@ -448,6 +459,8 @@ async def monitor_users():
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
                             
+                        # CRITICAL: Remove all existing handlers first to prevent duplicate message firing
+                        client.remove_event_handler(None)
                         # Use a lambda or partial to pass the chat_id into the event handler
                         client.add_event_handler(lambda e, cid=chat_id: handle_message(e, cid), events.NewMessage)
                         active_clients[chat_id] = client
