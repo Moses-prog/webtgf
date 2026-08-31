@@ -1224,12 +1224,12 @@ async def text_handler(event):
                 x = x.strip()
                 if not x: continue
                 if "t.me/c/" in x:
-                    match = re.search(r't\.me/c/(\\d+)', x)
+                    match = re.search(r't\.me/c/(\d+)', x)
                     if match:
                         new_items.append(f"-100{match.group(1)}")
                         continue
                 elif "t.me/" in x:
-                    match = re.search(r't\.me/([^/\\?]+)', x)
+                    match = re.search(r't\.me/([^/\?]+)', x)
                     if match:
                         username = match.group(1)
                         if username not in ["c", "joinchat", "+"]:
