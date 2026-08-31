@@ -54,9 +54,9 @@ def get_main_keyboard(chat_id):
     else:
         buttons.extend([
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
-            [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-            [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("⚙️ Settings Panel", b"menu_settings")],
-            [Button.inline("🕒 Drip Posting (Pro)", b"menu_drip_posting")],
+            [Button.inline("✨ Modification Rules", b"menu_modifications")],
+            [Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
+            [Button.inline("⚙️ Settings Panel", b"menu_settings")],
             [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
             [Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
         ])
@@ -172,7 +172,6 @@ async def callback(event):
         # -----------------------------------------------------
         # SETTINGS PANEL & PRO FEATURES
         # -----------------------------------------------------
-
         elif data == "back_modifications":
             user_states.pop(chat_id, None)
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
@@ -287,12 +286,12 @@ async def callback(event):
             await event.edit(
                 "✏️ **Edit Sleep Settings**\n\n"
                 "Please reply with your settings in this exact format:\n"
-                "[Start Time] - [End Time] - [UTC Offset]\n\n"
+                "`[Start Time] - [End Time] - [UTC Offset]`\n\n"
                 "**Example:**\n"
-                "22:00 - 08:00 - -5\n"
+                "`22:00 - 08:00 - -5`\n"
                 "*(This means 10 PM to 8 AM in EST timezone)*\n\n"
                 "**Example 2 (London/UTC):**\n"
-                "23:00 - 07:00 - 0\n\n"
+                "`23:00 - 07:00 - 0`\n\n"
                 "Please reply with your times (24-hour format):",
                 buttons=[[Button.inline("🔙 Cancel", b"back_autoposting")]]
             )
@@ -338,6 +337,7 @@ async def callback(event):
             await event.answer("Queue cleared!", alert=True)
             await event.edit("🗑️ **Queue Cleared**\n\nAll held messages have been deleted.", buttons=[[Button.inline("🔙 Back", b"back_autoposting")]])
             return
+
         elif data == "menu_drip_posting":
             toggles = get_feature_toggles()
             if not toggles.get("drip_posting_unlocked", False) and not is_admin(chat_id):
@@ -539,7 +539,7 @@ async def callback(event):
                 "Simply **Forward any message** from the channel to me here!\n"
                 "*(Or manually reply with a comma-separated list of `@username`)*\n\n"
                 "Send /cancel to go back.",
-                buttons=[[Button.inline("🔙 Back", b"back_modifications")]]
+                buttons=[[Button.inline("🔙 Back", b"back")]]
             )
             
         elif data == "menu_words":
@@ -589,7 +589,7 @@ async def callback(event):
                     [Button.inline(toggle_btn, b"toggle_image")],
                     [Button.inline("🪄 AI Watermark Remover", b"ai_watermark_remover")],
                     [Button.inline("✍️ AI Watermark Replacer", b"ai_watermark_replacer")],
-                    [Button.inline("🔙 Back", b"back")]
+                    [Button.inline("🔙 Back", b"back_modifications")]
                 ]
             )
             
@@ -699,15 +699,18 @@ async def callback(event):
             toggles = get_feature_toggles()
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
             
             await event.edit(
-                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
@@ -719,14 +722,17 @@ async def callback(event):
             
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
             
             await event.edit(
-                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
@@ -738,18 +744,44 @@ async def callback(event):
             
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
+            
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
             
             await event.edit(
-                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
             
+        elif data == "toggle_admin_sleep" and is_admin(chat_id):
+            toggles = get_feature_toggles()
+            toggles["sleep_mode_unlocked"] = not toggles.get("sleep_mode_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip_locked = not toggles.get("drip_posting_unlocked", False)
+            ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
+            
+            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
+            
+            await event.edit(
+                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                buttons=[
+                    [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
+                    [Button.inline("🔙 Back", b"admin_panel")]
+                ]
+            )
         elif data == "admin_ai_broadcast" and is_admin(chat_id):
             if not os.getenv('GEMINI_API_KEY'):
                 await event.answer("⚠️ API Key not found in .env!", alert=True)
