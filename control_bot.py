@@ -56,6 +56,7 @@ def get_main_keyboard(chat_id):
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
             [Button.inline("✨ Modification Rules", b"menu_modifications")],
             [Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
+            [Button.inline("🗑️ Deletion Suite (Pro)", b"menu_deletion")],
             [Button.inline("📖 How to Use the Bot", b"menu_instructions")],
             [Button.inline("⚙️ Settings Panel", b"menu_settings")],
             [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
