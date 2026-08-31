@@ -480,9 +480,35 @@ async def callback(event):
             user_data = get_user_data(chat_id)
             user_data["mirror_delete"] = not user_data.get("mirror_delete", False)
             save_user_data(chat_id, user_data)
-            # Re-render menu
-            event.data = b"menu_deletion"
-            await callback(event)
+            
+            # Re-render menu directly
+            pin = user_data.get("deletion_pin", None)
+            mirror = user_data.get("mirror_delete", False)
+            auto_limit = user_data.get("auto_delete_limit", 0)
+            status_mirror = "✅ ON" if mirror else "❌ OFF"
+            status_limit = f"Keep Last {auto_limit}" if auto_limit > 0 else "❌ OFF"
+            status_pin = "✅ SET" if pin else "❌ NOT SET"
+            text = (
+                "🗑️ **Deletion Suite (Pro Feature)**\n\n"
+                "Manage how the bot deletes messages in your Target channels.\n\n"
+                f"**1. Mirror Delete:** {status_mirror}\n"
+                "*(If a message is deleted in the Source channel, delete it in the Target channel too.)*\n\n"
+                f"**2. Auto-Delete Limit:** {status_limit}\n"
+                "*(Rolling Window: automatically delete older messages to keep the channel clean.)*\n\n"
+                f"**3. Security PIN:** {status_pin}\n"
+                "*(Required to execute manual wipes to prevent accidental data loss.)*\n\n"
+                "👇 **Select an option below:**"
+            )
+            buttons = [
+                [Button.inline(f"Toggle Mirror Delete {'🔴' if mirror else '🟢'}", b"del_toggle_mirror")],
+                [Button.inline("⏱️ Set Auto-Delete Limit", b"del_set_limit")],
+                [Button.inline("🔐 Set/Change Security PIN", b"del_set_pin")],
+                [Button.inline("⚠️ MANUAL WIPES ⚠️", b"ignore_btn")],
+                [Button.inline("Delete Last 10", b"wipe_10"), Button.inline("Delete Last 50", b"wipe_50")],
+                [Button.inline("Wipe All History Today", b"wipe_today")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
             return
             
         elif data == "del_set_limit":
