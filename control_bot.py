@@ -1395,4 +1395,21 @@ async def text_handler(event):
 
 print("Starting Webtgf Control Bot with OTP capabilities...")
 bot.start(bot_token=BOT_TOKEN)
+@bot.on(events.NewMessage(pattern='/admin_logs'))
+async def admin_logs_handler(event):
+    chat_id = event.chat_id
+    if not is_admin(chat_id):
+        return
+        
+    try:
+        with open('forwarder.log', 'r', encoding='utf-8') as log_file:
+            logs = log_file.readlines()[-30:]
+            log_text = "".join(logs)
+            if not log_text:
+                await event.respond("Logs are empty.")
+            else:
+                await event.respond(f"**Latest Logs:**\n{log_text[-3500:]}")
+    except Exception as e:
+        await event.respond(f"Failed to read logs: {e}")
+
 bot.run_until_disconnected()
