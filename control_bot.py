@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import time
 import asyncio
@@ -41,28 +41,28 @@ def get_main_keyboard(chat_id):
     
     # Check if they have an active session string configured
     has_session = bool(user_data.get('session_string', ''))
-    status_text = "🟢 Connected" if has_session else "🔴 Disconnected"
+    status_text = "ðŸŸ¢ Connected" if has_session else "ðŸ”´ Disconnected"
     
     buttons = [
-        [Button.inline(f"📱 Account: {status_text}", b"status")],
+        [Button.inline(f"ðŸ“± Account: {status_text}", b"status")],
     ]
     
     if not has_session:
-        buttons.append([Button.inline("🔑 Connect Account", b"connect_account")])
-        buttons.append([Button.inline("🛠️ Manual Session Login", b"manual_session")])
-        buttons.append([Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")])
+        buttons.append([Button.inline("ðŸ”‘ Connect Account", b"connect_account")])
+        buttons.append([Button.inline("ðŸ› ï¸ Manual Session Login", b"manual_session")])
+        buttons.append([Button.inline("ðŸ’¬ 24/7 Support", b"menu_support"), Button.inline("â„¹ï¸ About Us", b"menu_about")])
     else:
         buttons.extend([
-            [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
-            [Button.inline("✨ Modification Rules", b"menu_modifications")],
-            [Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
-            [Button.inline("⚙️ Settings Panel", b"menu_settings")],
-            [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
-            [Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
+            [Button.inline(f"ðŸ“Œ Sources ({len(sources)})", b"menu_sources"), Button.inline(f"ðŸŽ¯ Targets ({len(targets)})", b"menu_targets")],
+            [Button.inline("âœ¨ Modification Rules", b"menu_modifications")],
+            [Button.inline("ðŸš€ Auto-Posting Suite", b"menu_autoposting")],
+            [Button.inline("âš™ï¸ Settings Panel", b"menu_settings")],
+            [Button.inline("ðŸ”Œ Disconnect Account", b"disconnect_account")],
+            [Button.inline("ðŸ’¬ 24/7 Support", b"menu_support"), Button.inline("â„¹ï¸ About Us", b"menu_about")]
         ])
     
     if is_admin(chat_id):
-        buttons.append([Button.inline("👑 Admin Panel", b"admin_panel")])
+        buttons.append([Button.inline("ðŸ‘‘ Admin Panel", b"admin_panel")])
         
     return buttons
     
@@ -70,7 +70,7 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
     try:
         await qr_login.wait(120)
     except asyncio.TimeoutError:
-        await bot.send_message(chat_id, "❌ QR Code expired. Please try connecting again.")
+        await bot.send_message(chat_id, "âŒ QR Code expired. Please try connecting again.")
         await tmp_client.disconnect()
         return
     except SessionPasswordNeededError:
@@ -81,10 +81,10 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
             "api_hash": api_hash,
             "msg_id": msg.id
         }
-        await bot.send_message(chat_id, "🔒 **Two-Step Verification Enabled**\n\nPlease enter your Telegram password to complete the QR login:")
+        await bot.send_message(chat_id, "ðŸ”’ **Two-Step Verification Enabled**\n\nPlease enter your Telegram password to complete the QR login:")
         return
     except Exception as e:
-        await bot.send_message(chat_id, f"❌ Failed to login via QR: {e}")
+        await bot.send_message(chat_id, f"âŒ Failed to login via QR: {e}")
         await tmp_client.disconnect()
         return
 
@@ -96,7 +96,7 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
     save_user_data(chat_id, user_data)
     user_states[chat_id] = None
     
-    await bot.send_message(chat_id, "✅ **Account Successfully Connected via QR Code!**", buttons=get_main_keyboard(chat_id))
+    await bot.send_message(chat_id, "âœ… **Account Successfully Connected via QR Code!**", buttons=get_main_keyboard(chat_id))
     try:
         await bot.delete_messages(chat_id, msg.id)
     except Exception as e:
@@ -108,7 +108,7 @@ async def start(event):
     
     if not is_tenant(chat_id):
         welcome_msg = (
-            "👋 **Welcome to Webtgf Manager!**\n\n"
+            "ðŸ‘‹ **Welcome to Webtgf Manager!**\n\n"
             "You currently do not have an active subscription or your ID has not been registered.\n\n"
             f"Your Chat ID is: `{chat_id}`\n\n"
             "Please contact the administrator **@apklord55** to get access or activate your account."
@@ -120,9 +120,9 @@ async def start(event):
     
     user_data = get_user_data(chat_id)
     if not user_data.get('session_string'):
-        msg = "👋 Welcome to the **Webtgf Dashboard**!\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
+        msg = "ðŸ‘‹ Welcome to the **Webtgf Dashboard**!\n\nYour forwarding engine is currently **Disconnected**. Please click **ðŸ”‘ Connect Account** below to securely link your Telegram account and start forwarding messages."
     else:
-        msg = "👋 Welcome to the **Webtgf Dashboard**!\n\nManage your forwarding rules, channels, and replacements directly from this menu."
+        msg = "ðŸ‘‹ Welcome to the **Webtgf Dashboard**!\n\nManage your forwarding rules, channels, and replacements directly from this menu."
         
     await event.respond(msg, buttons=get_main_keyboard(chat_id))
 
@@ -145,32 +145,61 @@ async def callback(event):
         elif data == "menu_about":
             user_states[chat_id] = None
             about_text = (
-                "ℹ️ **About Webtgf Manager**\n\n"
+                "â„¹ï¸ **About Webtgf Manager**\n\n"
                 "**Version:** 2.0.0 (Multi-Tenant Pro)\n"
                 "**Developed by:** @apklord55\n\n"
                 "This engine was custom-built to provide the fastest, most reliable, and secure automated forwarding experience on Telegram. "
                 "For inquiries, custom bot development, or technical support, please contact the developer."
             )
-            await event.edit(about_text, buttons=[[Button.inline("🔙 Back", b"back")]])
+            await event.edit(about_text, buttons=[[Button.inline("ðŸ”™ Back", b"back")]])
             return
             
         elif data == "menu_support":
             user_states[chat_id] = None
             support_text = (
-                "💬 **24/7 Technical Support**\n\n"
+                "ðŸ’¬ **24/7 Technical Support**\n\n"
                 "If you are experiencing issues or need help configuring your targets and sources, please contact the developer directly:\n\n"
-                "👉 **Contact:** @apklord55"
+                "ðŸ‘‰ **Contact:** @apklord55"
             )
-            await event.edit(support_text, buttons=[[Button.inline("🔙 Back", b"back")]])
+            await event.edit(support_text, buttons=[[Button.inline("ðŸ”™ Back", b"back_autoposting")]])
             return
             
+
+        elif data == "back_modifications":
+            user_states.pop(chat_id, None)
+            text = "âœ¨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
+            buttons = [
+                [Button.inline("ðŸ–¼ Image Branding", b"menu_image"), Button.inline("âœï¸ Word Swapper", b"menu_words")],
+                [Button.inline("ðŸ”— Link & Branding", b"menu_links")],
+                [Button.inline("ðŸ”™ Back to Main Menu", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
+        elif data == "back_autoposting":
+            user_states.pop(chat_id, None)
+            user_data = get_user_data(chat_id)
+            queue_len = len(user_data.get("drip_queue", []))
+            text = f"ðŸš€ **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
+            buttons = [
+                [Button.inline("ðŸ• Drip Posting", b"menu_drip_posting"), Button.inline("ðŸ’¤ Sleep Mode", b"menu_sleep")],
+                [Button.inline(f"ðŸ“¥ View Queue ({queue_len})", b"menu_queue")],
+                [Button.inline("ðŸ”™ Back to Main Menu", b"back_autoposting")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
         elif data == "back":
             user_states[chat_id] = None
-            await event.edit("👋 Welcome to the **Webtgf Dashboard**!", buttons=get_main_keyboard(chat_id))
+            await event.edit("ðŸ‘‹ Welcome to the **Webtgf Dashboard**!", buttons=get_main_keyboard(chat_id))
             return
 
         
         elif data == "menu_sleep":
+            toggles = get_feature_toggles()
+            if not toggles.get("sleep_mode_unlocked", False) and not is_admin(chat_id):
+                await event.answer("ðŸ‘¨â€ðŸ³ Still cooking... This feature is locked by the Admin.", alert=True)
+                return
             user_data = get_user_data(chat_id)
             sleep_mode = user_data.get("sleep_mode", {})
             
@@ -179,9 +208,9 @@ async def callback(event):
             end_t = sleep_mode.get("end_time", "08:00")
             offset = sleep_mode.get("timezone_offset", 0)
             
-            status = "✅ ON" if is_enabled else "❌ OFF"
+            status = "âœ… ON" if is_enabled else "âŒ OFF"
             text = (
-                "💤 **Sleep Mode / Blackout Window**\n\n"
+                "ðŸ’¤ **Sleep Mode / Blackout Window**\n\n"
                 "Hold all incoming messages during specific hours and drip them out in the morning.\n\n"
                 f"**Status:** {status}\n"
                 f"**Start Time:** {start_t}\n"
@@ -193,7 +222,7 @@ async def callback(event):
             buttons = [
                 [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
                 [Button.inline("?? Edit Times", b"sleep_edit")],
-                [Button.inline("?? Back", b"back")]
+                [Button.inline("?? Back", b"back_autoposting")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -211,9 +240,9 @@ async def callback(event):
             start_t = sleep_mode.get("start_time", "22:00")
             end_t = sleep_mode.get("end_time", "08:00")
             offset = sleep_mode.get("timezone_offset", 0)
-            status = "✅ ON" if is_enabled else "❌ OFF"
+            status = "âœ… ON" if is_enabled else "âŒ OFF"
             text = (
-                "💤 **Sleep Mode / Blackout Window**\n\n"
+                "ðŸ’¤ **Sleep Mode / Blackout Window**\n\n"
                 "Hold all incoming messages during specific hours and drip them out in the morning.\n\n"
                 f"**Status:** {status}\n"
                 f"**Start Time:** {start_t}\n"
@@ -224,8 +253,8 @@ async def callback(event):
 
             buttons = [
                 [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
-                [Button.inline("✏️ Edit Times", b"sleep_edit")],
-                [Button.inline("🔙 Back", b"back")]
+                [Button.inline("âœï¸ Edit Times", b"sleep_edit")],
+                [Button.inline("ðŸ”™ Back", b"back_autoposting")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -233,7 +262,7 @@ async def callback(event):
         elif data == "sleep_edit":
             user_states[chat_id] = {"step": "waiting_for_sleep_settings"}
             await event.edit(
-                "✏️ **Edit Sleep Settings**\n\n"
+                "âœï¸ **Edit Sleep Settings**\n\n"
                 "Please reply with your settings in this exact format:\n"
                 "[Start Time] - [End Time] - [UTC Offset]\n\n"
                 "**Example:**\n"
@@ -242,7 +271,7 @@ async def callback(event):
                 "**Example 2 (London/UTC):**\n"
                 "23:00 - 07:00 - 0\n\n"
                 "Please reply with your times (24-hour format):",
-                buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"back_autoposting")]]
             )
             return
 
@@ -251,10 +280,10 @@ async def callback(event):
             queue = user_data.get("drip_queue", [])
             
             if not queue:
-                await event.edit("📥 **Message Queue**\n\nYour queue is currently empty.", buttons=[[Button.inline("🔙 Back", b"back")]])
+                await event.edit("ðŸ“¥ **Message Queue**\n\nYour queue is currently empty.", buttons=[[Button.inline("ðŸ”™ Back", b"back_autoposting")]])
                 return
                 
-            text = f"📥 **Message Queue** ({len(queue)} messages)\n\n"
+            text = f"ðŸ“¥ **Message Queue** ({len(queue)} messages)\n\n"
             for i, q in enumerate(queue[:10]):
                 text += f"**{i+1}.** {q.get('preview', '[Media]')}\n"
                 
@@ -262,9 +291,9 @@ async def callback(event):
                 text += f"\n*...and {len(queue)-10} more.*"
                 
             buttons = [
-                [Button.inline("▶️ Forward All Now", b"queue_forward_all")],
-                [Button.inline("❌ Cancel All", b"queue_clear")],
-                [Button.inline("🔙 Back", b"back")]
+                [Button.inline("â–¶ï¸ Forward All Now", b"queue_forward_all")],
+                [Button.inline("âŒ Cancel All", b"queue_clear")],
+                [Button.inline("ðŸ”™ Back", b"back_autoposting")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -276,7 +305,7 @@ async def callback(event):
             user_data["sleep_mode"]["enabled"] = False
             save_user_data(chat_id, user_data)
             await event.answer("Queue flushing initiated! Sleep mode & Drip interval have been disabled to allow instant sending.", alert=True)
-            await event.edit("✅ **Queue Flushed**\n\nAll messages will be sent momentarily.", buttons=[[Button.inline("🔙 Back", b"back")]])
+            await event.edit("âœ… **Queue Flushed**\n\nAll messages will be sent momentarily.", buttons=[[Button.inline("ðŸ”™ Back", b"back_autoposting")]])
             return
             
         elif data == "queue_clear":
@@ -284,18 +313,138 @@ async def callback(event):
             user_data["drip_queue"] = []
             save_user_data(chat_id, user_data)
             await event.answer("Queue cleared!", alert=True)
-            await event.edit("🗑️ **Queue Cleared**\n\nAll held messages have been deleted.", buttons=[[Button.inline("🔙 Back", b"back")]])
+            await event.edit("ðŸ—‘ï¸ **Queue Cleared**\n\nAll held messages have been deleted.", buttons=[[Button.inline("ðŸ”™ Back", b"back_autoposting")]])
+            return
+
+        elif data == "menu_sleep":
+            toggles = get_feature_toggles()
+            if not toggles.get("sleep_mode_unlocked", False) and not is_admin(chat_id):
+                await event.answer("ðŸ‘¨â€ðŸ³ Still cooking... This feature is locked by the Admin.", alert=True)
+                return
+            user_data = get_user_data(chat_id)
+            sleep_mode = user_data.get("sleep_mode", {})
+            
+            is_enabled = sleep_mode.get("enabled", False)
+            start_t = sleep_mode.get("start_time", "22:00")
+            end_t = sleep_mode.get("end_time", "08:00")
+            offset = sleep_mode.get("timezone_offset", 0)
+            
+            status = "? ON" if is_enabled else "? OFF"
+            text = (
+                "?? **Sleep Mode / Blackout Window**\n\n"
+                "Hold all incoming messages during specific hours and drip them out in the morning.\n\n"
+                f"**Status:** {status}\n"
+                f"**Start Time:** {start_t}\n"
+                f"**End Time:** {end_t}\n"
+                f"**Timezone Offset (UTC):** {offset}\n\n"
+                "Use the buttons below to configure your sleep window."
+            )
+            
+            buttons = [
+                [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
+                [Button.inline("?? Edit Times", b"sleep_edit")],
+                [Button.inline("?? Back", b"back_autoposting")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
+        elif data == "sleep_toggle":
+            user_data = get_user_data(chat_id)
+            sleep_mode = user_data.get("sleep_mode", {})
+            sleep_mode["enabled"] = not sleep_mode.get("enabled", False)
+            user_data["sleep_mode"] = sleep_mode
+            save_user_data(chat_id, user_data)
+            await event.answer("Sleep Mode toggled!", alert=False)
+            
+            # Refresh menu
+            is_enabled = sleep_mode.get("enabled", False)
+            start_t = sleep_mode.get("start_time", "22:00")
+            end_t = sleep_mode.get("end_time", "08:00")
+            offset = sleep_mode.get("timezone_offset", 0)
+            status = "? ON" if is_enabled else "? OFF"
+            text = (
+                "?? **Sleep Mode / Blackout Window**\n\n"
+                "Hold all incoming messages during specific hours and drip them out in the morning.\n\n"
+                f"**Status:** {status}\n"
+                f"**Start Time:** {start_t}\n"
+                f"**End Time:** {end_t}\n"
+                f"**Timezone Offset (UTC):** {offset}\n\n"
+                "Use the buttons below to configure your sleep window."
+            )
+            buttons = [
+                [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
+                [Button.inline("?? Edit Times", b"sleep_edit")],
+                [Button.inline("?? Back", b"back_autoposting")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+            
+        elif data == "sleep_edit":
+            user_states[chat_id] = {"step": "waiting_for_sleep_settings"}
+            await event.edit(
+                "?? **Edit Sleep Settings**\n\n"
+                "Please reply with your settings in this exact format:\n"
+                "[Start Time] - [End Time] - [UTC Offset]\n\n"
+                "**Example:**\n"
+                "22:00 - 08:00 - -5\n"
+                "*(This means 10 PM to 8 AM in EST timezone)*\n\n"
+                "**Example 2 (London/UTC):**\n"
+                "23:00 - 07:00 - 0\n\n"
+                "Please reply with your times (24-hour format):",
+                buttons=[[Button.inline("?? Cancel", b"back_autoposting")]]
+            )
+            return
+
+        elif data == "menu_queue":
+            user_data = get_user_data(chat_id)
+            queue = user_data.get("drip_queue", [])
+            
+            if not queue:
+                await event.edit("?? **Message Queue**\n\nYour queue is currently empty.", buttons=[[Button.inline("?? Back", b"back")]])
+                return
+                
+            text = f"?? **Message Queue** ({len(queue)} messages)\n\n"
+            for i, q in enumerate(queue[:10]):
+                text += f"**{i+1}.** {q.get('preview', '[Media]')}\n"
+                
+            if len(queue) > 10:
+                text += f"\n*...and {len(queue)-10} more.*"
+                
+            buttons = [
+                [Button.inline("?? Forward All Now", b"queue_forward_all")],
+                [Button.inline("? Cancel All", b"queue_clear")],
+                [Button.inline("?? Back", b"back")]
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+            
+        elif data == "queue_forward_all":
+            user_data = get_user_data(chat_id)
+            user_data["drip_interval"] = 0
+            user_data["sleep_mode"] = user_data.get("sleep_mode", {})
+            user_data["sleep_mode"]["enabled"] = False
+            save_user_data(chat_id, user_data)
+            await event.answer("Queue flushing initiated! Sleep mode & Drip interval have been disabled to allow instant sending.", alert=True)
+            await event.edit("? **Queue Flushed**\n\nAll messages will be sent momentarily.", buttons=[[Button.inline("?? Back", b"back")]])
+            return
+            
+        elif data == "queue_clear":
+            user_data = get_user_data(chat_id)
+            user_data["drip_queue"] = []
+            save_user_data(chat_id, user_data)
+            await event.answer("Queue cleared!", alert=True)
+            await event.edit("??? **Queue Cleared**\n\nAll held messages have been deleted.", buttons=[[Button.inline("?? Back", b"back")]])
             return
 
           # -----------------------------------------------------
           # SETTINGS PANEL & PRO FEATURES
 
         elif data == "menu_modifications":
-            text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
+            text = "âœ¨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links")],
-                [Button.inline("🔙 Back to Main Menu", b"back")]
+                [Button.inline("ðŸ–¼ Image Branding", b"menu_image"), Button.inline("âœï¸ Word Swapper", b"menu_words")],
+                [Button.inline("ðŸ”— Link & Branding", b"menu_links")],
+                [Button.inline("ðŸ”™ Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -303,11 +452,11 @@ async def callback(event):
         elif data == "menu_autoposting":
             user_data = get_user_data(chat_id)
             queue_len = len(user_data.get("drip_queue", []))
-            text = f"🚀 **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
+            text = f"ðŸš€ **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
             buttons = [
-                [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
-                [Button.inline(f"📥 View Queue ({queue_len})", b"menu_queue")],
-                [Button.inline("🔙 Back to Main Menu", b"back")]
+                [Button.inline("ðŸ• Drip Posting", b"menu_drip_posting"), Button.inline("ðŸ’¤ Sleep Mode", b"menu_sleep")],
+                [Button.inline(f"ðŸ“¥ View Queue ({queue_len})", b"menu_queue")],
+                [Button.inline("ðŸ”™ Back to Main Menu", b"back_autoposting")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -315,16 +464,16 @@ async def callback(event):
         elif data == "menu_drip_posting":
             toggles = get_feature_toggles()
             if not toggles.get("drip_posting_unlocked", False) and not is_admin(chat_id):
-                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                await event.answer("ðŸ‘¨â€ðŸ³ Still cooking... This feature is locked by the Admin.", alert=True)
                 return
                 
             user_data = get_user_data(chat_id)
             interval = user_data.get("drip_interval", 0)
             queue_len = len(user_data.get("drip_queue", []))
             
-            status = f"✅ ON ({interval} mins)" if interval > 0 else "❌ OFF"
+            status = f"âœ… ON ({interval} mins)" if interval > 0 else "âŒ OFF"
             text = (
-                "🕒 **Drip Posting (Pro Feature)**\n\n"
+                "ðŸ•’ **Drip Posting (Pro Feature)**\n\n"
                 "Instead of forwarding messages instantly, Drip Posting queues incoming messages and sends them one by one at a specific interval to maximize engagement.\n\n"
                 f"**Status:** {status}\n"
                 f"**Messages in Queue:** {queue_len}\n\n"
@@ -332,16 +481,16 @@ async def callback(event):
             )
             
             user_states[chat_id] = {"step": "waiting_for_drip"}
-            await event.edit(text, buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            await event.edit(text, buttons=[[Button.inline("ðŸ”™ Cancel", b"back_autoposting")]])
             return
 
         elif data == "menu_settings":
             user_data = get_user_data(chat_id)
             delay_enabled = user_data.get("smart_delay_enabled", False)
-            status = "✅ ON" if delay_enabled else "❌ OFF"
+            status = "âœ… ON" if delay_enabled else "âŒ OFF"
             
             text = (
-                "⚙️ **Advanced Settings Panel**\n\n"
+                "âš™ï¸ **Advanced Settings Panel**\n\n"
                 "**1. Smart Delay (Anti-Ban)**\n"
                 "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human reading and typing.\n"
                 f"Current Status: {status}"
@@ -349,7 +498,7 @@ async def callback(event):
             
             buttons = [
                 [Button.inline(f"Toggle Smart Delay: {status}", b"toggle_smart_delay")],
-                [Button.inline("🔙 Back", b"back")]
+                [Button.inline("ðŸ”™ Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -360,19 +509,19 @@ async def callback(event):
             save_user_data(chat_id, user_data)
             
             delay_enabled = user_data.get("smart_delay_enabled", False)
-            status = "✅ ON" if delay_enabled else "❌ OFF"
+            status = "âœ… ON" if delay_enabled else "âŒ OFF"
             await event.answer(f"Smart Delay turned {status}!", alert=True)
             
             # Refresh menu
             text = (
-                "⚙️ **Advanced Settings Panel**\n\n"
+                "âš™ï¸ **Advanced Settings Panel**\n\n"
                 "**1. Smart Delay (Anti-Ban)**\n"
                 "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human reading and typing.\n"
                 f"Current Status: {status}"
             )
             buttons = [
                 [Button.inline(f"Toggle Smart Delay: {status}", b"toggle_smart_delay")],
-                [Button.inline("🔙 Back", b"back")]
+                [Button.inline("ðŸ”™ Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -383,10 +532,10 @@ async def callback(event):
         elif data == "connect_account":
             user_states[chat_id] = {"step": "waiting_for_api_id"}
             await event.edit(
-                "🔑 **Connect Your Telegram Account**\n\n"
+                "ðŸ”‘ **Connect Your Telegram Account**\n\n"
                 "To forward messages, we need to securely connect your account. First, we need your `API_ID`.\n\n"
                 "Please reply with your `API_ID` (numbers only).\n*(You can get this from my.telegram.org)*",
-                buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]]
             )
             return
             
@@ -394,18 +543,18 @@ async def callback(event):
             user_states[chat_id]["step"] = "waiting_for_phone"
             await event.edit(
                 "Perfect. Now reply with your **Phone Number** (including the country code, e.g., `+1234567890`).", 
-                buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]]
             )
             return
             
         elif data == "login_qr":
             state = user_states.get(chat_id)
             if not state or "api_id" not in state:
-                await event.answer("❌ Session expired. Please start over.", alert=True)
+                await event.answer("âŒ Session expired. Please start over.", alert=True)
                 return
                 
             user_states[chat_id]["step"] = "waiting_for_qr"
-            await event.edit("⏳ Generating QR code, please wait...")
+            await event.edit("â³ Generating QR code, please wait...")
             
             import qrcode
             import io
@@ -423,12 +572,12 @@ async def callback(event):
                 bio.seek(0)
                 
                 msg = await event.respond(
-                    "📱 **Scan this QR Code**\n\n"
+                    "ðŸ“± **Scan this QR Code**\n\n"
                     "1. Open Telegram on your phone\n"
                     "2. Go to **Settings** > **Devices**\n"
                     "3. Tap **Link Desktop Device** and scan this code.",
                     file=bio,
-                    buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                    buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]]
                 )
                 
                 # We can't wait here because it blocks the callback loop. 
@@ -436,16 +585,16 @@ async def callback(event):
                 asyncio.create_task(wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, state["api_id"], state["api_hash"]))
                 
             except Exception as e:
-                await event.respond(f"❌ Failed to generate QR: {e}")
+                await event.respond(f"âŒ Failed to generate QR: {e}")
             return
             
         elif data == "manual_session":
             user_states[chat_id] = {"step": "waiting_for_manual_session"}
             await event.edit(
-                "🛠️ **Manual Session Login**\n\n"
+                "ðŸ› ï¸ **Manual Session Login**\n\n"
                 "If Telegram is blocking SMS/App codes from this server, you can generate a session locally on your own PC and paste it here.\n\n"
                 "Please reply with your `StringSession` (the long block of letters/numbers).",
-                buttons=[[Button.inline("🔙 Cancel", b"back")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]]
             )
             return
             
@@ -455,13 +604,13 @@ async def callback(event):
             user_data["api_id"] = ""
             user_data["api_hash"] = ""
             save_user_data(chat_id, user_data)
-            await event.edit("🔌 **Account Disconnected!**\n\nYour forwarding engine has been stopped.", buttons=get_main_keyboard(chat_id))
+            await event.edit("ðŸ”Œ **Account Disconnected!**\n\nYour forwarding engine has been stopped.", buttons=get_main_keyboard(chat_id))
             return
             
         elif data == "resend_code":
             session_data = login_sessions.get(chat_id)
             if not session_data:
-                await event.answer("❌ Session expired. Please start over.", alert=True)
+                await event.answer("âŒ Session expired. Please start over.", alert=True)
                 return
                 
             tmp_client = session_data["client"]
@@ -479,9 +628,9 @@ async def callback(event):
                 elif "Call" in delivery_method:
                     where = "a Phone Call"
                     
-                await event.respond(f"✅ Code resent via {where}!")
+                await event.respond(f"âœ… Code resent via {where}!")
             except Exception as e:
-                await event.respond(f"❌ Failed to resend: {e}")
+                await event.respond(f"âŒ Failed to resend: {e}")
             return
 
         # -----------------------------------------------------
@@ -489,51 +638,51 @@ async def callback(event):
         # -----------------------------------------------------
         user_data = get_user_data(chat_id)
         if not user_data.get('session_string') and data.startswith("menu_"):
-            await event.answer("⚠️ You must connect your account first!", alert=True)
+            await event.answer("âš ï¸ You must connect your account first!", alert=True)
             return
 
         if data == "menu_sources":
             user_states[chat_id] = "waiting_for_sources"
             current = ", ".join(user_data.get('sources', []))
             await event.edit(
-                f"**📌 Edit Sources**\n\nCurrent Sources:\n`{current}`\n\n"
-                "👉 **How to add a source:**\n"
+                f"**ðŸ“Œ Edit Sources**\n\nCurrent Sources:\n`{current}`\n\n"
+                "ðŸ‘‰ **How to add a source:**\n"
                 "Simply **Forward any message** from the channel to me here!\n"
                 "*(Or manually reply with a `@username` or `-100` ID)*\n\n"
                 "Send /cancel to go back.",
-                buttons=[[Button.inline("🔙 Back", b"back")]]
+                buttons=[[Button.inline("ðŸ”™ Back", b"back")]]
             )
             
         elif data == "menu_targets":
             user_states[chat_id] = "waiting_for_targets"
             current = ", ".join(user_data.get('targets', []))
             await event.edit(
-                f"**🎯 Edit Targets**\n\nCurrent Targets:\n`{current}`\n\n"
-                "👉 **How to add a target:**\n"
+                f"**ðŸŽ¯ Edit Targets**\n\nCurrent Targets:\n`{current}`\n\n"
+                "ðŸ‘‰ **How to add a target:**\n"
                 "Simply **Forward any message** from the channel to me here!\n"
                 "*(Or manually reply with a comma-separated list of `@username`)*\n\n"
                 "Send /cancel to go back.",
-                buttons=[[Button.inline("🔙 Back", b"back")]]
+                buttons=[[Button.inline("ðŸ”™ Back", b"back_modifications")]]
             )
             
         elif data == "menu_words":
             swaps = user_data.get("text_swaps", {})
-            msg = "**✏️ Word Swapper**\n\nCurrent Swaps:\n"
+            msg = "**âœï¸ Word Swapper**\n\nCurrent Swaps:\n"
             if not swaps:
                 msg += "*(No words are currently being swapped)*\n"
             for old, new in swaps.items():
-                msg += f"• `{old}` ➡️ `{new}`\n"
+                msg += f"â€¢ `{old}` âž¡ï¸ `{new}`\n"
             user_states[chat_id] = {"step": "waiting_for_old_word"}
             msg += "\n**What word or phrase do you want to FIND in the incoming messages?**"
-            await event.edit(msg, buttons=[[Button.inline("🔙 Back", b"back")]])
+            await event.edit(msg, buttons=[[Button.inline("ðŸ”™ Back", b"back_modifications")]])
     
         elif data == "menu_links":
             user_states[chat_id] = "waiting_for_link"
             current_link = user_data.get("replace_all_links_with", "")
             current_user = user_data.get("replace_all_usernames_with", "")
             await event.edit(
-                f"**🔗 Link & Branding**\n\nGlobal Link: `{current_link}`\nGlobal Username: `{current_user}`\n\nReply with `LINK=https://yourlink.com` or `USER=@youruser` to update them.",
-                buttons=[[Button.inline("🔙 Back", b"back")]]
+                f"**ðŸ”— Link & Branding**\n\nGlobal Link: `{current_link}`\nGlobal Username: `{current_user}`\n\nReply with `LINK=https://yourlink.com` or `USER=@youruser` to update them.",
+                buttons=[[Button.inline("ðŸ”™ Back", b"back_modifications")]]
             )
             
         elif data == "menu_image":
@@ -548,55 +697,55 @@ async def callback(event):
             elif current_url:
                 status = current_url
                 
-            toggle_btn = "🔴 Turn OFF" if is_enabled else "🟢 Turn ON"
+            toggle_btn = "ðŸ”´ Turn OFF" if is_enabled else "ðŸŸ¢ Turn ON"
             
             await event.edit(
-                f"**🖼 Image Branding**\n\n"
-                f"📸 **Image Overwrite:** `{status}`\nStatus: {'**ENABLED**' if is_enabled else '**DISABLED**'}\n\n"
-                "👉 **How to set a global overwrite image:**\n"
+                f"**ðŸ–¼ Image Branding**\n\n"
+                f"ðŸ“¸ **Image Overwrite:** `{status}`\nStatus: {'**ENABLED**' if is_enabled else '**DISABLED**'}\n\n"
+                "ðŸ‘‰ **How to set a global overwrite image:**\n"
                 "Simply **Send a Photo** to the bot right now!\n"
                 "*(Or manually reply with a direct image URL, or type `CLEAR` to remove it)*\n\n"
                 "---\n"
-                "🤖 **AI Watermark Tools (Pro)**\n"
+                "ðŸ¤– **AI Watermark Tools (Pro)**\n"
                 "Automatically hunt and remove/replace competitor text on images!",
                 buttons=[
                     [Button.inline(toggle_btn, b"toggle_image")],
-                    [Button.inline("🪄 AI Watermark Remover", b"ai_watermark_remover")],
-                    [Button.inline("✍️ AI Watermark Replacer", b"ai_watermark_replacer")],
-                    [Button.inline("🔙 Back", b"back")]
+                    [Button.inline("ðŸª„ AI Watermark Remover", b"ai_watermark_remover")],
+                    [Button.inline("âœï¸ AI Watermark Replacer", b"ai_watermark_replacer")],
+                    [Button.inline("ðŸ”™ Back", b"back_modifications")]
                 ]
             )
             
         elif data == "ai_watermark_remover":
             toggles = get_feature_toggles()
             if not toggles.get("ai_watermark_unlocked", False) and not is_admin(chat_id):
-                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                await event.answer("ðŸ‘¨â€ðŸ³ Still cooking... This feature is locked by the Admin.", alert=True)
                 return
             user_states[chat_id] = "waiting_for_watermark_remove"
             await event.edit(
-                "🪄 **AI Watermark Remover**\n\n"
+                "ðŸª„ **AI Watermark Remover**\n\n"
                 "The AI will scan incoming images, find the text you specify, and automatically blend it out to remove it.\n\n"
                 "**What text should the AI hunt for?**\n"
                 "*(e.g., `Earn with Nazzy`)*\n\n"
                 "Reply with the text, or type `CLEAR` to disable.",
-                buttons=[[Button.inline("🔙 Cancel", b"menu_image")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"menu_image")]]
             )
             return
 
         elif data == "ai_watermark_replacer":
             toggles = get_feature_toggles()
             if not toggles.get("ai_watermark_unlocked", False) and not is_admin(chat_id):
-                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                await event.answer("ðŸ‘¨â€ðŸ³ Still cooking... This feature is locked by the Admin.", alert=True)
                 return
             user_states[chat_id] = "waiting_for_watermark_replace"
             await event.edit(
-                "✍️ **AI Watermark Replacer**\n\n"
+                "âœï¸ **AI Watermark Replacer**\n\n"
                 "The AI will scan incoming images, find a competitor's text, and overwrite it with YOUR text!\n\n"
                 "**Reply in this format:**\n"
                 "`OldText | NewText`\n\n"
                 "*(e.g., `Earn with Nazzy | Earn with Webtgf`)*\n\n"
                 "Reply with the text, or type `CLEAR` to disable.",
-                buttons=[[Button.inline("🔙 Cancel", b"menu_image")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"menu_image")]]
             )
             return
 
@@ -615,16 +764,16 @@ async def callback(event):
             elif current_url:
                 status = current_url
                 
-            toggle_btn = "🔴 Turn OFF" if new_status else "🟢 Turn ON"
+            toggle_btn = "ðŸ”´ Turn OFF" if new_status else "ðŸŸ¢ Turn ON"
             
             await event.edit(
-                f"**🖼 Image Branding**\n\nCurrent Image: `{status}`\nStatus: {'**ENABLED**' if new_status else '**DISABLED**'}\n\n"
-                "👉 **How to set a global image:**\n"
+                f"**ðŸ–¼ Image Branding**\n\nCurrent Image: `{status}`\nStatus: {'**ENABLED**' if new_status else '**DISABLED**'}\n\n"
+                "ðŸ‘‰ **How to set a global image:**\n"
                 "Simply **Send a Photo** to the bot right now!\n"
                 "*(Or manually reply with a direct image URL, or type `CLEAR` to remove it)*",
                 buttons=[
                     [Button.inline(toggle_btn, b"toggle_image")],
-                    [Button.inline("🔙 Back", b"back")]
+                    [Button.inline("ðŸ”™ Back", b"back_modifications")]
                 ]
             )
             
@@ -634,13 +783,13 @@ async def callback(event):
         elif data == "admin_panel" and is_admin(chat_id):
             user_states[chat_id] = None
             tenants = get_tenants()
-            msg = f"👑 **Admin Panel**\n\nTotal Tenants: {len(tenants)}\n\nSelect an action:"
+            msg = f"ðŸ‘‘ **Admin Panel**\n\nTotal Tenants: {len(tenants)}\n\nSelect an action:"
             buttons = [
-                [Button.inline("➕ Add Tenant", b"admin_add"), Button.inline("➖ Remove Tenant", b"admin_remove")],
-                [Button.inline("👥 View Tenants", b"admin_view"), Button.inline("📊 Analytics", b"admin_analytics")],
-                [Button.inline("⚙️ Feature Toggles", b"admin_features")],
-                [Button.inline("📢 Broadcast", b"admin_broadcast"), Button.inline("✨ AI Generate", b"admin_ai_broadcast")],
-                [Button.inline("🔙 Back to Dashboard", b"back")]
+                [Button.inline("âž• Add Tenant", b"admin_add"), Button.inline("âž– Remove Tenant", b"admin_remove")],
+                [Button.inline("ðŸ‘¥ View Tenants", b"admin_view"), Button.inline("ðŸ“Š Analytics", b"admin_analytics")],
+                [Button.inline("âš™ï¸ Feature Toggles", b"admin_features")],
+                [Button.inline("ðŸ“¢ Broadcast", b"admin_broadcast"), Button.inline("âœ¨ AI Generate", b"admin_ai_broadcast")],
+                [Button.inline("ðŸ”™ Back to Dashboard", b"back_modifications")]
             ]
             await event.edit(msg, buttons=buttons)
             
@@ -662,27 +811,30 @@ async def callback(event):
             tenants = get_tenants()
             
             msg = (
-                "📊 **Webtgf Analytics Dashboard**\n\n"
-                f"👥 **Total Tenants:** `{len(tenants)}`\n"
-                f"📈 **Total Messages Forwarded:** `{stats['total']}`\n"
-                f"🔥 **Messages Forwarded Today:** `{stats['today']}`\n"
+                "ðŸ“Š **Webtgf Analytics Dashboard**\n\n"
+                f"ðŸ‘¥ **Total Tenants:** `{len(tenants)}`\n"
+                f"ðŸ“ˆ **Total Messages Forwarded:** `{stats['total']}`\n"
+                f"ðŸ”¥ **Messages Forwarded Today:** `{stats['today']}`\n"
             )
-            await event.edit(msg, buttons=[[Button.inline("🔙 Back", b"admin_panel")]])
+            await event.edit(msg, buttons=[[Button.inline("ðŸ”™ Back", b"admin_panel")]])
             
         elif data == "admin_features" and is_admin(chat_id):
             toggles = get_feature_toggles()
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             
-            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
-            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            btn_text = "ðŸ”“ Unlock Drip Posting" if drip_locked else "ðŸ”’ Lock Drip Posting"
+            ai_btn_text = "ðŸ”“ Unlock AI Watermark" if ai_locked else "ðŸ”’ Lock AI Watermark"
+            sleep_btn_text = "ðŸ”“ Unlock Sleep Mode" if sleep_locked else "ðŸ”’ Lock Sleep Mode"
             
             await event.edit(
-                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                "ðŸŽ›ï¸ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
-                    [Button.inline("🔙 Back", b"admin_panel")]
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
+                    [Button.inline("ðŸ”™ Back", b"admin_panel")]
                 ]
             )
             
@@ -693,18 +845,21 @@ async def callback(event):
             
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
-            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
-            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
+            btn_text = "ðŸ”“ Unlock Drip Posting" if drip_locked else "ðŸ”’ Lock Drip Posting"
+            ai_btn_text = "ðŸ”“ Unlock AI Watermark" if ai_locked else "ðŸ”’ Lock AI Watermark"
+            sleep_btn_text = "ðŸ”“ Unlock Sleep Mode" if sleep_locked else "ðŸ”’ Lock Sleep Mode"
             
             await event.edit(
-                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                "ðŸŽ›ï¸ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
-                    [Button.inline("🔙 Back", b"admin_panel")]
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
+                    [Button.inline("ðŸ”™ Back", b"admin_panel")]
                 ]
             )
-
+            
         elif data == "toggle_admin_ai" and is_admin(chat_id):
             toggles = get_feature_toggles()
             toggles["ai_watermark_unlocked"] = not toggles.get("ai_watermark_unlocked", False)
@@ -712,57 +867,80 @@ async def callback(event):
             
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
             
             await event.edit(
-                "⚙️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
             
-        elif data == "admin_ai_broadcast" and is_admin(chat_id):
+        elif data == "toggle_admin_sleep" and is_admin(chat_id):
+            toggles = get_feature_toggles()
+            toggles["sleep_mode_unlocked"] = not toggles.get("sleep_mode_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip_locked = not toggles.get("drip_posting_unlocked", False)
+            ai_locked = not toggles.get("ai_watermark_unlocked", False)
+            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
+            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
+            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
+            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
+            
+            await event.edit(
+                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
+                buttons=[
+                    [Button.inline(btn_text, b"toggle_admin_drip")],
+                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
+                    [Button.inline("🔙 Back", b"admin_panel")]
+                ]
+            )
             if not os.getenv('GEMINI_API_KEY'):
-                await event.answer("⚠️ API Key not found in .env!", alert=True)
+                await event.answer("âš ï¸ API Key not found in .env!", alert=True)
                 return
             user_states[chat_id] = "waiting_for_ai_prompt"
             await event.edit(
-                "✨ **AI Broadcast Generator**\n\n"
+                "âœ¨ **AI Broadcast Generator**\n\n"
                 "What feature or update do you want to announce?\n"
                 "*(e.g., 'tell them we now support custom image branding')*\n\n"
                 "Send /cancel to abort.",
-                buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"admin_panel")]]
             )
             
         elif data == "admin_broadcast" and is_admin(chat_id):
             user_states[chat_id] = "waiting_for_broadcast"
             await event.edit(
-                "📢 **Broadcast Message**\n\n"
+                "ðŸ“¢ **Broadcast Message**\n\n"
                 "Send the message (text, photo, or document) you want to broadcast to all your tenants.\n\n"
                 "*(Send /cancel to abort)*", 
-                buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]]
+                buttons=[[Button.inline("ðŸ”™ Cancel", b"admin_panel")]]
             )
             
         elif data == "admin_view" and is_admin(chat_id):
             tenants = get_tenants()
-            msg = "👥 **Current Tenants:**\n\n"
+            msg = "ðŸ‘¥ **Current Tenants:**\n\n"
             if not tenants:
                 msg += "No tenants added yet."
             else:
                 for t in tenants:
-                    msg += f"• `{t}`\n"
-            await event.edit(msg, buttons=[[Button.inline("🔙 Back to Admin Panel", b"admin_panel")]])
+                    msg += f"â€¢ `{t}`\n"
+            await event.edit(msg, buttons=[[Button.inline("ðŸ”™ Back to Admin Panel", b"admin_panel")]])
             
         elif data == "admin_add" and is_admin(chat_id):
             user_states[chat_id] = "waiting_for_add_tenant"
-            await event.edit("➕ **Add Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to grant access to.", buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]])
+            await event.edit("âž• **Add Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to grant access to.", buttons=[[Button.inline("ðŸ”™ Cancel", b"admin_panel")]])
             
         elif data == "admin_remove" and is_admin(chat_id):
             user_states[chat_id] = "waiting_for_remove_tenant"
-            await event.edit("➖ **Remove Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to revoke access from.", buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]])
+            await event.edit("âž– **Remove Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to revoke access from.", buttons=[[Button.inline("ðŸ”™ Cancel", b"admin_panel")]])
 
         elif data == "ai_approve" and is_admin(chat_id):
             state = user_states.get(chat_id)
@@ -774,7 +952,7 @@ async def callback(event):
             tenants = get_tenants()
             sent_count = 0
             
-            await event.edit(f"⏳ Broadcasting AI message to {len(tenants)} tenants...")
+            await event.edit(f"â³ Broadcasting AI message to {len(tenants)} tenants...")
             
             for tenant_id in tenants:
                 try:
@@ -785,7 +963,7 @@ async def callback(event):
                     pass
                     
             user_states[chat_id] = None
-            await event.edit(f"✅ **Broadcast Complete!**\n\nAI message successfully delivered to {sent_count}/{len(tenants)} tenants.", buttons=[[Button.inline("🔙 Admin Panel", b"admin_panel")]])
+            await event.edit(f"âœ… **Broadcast Complete!**\n\nAI message successfully delivered to {sent_count}/{len(tenants)} tenants.", buttons=[[Button.inline("ðŸ”™ Admin Panel", b"admin_panel")]])
 
         else:
             await event.answer("Coming soon!", alert=True)
@@ -817,11 +995,11 @@ async def text_handler(event):
             user_data["ai_watermark_mode"] = "off"
             user_data["ai_watermark_target"] = ""
             user_data["ai_watermark_replace"] = ""
-            await event.respond("✅ AI Watermark tools disabled.", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… AI Watermark tools disabled.", buttons=get_main_keyboard(chat_id))
         else:
             user_data["ai_watermark_mode"] = "remove"
             user_data["ai_watermark_target"] = text.strip()
-            await event.respond(f"✅ Active! The AI will now hunt for `{text}` and remove it from images.", buttons=get_main_keyboard(chat_id))
+            await event.respond(f"âœ… Active! The AI will now hunt for `{text}` and remove it from images.", buttons=get_main_keyboard(chat_id))
         
         save_user_data(chat_id, user_data)
         user_states[chat_id] = None
@@ -831,10 +1009,10 @@ async def text_handler(event):
             user_data["ai_watermark_mode"] = "off"
             user_data["ai_watermark_target"] = ""
             user_data["ai_watermark_replace"] = ""
-            await event.respond("✅ AI Watermark tools disabled.", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… AI Watermark tools disabled.", buttons=get_main_keyboard(chat_id))
         else:
             if "|" not in text:
-                await event.respond("❌ Please use the format: `OldText | NewText`")
+                await event.respond("âŒ Please use the format: `OldText | NewText`")
                 return
                 
             parts = text.split("|")
@@ -844,7 +1022,7 @@ async def text_handler(event):
             user_data["ai_watermark_mode"] = "replace"
             user_data["ai_watermark_target"] = old_t
             user_data["ai_watermark_replace"] = new_t
-            await event.respond(f"✅ Active! The AI will now hunt for `{old_t}` and replace it with `{new_t}`.", buttons=get_main_keyboard(chat_id))
+            await event.respond(f"âœ… Active! The AI will now hunt for `{old_t}` and replace it with `{new_t}`.", buttons=get_main_keyboard(chat_id))
             
         save_user_data(chat_id, user_data)
         user_states[chat_id] = None
@@ -855,7 +1033,7 @@ async def text_handler(event):
         # --- DRIP POSTING ---
         if step == "waiting_for_drip":
             if not text.isdigit():
-                await event.respond("❌ Please enter a valid number (e.g., 60).")
+                await event.respond("âŒ Please enter a valid number (e.g., 60).")
                 return
                 
             interval = int(text)
@@ -865,14 +1043,14 @@ async def text_handler(event):
                 user_data["drip_queue"] = [] # Clear queue if disabled
             save_user_data(chat_id, user_data)
             
-            status = f"✅ Drip Posting ENABLED! Messages will be queued and sent every {interval} minutes." if interval > 0 else "❌ Drip Posting DISABLED."
+            status = f"âœ… Drip Posting ENABLED! Messages will be queued and sent every {interval} minutes." if interval > 0 else "âŒ Drip Posting DISABLED."
             await event.respond(status, buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
             return
 
         # --- LOGIN STEPS ---
         elif step == "waiting_for_manual_session":
-            await event.respond("⏳ Testing your session string, please wait...")
+            await event.respond("â³ Testing your session string, please wait...")
             try:
                 user_data = get_user_data(chat_id)
                 # Use standard Telegram Android API ID for testing the session
@@ -885,22 +1063,22 @@ async def text_handler(event):
                     save_user_data(chat_id, user_data)
                     user_states[chat_id] = None
                     await tmp_client.disconnect()
-                    await event.respond("✅ **Session Successfully Connected!**", buttons=get_main_keyboard(chat_id))
+                    await event.respond("âœ… **Session Successfully Connected!**", buttons=get_main_keyboard(chat_id))
                     
                 else:
                     await tmp_client.disconnect()
-                    await event.respond("❌ Invalid session string (Not authorized).", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+                    await event.respond("âŒ Invalid session string (Not authorized).", buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]])
             except Exception as e:
-                await event.respond(f"❌ Failed to connect session: {e}", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+                await event.respond(f"âŒ Failed to connect session: {e}", buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]])
             return
         
         elif step == "waiting_for_api_id":
             if not text.isdigit():
-                await event.respond("❌ `API_ID` must be numbers only. Try again.")
+                await event.respond("âŒ `API_ID` must be numbers only. Try again.")
                 return
             state["api_id"] = int(text)
             state["step"] = "waiting_for_api_hash"
-            await event.respond("Great. Now reply with your `API_HASH` (the long random string).", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            await event.respond("Great. Now reply with your `API_HASH` (the long random string).", buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]])
             return
             
         elif step == "waiting_for_api_hash":
@@ -908,12 +1086,12 @@ async def text_handler(event):
             state["step"] = "waiting_for_login_method"
             await event.respond(
                 "Great! How would you like to connect your account?\n\n"
-                "📱 **QR Code (Recommended):** Bypass SMS limits instantly.\n"
-                "✉️ **Phone Number:** Standard SMS login.", 
+                "ðŸ“± **QR Code (Recommended):** Bypass SMS limits instantly.\n"
+                "âœ‰ï¸ **Phone Number:** Standard SMS login.", 
                 buttons=[
-                    [Button.inline("📱 QR Code Login", b"login_qr")],
-                    [Button.inline("✉️ Phone Number", b"login_phone")],
-                    [Button.inline("🔙 Cancel", b"back")]
+                    [Button.inline("ðŸ“± QR Code Login", b"login_qr")],
+                    [Button.inline("âœ‰ï¸ Phone Number", b"login_phone")],
+                    [Button.inline("ðŸ”™ Cancel", b"back")]
                 ]
             )
             return
@@ -922,7 +1100,7 @@ async def text_handler(event):
             state["phone"] = text
             
             # Spin up a temporary client to request the code
-            await event.respond("⏳ Requesting Telegram code, please wait...")
+            await event.respond("â³ Requesting Telegram code, please wait...")
             tmp_client = TelegramClient(StringSession(), state["api_id"], state["api_hash"])
             await tmp_client.connect()
             
@@ -946,20 +1124,20 @@ async def text_handler(event):
                     where = "a Phone Call"
                     
                 await event.respond(
-                    f"📬 **Telegram has sent your login code!**\n\n"
+                    f"ðŸ“¬ **Telegram has sent your login code!**\n\n"
                     f"**Number used:** `{state['phone']}`\n"
                     f"**Delivery Method:** {where} (`{delivery_method}`)\n\n"
-                    "⚠️ **CRITICAL INSTRUCTION:** Telegram's security system will instantly block the login if you just send the code normally.\n\n"
-                    "👉 **You MUST put spaces between the numbers.**\n"
+                    "âš ï¸ **CRITICAL INSTRUCTION:** Telegram's security system will instantly block the login if you just send the code normally.\n\n"
+                    "ðŸ‘‰ **You MUST put spaces between the numbers.**\n"
                     "For example, if your code is `12345`, you must reply with:\n`1 2 3 4 5`\n\n"
                     "*(The bot will automatically remove the spaces for you)*", 
                     buttons=[
-                        [Button.inline("🔁 Resend Code", b"resend_code")],
-                        [Button.inline("🔙 Cancel", b"back")]
+                        [Button.inline("ðŸ” Resend Code", b"resend_code")],
+                        [Button.inline("ðŸ”™ Cancel", b"back")]
                     ]
                 )
             except Exception as e:
-                await event.respond(f"❌ Failed to request code: {e}")
+                await event.respond(f"âŒ Failed to request code: {e}")
                 await tmp_client.disconnect()
                 user_states[chat_id] = None
             return
@@ -967,7 +1145,7 @@ async def text_handler(event):
         elif step == "waiting_for_code":
             session_data = login_sessions.get(chat_id)
             if not session_data:
-                await event.respond("❌ Session expired. Please try connecting again.")
+                await event.respond("âŒ Session expired. Please try connecting again.")
                 user_states[chat_id] = None
                 return
                 
@@ -990,14 +1168,14 @@ async def text_handler(event):
                 save_user_data(chat_id, user_data)
                 
                 user_states[chat_id] = None
-                await event.respond("✅ **Account Successfully Connected!**\n\nYour forwarding engine will boot up momentarily.", buttons=get_main_keyboard(chat_id))
+                await event.respond("âœ… **Account Successfully Connected!**\n\nYour forwarding engine will boot up momentarily.", buttons=get_main_keyboard(chat_id))
             
             except SessionPasswordNeededError:
                 state["step"] = "waiting_for_password"
-                await event.respond("🔒 Your account has Two-Step Verification (2FA) enabled.\n\nPlease reply with your password:", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+                await event.respond("ðŸ”’ Your account has Two-Step Verification (2FA) enabled.\n\nPlease reply with your password:", buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]])
                 
             except Exception as e:
-                await event.respond(f"❌ Failed to login: {e}")
+                await event.respond(f"âŒ Failed to login: {e}")
                 await tmp_client.disconnect()
                 del login_sessions[chat_id]
                 user_states[chat_id] = None
@@ -1029,9 +1207,9 @@ async def text_handler(event):
                 save_user_data(chat_id, user_data)
                 
                 user_states[chat_id] = None
-                await event.respond("✅ **Account Successfully Connected!**\n\nYour forwarding engine will boot up momentarily.", buttons=get_main_keyboard(chat_id))
+                await event.respond("âœ… **Account Successfully Connected!**\n\nYour forwarding engine will boot up momentarily.", buttons=get_main_keyboard(chat_id))
             except Exception as e:
-                await event.respond(f"❌ Invalid Password: {e}")
+                await event.respond(f"âŒ Invalid Password: {e}")
             return
 
         # --- SLEEP MODE SETTINGS ---
@@ -1057,16 +1235,16 @@ async def text_handler(event):
                 save_user_data(chat_id, user_data)
                 
                 user_states[chat_id] = None
-                await event.respond("✅ **Sleep settings updated!**\n\nMessages will now be queued during this window.", buttons=get_main_keyboard(chat_id))
+                await event.respond("âœ… **Sleep settings updated!**\n\nMessages will now be queued during this window.", buttons=get_main_keyboard(chat_id))
             except:
-                await event.respond("❌ **Invalid format.**\nPlease use the exact format:\n`22:00 - 08:00 - -5`", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+                await event.respond("âŒ **Invalid format.**\nPlease use the exact format:\n`22:00 - 08:00 - -5`", buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]])
             return
 
         # --- WORD SWAPPER STEPS ---
         elif step == "waiting_for_old_word":
             state["old_word"] = text
             state["step"] = "waiting_for_new_word"
-            await event.respond(f"Okay! Whenever I see `{state['old_word']}`, what should I replace it with?\n\n*(Type the new word, or type `DELETE` to remove this rule)*", buttons=[[Button.inline("🔙 Cancel", b"back")]])
+            await event.respond(f"Okay! Whenever I see `{state['old_word']}`, what should I replace it with?\n\n*(Type the new word, or type `DELETE` to remove this rule)*", buttons=[[Button.inline("ðŸ”™ Cancel", b"back")]])
             return
             
         elif step == "waiting_for_new_word":
@@ -1079,12 +1257,12 @@ async def text_handler(event):
             if new_w.upper() == "DELETE":
                 if old_w in user_data["text_swaps"]:
                     del user_data["text_swaps"][old_w]
-                    await event.respond(f"✅ Deleted swap rule for `{old_w}`", buttons=get_main_keyboard(chat_id))
+                    await event.respond(f"âœ… Deleted swap rule for `{old_w}`", buttons=get_main_keyboard(chat_id))
                 else:
-                    await event.respond(f"❌ Could not find a rule for `{old_w}` to delete.", buttons=get_main_keyboard(chat_id))
+                    await event.respond(f"âŒ Could not find a rule for `{old_w}` to delete.", buttons=get_main_keyboard(chat_id))
             else:
                 user_data["text_swaps"][old_w] = new_w
-                await event.respond(f"✅ Success! I will now replace `{old_w}` ➡️ `{new_w}`", buttons=get_main_keyboard(chat_id))
+                await event.respond(f"âœ… Success! I will now replace `{old_w}` âž¡ï¸ `{new_w}`", buttons=get_main_keyboard(chat_id))
             
             save_user_data(chat_id, user_data)
             user_states[chat_id] = None
@@ -1101,7 +1279,7 @@ async def text_handler(event):
                 user_data["targets"] = []
             save_user_data(chat_id, user_data)
             user_states[chat_id] = None
-            await event.respond("✅ Cleared successfully!", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… Cleared successfully!", buttons=get_main_keyboard(chat_id))
             return
             
         from telethon.tl.types import PeerChannel, PeerChat, PeerUser
@@ -1118,7 +1296,7 @@ async def text_handler(event):
             new_items = [x.strip() for x in text.split(',') if x.strip()]
             
         if not new_items:
-            await event.respond("❌ I couldn't detect a valid ID. Please forward a message from the channel, or type the ID manually.")
+            await event.respond("âŒ I couldn't detect a valid ID. Please forward a message from the channel, or type the ID manually.")
             return
             
         if state == "waiting_for_sources":
@@ -1136,40 +1314,40 @@ async def text_handler(event):
             
         save_user_data(chat_id, user_data)
         user_states[chat_id] = None
-        await event.respond(f"✅ Added: {', '.join(new_items)}", buttons=get_main_keyboard(chat_id))
+        await event.respond(f"âœ… Added: {', '.join(new_items)}", buttons=get_main_keyboard(chat_id))
         
     elif state == "waiting_for_link":
         if text.startswith("LINK="):
             user_data["replace_all_links_with"] = text.split("=", 1)[1].strip()
             save_user_data(chat_id, user_data)
             user_states[chat_id] = None
-            await event.respond("✅ Global link updated!", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… Global link updated!", buttons=get_main_keyboard(chat_id))
         elif text.startswith("USER="):
             user_data["replace_all_usernames_with"] = text.split("=", 1)[1].strip()
             save_user_data(chat_id, user_data)
             user_states[chat_id] = None
-            await event.respond("✅ Global username updated!", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… Global username updated!", buttons=get_main_keyboard(chat_id))
         else:
-            await event.respond("❌ Invalid format. Use `LINK=...` or `USER=...`")
+            await event.respond("âŒ Invalid format. Use `LINK=...` or `USER=...`")
             
     elif state == "waiting_for_image":
         if text.upper() == "CLEAR":
             user_data["image_swap_url"] = ""
             user_data["image_swap_path"] = ""
-            await event.respond("✅ Image override cleared!", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… Image override cleared!", buttons=get_main_keyboard(chat_id))
         elif event.photo:
             os.makedirs(os.path.join("database", "images"), exist_ok=True)
             path = os.path.join("database", "images", f"{chat_id}.jpg")
             await event.download_media(file=path)
             user_data["image_swap_url"] = ""
             user_data["image_swap_path"] = path
-            await event.respond("✅ Image override set from your photo!", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… Image override set from your photo!", buttons=get_main_keyboard(chat_id))
         elif text.startswith("http"):
             user_data["image_swap_url"] = text
             user_data["image_swap_path"] = ""
-            await event.respond("✅ Image URL override set!", buttons=get_main_keyboard(chat_id))
+            await event.respond("âœ… Image URL override set!", buttons=get_main_keyboard(chat_id))
         else:
-            await event.respond("❌ Please send a Photo, a valid URL, or type CLEAR.", buttons=get_main_keyboard(chat_id))
+            await event.respond("âŒ Please send a Photo, a valid URL, or type CLEAR.", buttons=get_main_keyboard(chat_id))
             return
             
         save_user_data(chat_id, user_data)
@@ -1184,7 +1362,7 @@ async def text_handler(event):
             sent_count = 0
             
             # Send status message first
-            status_msg = await event.respond(f"⏳ Broadcasting to {len(tenants)} tenants...")
+            status_msg = await event.respond(f"â³ Broadcasting to {len(tenants)} tenants...")
             
             for tenant_id in tenants:
                 try:
@@ -1197,7 +1375,7 @@ async def text_handler(event):
                     pass
                     
             user_states[chat_id] = None
-            await status_msg.edit(f"✅ **Broadcast Complete!**\n\nMessage successfully delivered to {sent_count}/{len(tenants)} tenants.", buttons=get_main_keyboard(chat_id))
+            await status_msg.edit(f"âœ… **Broadcast Complete!**\n\nMessage successfully delivered to {sent_count}/{len(tenants)} tenants.", buttons=get_main_keyboard(chat_id))
             
     elif state == "waiting_for_add_tenant":
         if is_admin(chat_id):
@@ -1205,18 +1383,18 @@ async def text_handler(event):
             if text not in tenants:
                 tenants.append(text)
                 save_tenants(tenants)
-                await event.respond(f"✅ Added tenant ID: `{text}`", buttons=get_main_keyboard(chat_id))
+                await event.respond(f"âœ… Added tenant ID: `{text}`", buttons=get_main_keyboard(chat_id))
                 try:
-                    await bot.send_message(int(text), "🎉 **Account Activated!**\n\nThe Administrator has just granted you access.\nPlease send /start to open your dashboard!")
+                    await bot.send_message(int(text), "ðŸŽ‰ **Account Activated!**\n\nThe Administrator has just granted you access.\nPlease send /start to open your dashboard!")
                 except Exception:
                     pass
             else:
-                await event.respond(f"⚠️ Tenant ID `{text}` is already added.", buttons=get_main_keyboard(chat_id))
+                await event.respond(f"âš ï¸ Tenant ID `{text}` is already added.", buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
             
     elif state == "waiting_for_ai_prompt":
         if is_admin(chat_id):
-            status_msg = await event.respond("⏳ Generating professional announcement with Google Gemini...")
+            status_msg = await event.respond("â³ Generating professional announcement with Google Gemini...")
             try:
                 from google import genai
                 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
@@ -1232,12 +1410,12 @@ async def text_handler(event):
                 await status_msg.edit(
                     f"**Here is your generated broadcast:**\n\n{response.text}\n\n**Do you want to send this to all tenants?**",
                     buttons=[
-                        [Button.inline("✅ Approve & Send", b"ai_approve")],
-                        [Button.inline("❌ Cancel", b"admin_panel")]
+                        [Button.inline("âœ… Approve & Send", b"ai_approve")],
+                        [Button.inline("âŒ Cancel", b"admin_panel")]
                     ]
                 )
             except Exception as e:
-                await status_msg.edit(f"❌ Failed to generate: {e}", buttons=[[Button.inline("🔙 Back", b"admin_panel")]])
+                await status_msg.edit(f"âŒ Failed to generate: {e}", buttons=[[Button.inline("ðŸ”™ Back", b"admin_panel")]])
             
     elif state == "waiting_for_remove_tenant":
         if is_admin(chat_id):
@@ -1245,12 +1423,13 @@ async def text_handler(event):
             if text in tenants:
                 tenants.remove(text)
                 save_tenants(tenants)
-                await event.respond(f"✅ Removed tenant ID: `{text}`", buttons=get_main_keyboard(chat_id))
+                await event.respond(f"âœ… Removed tenant ID: `{text}`", buttons=get_main_keyboard(chat_id))
             else:
-                await event.respond(f"❌ Tenant ID `{text}` not found.", buttons=get_main_keyboard(chat_id))
+                await event.respond(f"âŒ Tenant ID `{text}` not found.", buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
 
 print("Starting Webtgf Control Bot with OTP capabilities...")
 bot.start(bot_token=BOT_TOKEN)
 bot.run_until_disconnected()
+
 
