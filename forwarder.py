@@ -306,6 +306,7 @@ async def execute_forward(message, chat_id, user_data):
 
 
 async def handle_message(event, chat_id):
+    print(f"[DEBUG-ALL-MESSAGES] Tenant {chat_id} received message from {event.chat_id}")
     from database_manager import save_user_data
     user_data = get_user_data(chat_id)
     
@@ -322,7 +323,9 @@ async def handle_message(event, chat_id):
         if str(src).startswith("@") or not any(char.isdigit() for char in str(src)):
             continue
         src_clean = str(src).replace("-100", "").replace("-", "")
+        print(f"[DEBUG-MATCH] Comparing incoming: {incoming_id_clean} with saved: {src_clean}")
         if src_clean == incoming_id_clean:
+            print(f"[DEBUG-MATCH] SUCCESS! {src_clean} == {incoming_id_clean}")
             is_source = True
             break
             
@@ -414,7 +417,7 @@ async def monitor_users():
                         # Populate entity cache to make -100 IDs work for both sources and targets
                         try:
                             print(f"[Tenant {chat_id}] Fetching dialogs to populate entity cache...")
-                            await client.get_dialogs()
+                            await client.get_dialogs(limit=300)
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
                             
