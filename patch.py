@@ -1,126 +1,168 @@
+﻿import json
+import os
+
 with open('control_bot.py', 'r', encoding='utf-8') as f:
     c = f.read()
 
-import re
-
-code = '''
-        elif data == b"menu_sleep":
-            user_data = get_user_data(chat_id)
-            sleep_mode = user_data.get("sleep_mode", {})
-            
-            is_enabled = sleep_mode.get("enabled", False)
-            start_t = sleep_mode.get("start_time", "22:00")
-            end_t = sleep_mode.get("end_time", "08:00")
-            offset = sleep_mode.get("timezone_offset", 0)
-            
-            status = "? ON" if is_enabled else "? OFF"
-            text = (
-                "?? **Sleep Mode / Blackout Window**\\n\\n"
-                "Hold all incoming messages during specific hours and drip them out in the morning.\\n\\n"
-                f"**Status:** {status}\\n"
-                f"**Start Time:** {start_t}\\n"
-                f"**End Time:** {end_t}\\n"
-                f"**Timezone Offset (UTC):** {offset}\\n\\n"
-                "Use the buttons below to configure your sleep window."
-            )
-            
+# 1. Add back_modifications and back_autoposting handlers
+back_handlers = '''
+        elif data == "back_modifications":
+            user_states.pop(chat_id, None)
+            text = "✨ **Modification Rules**\\n\\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
-                [Button.inline("?? Edit Times", b"sleep_edit")],
-                [Button.inline("?? Back", b"back")]
+                [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
+                [Button.inline("🔗 Link & Branding", b"menu_links")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
 
-        elif data == b"sleep_toggle":
+        elif data == "back_autoposting":
+            user_states.pop(chat_id, None)
             user_data = get_user_data(chat_id)
-            sleep_mode = user_data.get("sleep_mode", {})
-            sleep_mode["enabled"] = not sleep_mode.get("enabled", False)
-            user_data["sleep_mode"] = sleep_mode
-            save_user_data(chat_id, user_data)
-            await event.answer("Sleep Mode toggled!", alert=False)
-            
-            # Refresh menu
-            is_enabled = sleep_mode.get("enabled", False)
-            start_t = sleep_mode.get("start_time", "22:00")
-            end_t = sleep_mode.get("end_time", "08:00")
-            offset = sleep_mode.get("timezone_offset", 0)
-            status = "? ON" if is_enabled else "? OFF"
-            text = (
-                "?? **Sleep Mode / Blackout Window**\\n\\n"
-                "Hold all incoming messages during specific hours and drip them out in the morning.\\n\\n"
-                f"**Status:** {status}\\n"
-                f"**Start Time:** {start_t}\\n"
-                f"**End Time:** {end_t}\\n"
-                f"**Timezone Offset (UTC):** {offset}\\n\\n"
-                "Use the buttons below to configure your sleep window."
-            )
+            queue_len = len(user_data.get("drip_queue", []))
+            text = f"🚀 **Auto-Posting Suite**\\n\\nControl the flow of your messages.\\n\\n**Messages in Queue:** {queue_len}"
             buttons = [
-                [Button.inline("Toggle ON/OFF", b"sleep_toggle")],
-                [Button.inline("?? Edit Times", b"sleep_edit")],
-                [Button.inline("?? Back", b"back")]
+                [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
+                [Button.inline(f"📥 View Queue ({queue_len})", b"menu_queue")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
-            return
-            
-        elif data == b"sleep_edit":
-            user_states[chat_id] = {"step": "waiting_for_sleep_settings"}
-            await event.edit(
-                "?? **Edit Sleep Settings**\\n\\n"
-                "Please reply with your settings in this exact format:\\n"
-                "[Start Time] - [End Time] - [UTC Offset]\\n\\n"
-                "**Example:**\\n"
-                "22:00 - 08:00 - -5\\n"
-                "*(This means 10 PM to 8 AM in EST timezone)*\\n\\n"
-                "**Example 2 (London/UTC):**\\n"
-                "23:00 - 07:00 - 0\\n\\n"
-                "Please reply with your times (24-hour format):",
-                buttons=[[Button.inline("?? Cancel", b"back")]]
-            )
-            return
-
-        elif data == b"menu_queue":
-            user_data = get_user_data(chat_id)
-            queue = user_data.get("drip_queue", [])
-            
-            if not queue:
-                await event.edit("?? **Message Queue**\\n\\nYour queue is currently empty.", buttons=[[Button.inline("?? Back", b"back")]])
-                return
-                
-            text = f"?? **Message Queue** ({len(queue)} messages)\\n\\n"
-            for i, q in enumerate(queue[:10]):
-                text += f"**{i+1}.** {q.get('preview', '[Media]')}\\n"
-                
-            if len(queue) > 10:
-                text += f"\\n*...and {len(queue)-10} more.*"
-                
-            buttons = [
-                [Button.inline("?? Forward All Now", b"queue_forward_all")],
-                [Button.inline("? Cancel All", b"queue_clear")],
-                [Button.inline("?? Back", b"back")]
-            ]
-            await event.edit(text, buttons=buttons)
-            return
-            
-        elif data == b"queue_forward_all":
-            user_data = get_user_data(chat_id)
-            user_data["drip_interval"] = 0
-            user_data["sleep_mode"] = user_data.get("sleep_mode", {})
-            user_data["sleep_mode"]["enabled"] = False
-            save_user_data(chat_id, user_data)
-            await event.answer("Queue flushing initiated! Sleep mode & Drip interval have been disabled to allow instant sending.", alert=True)
-            await event.edit("? **Queue Flushed**\\n\\nAll messages will be sent momentarily.", buttons=[[Button.inline("?? Back", b"back")]])
-            return
-            
-        elif data == b"queue_clear":
-            user_data = get_user_data(chat_id)
-            user_data["drip_queue"] = []
-            save_user_data(chat_id, user_data)
-            await event.answer("Queue cleared!", alert=True)
-            await event.edit("??? **Queue Cleared**\\n\\nAll held messages have been deleted.", buttons=[[Button.inline("?? Back", b"back")]])
             return
 '''
 
-c = re.sub(r'# -----------------------------------------------------\n\s+# SETTINGS PANEL & PRO FEATURES', code + '\n          # -----------------------------------------------------\n          # SETTINGS PANEL & PRO FEATURES', c)
+idx = c.find('        if data == "back":')
+if idx != -1:
+    c = c[:idx] + back_handlers + '\n' + c[idx:]
+else:
+    print("Could not find back handler")
+
+# 2. Update Admin Panel to include Sleep Mode
+admin_panel_old = '''        elif data == "admin_panel":
+            toggles = get_feature_toggles()
+            drip = toggles.get("drip_posting_unlocked", False)
+            drip_text = "🟢 Drip Posting (Unlocked)" if drip else "🔴 Drip Posting (Locked)"
+            
+            buttons = [
+                [Button.inline(drip_text, b"admin_toggle_drip")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit("👑 **Admin Panel**\\n\\nLock or unlock premium features for all users:", buttons=buttons)
+            return
+            
+        elif data == "admin_toggle_drip":
+            toggles = get_feature_toggles()
+            toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip = toggles.get("drip_posting_unlocked", False)
+            drip_text = "🟢 Drip Posting (Unlocked)" if drip else "🔴 Drip Posting (Locked)"
+            
+            buttons = [
+                [Button.inline(drip_text, b"admin_toggle_drip")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit("👑 **Admin Panel**\\n\\nLock or unlock premium features for all users:", buttons=buttons)
+            return'''
+
+admin_panel_new = '''        elif data == "admin_panel":
+            toggles = get_feature_toggles()
+            drip = toggles.get("drip_posting_unlocked", False)
+            sleep = toggles.get("sleep_mode_unlocked", False)
+            
+            drip_text = "🟢 Drip Posting (Unlocked)" if drip else "🔴 Drip Posting (Locked)"
+            sleep_text = "🟢 Sleep Mode (Unlocked)" if sleep else "🔴 Sleep Mode (Locked)"
+            
+            buttons = [
+                [Button.inline(drip_text, b"admin_toggle_drip")],
+                [Button.inline(sleep_text, b"admin_toggle_sleep")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit("👑 **Admin Panel**\\n\\nLock or unlock premium features for all users:", buttons=buttons)
+            return
+            
+        elif data == "admin_toggle_drip":
+            toggles = get_feature_toggles()
+            toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip = toggles.get("drip_posting_unlocked", False)
+            sleep = toggles.get("sleep_mode_unlocked", False)
+            drip_text = "🟢 Drip Posting (Unlocked)" if drip else "🔴 Drip Posting (Locked)"
+            sleep_text = "🟢 Sleep Mode (Unlocked)" if sleep else "🔴 Sleep Mode (Locked)"
+            
+            buttons = [
+                [Button.inline(drip_text, b"admin_toggle_drip")],
+                [Button.inline(sleep_text, b"admin_toggle_sleep")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit("👑 **Admin Panel**\\n\\nLock or unlock premium features for all users:", buttons=buttons)
+            return
+            
+        elif data == "admin_toggle_sleep":
+            toggles = get_feature_toggles()
+            toggles["sleep_mode_unlocked"] = not toggles.get("sleep_mode_unlocked", False)
+            save_feature_toggles(toggles)
+            
+            drip = toggles.get("drip_posting_unlocked", False)
+            sleep = toggles.get("sleep_mode_unlocked", False)
+            drip_text = "🟢 Drip Posting (Unlocked)" if drip else "🔴 Drip Posting (Locked)"
+            sleep_text = "🟢 Sleep Mode (Unlocked)" if sleep else "🔴 Sleep Mode (Locked)"
+            
+            buttons = [
+                [Button.inline(drip_text, b"admin_toggle_drip")],
+                [Button.inline(sleep_text, b"admin_toggle_sleep")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            await event.edit("👑 **Admin Panel**\\n\\nLock or unlock premium features for all users:", buttons=buttons)
+            return'''
+
+if admin_panel_old in c:
+    c = c.replace(admin_panel_old, admin_panel_new)
+else:
+    print("Could not find admin panel block")
+
+# 3. Add lock to menu_sleep
+menu_sleep_old = '''        elif data == "menu_sleep":
+            user_data = get_user_data(chat_id)'''
+menu_sleep_new = '''        elif data == "menu_sleep":
+            toggles = get_feature_toggles()
+            if not toggles.get("sleep_mode_unlocked", False) and not is_admin(chat_id):
+                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                return
+            user_data = get_user_data(chat_id)'''
+
+if menu_sleep_old in c:
+    c = c.replace(menu_sleep_old, menu_sleep_new)
+else:
+    print("Could not find menu_sleep block")
+
+# 4. Replace b"back" with b"back_modifications" in modification menus
+def replace_back_in_block(code_str, marker, new_back):
+    lines = code_str.split('\\n')
+    in_block = False
+    for i, line in enumerate(lines):
+        if marker in line:
+            in_block = True
+        if in_block and 'b"back"' in line and 'Button.inline' in line:
+            lines[i] = line.replace('b"back"', f'b"{new_back}"')
+            in_block = False # only replace the first one in the block
+    return '\\n'.join(lines)
+
+c = replace_back_in_block(c, 'elif data == "menu_image":', 'back_modifications')
+c = replace_back_in_block(c, 'elif data == "menu_words":', 'back_modifications')
+c = replace_back_in_block(c, 'elif data == "menu_links":', 'back_modifications')
+
+# 5. Replace b"back" with b"back_autoposting" in autoposting menus
+c = replace_back_in_block(c, 'elif data == "menu_drip_posting":', 'back_autoposting')
+c = replace_back_in_block(c, 'elif data == "menu_sleep":', 'back_autoposting')
+c = replace_back_in_block(c, 'elif data == "sleep_toggle":', 'back_autoposting')
+c = replace_back_in_block(c, 'elif data == "sleep_edit":', 'back_autoposting')
+c = replace_back_in_block(c, 'elif data == "menu_queue":', 'back_autoposting')
+c = replace_back_in_block(c, 'elif data == "queue_forward_all":', 'back_autoposting')
+c = replace_back_in_block(c, 'elif data == "queue_clear":', 'back_autoposting')
+
+
 with open('control_bot.py', 'w', encoding='utf-8') as f:
     f.write(c)
+print('Done!')
