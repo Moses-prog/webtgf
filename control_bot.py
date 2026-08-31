@@ -525,7 +525,7 @@ async def callback(event):
                 f"**📌 Edit Sources**\n\nCurrent Sources:\n`{current}`\n\n"
                 "👉 **How to add a source:**\n"
                 "Simply **Forward any message** from the channel to me here!\n"
-                "*(Or manually reply with a `@username` or `-100` ID)*\n\n"
+                "*(Or manually reply with a `@username`, `-100` ID, or a private post link like `https://t.me/c/1234...`)*\n\n"
                 "Send /cancel to go back.",
                 buttons=[[Button.inline("🔙 Back", b"back")]]
             )
@@ -537,7 +537,7 @@ async def callback(event):
                 f"**🎯 Edit Targets**\n\nCurrent Targets:\n`{current}`\n\n"
                 "👉 **How to add a target:**\n"
                 "Simply **Forward any message** from the channel to me here!\n"
-                "*(Or manually reply with a comma-separated list of `@username`)*\n\n"
+                "*(Or manually reply with a list of `@username`, `-100` IDs, or `https://t.me/c/...` links)*\n\n"
                 "Send /cancel to go back.",
                 buttons=[[Button.inline("🔙 Back", b"back")]]
             )
@@ -1145,7 +1145,17 @@ async def text_handler(event):
             elif isinstance(peer, PeerUser):
                 new_items.append(str(peer.user_id))
         elif text:
-            new_items = [x.strip() for x in text.split(',') if x.strip()]
+            new_items = []
+            import re
+            for x in text.split(','):
+                x = x.strip()
+                if not x: continue
+                if "t.me/c/" in x:
+                    match = re.search(r't\.me/c/(\d+)', x)
+                    if match:
+                        new_items.append(f"-100{match.group(1)}")
+                        continue
+                new_items.append(x)
             
         if not new_items:
             await event.respond("❌ I couldn't detect a valid ID. Please forward a message from the channel, or type the ID manually.")
