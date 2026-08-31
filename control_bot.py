@@ -1155,12 +1155,18 @@ async def text_handler(event):
             current_list = user_data.get("sources", [])
             for item in new_items:
                 if item not in current_list:
+                    if len(current_list) >= 15:
+                        await event.respond("⚠️ You can only have a maximum of 15 sources. Some items were not added.")
+                        break
                     current_list.append(item)
             user_data["sources"] = current_list
         else:
             current_list = user_data.get("targets", [])
             for item in new_items:
                 if item not in current_list:
+                    if len(current_list) >= 15:
+                        await event.respond("⚠️ You can only have a maximum of 15 targets. Some items were not added.")
+                        break
                     current_list.append(item)
             user_data["targets"] = current_list
             
