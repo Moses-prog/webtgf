@@ -260,20 +260,28 @@ async def execute_forward(message, chat_id, user_data):
         
     try:
         success = False
-        if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
-            for target in target_channels:
-                try: t = int(target)
-                except ValueError: t = target
-                await client.send_file(t, media_to_send, caption=modified_text)
+        for target in target_channels:
+            try:
+                t = int(target)
+            except ValueError:
+                t = target
+                
+            try:
+                if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
+                    await client.send_file(t, media_to_send, caption=modified_text)
+                else:
+                    if modified_text:
+                        await client.send_message(t, modified_text, link_preview=True)
                 success = True
-        else:
-            if modified_text:
-                for target in target_channels:
-                    try: t = int(target)
-                    except ValueError: t = target
-                    await client.send_message(t, modified_text, link_preview=True)
-                    success = True
-                    
+            except Exception as e:
+                print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
+                # Try fallback just for this target
+                if modified_text:
+                    try:
+                        await client.send_message(t, modified_text)
+                    except Exception as fallback_e:
+                        print(f"[Tenant {chat_id}] Fallback failed for {t}: {fallback_e}")
+                        
         if success:
             import datetime
             from database_manager import get_stats, save_stats
@@ -288,14 +296,6 @@ async def execute_forward(message, chat_id, user_data):
             stats["today"] = stats.get("today", 0) + 1
             
             save_stats(stats)
-                
-    except Exception as e:
-        print(f"[Tenant {chat_id}] Failed to forward cleanly: {e}")
-        if modified_text:
-            for target in target_channels:
-                try: t = int(target)
-                except ValueError: t = target
-                await client.send_message(t, modified_text)
     finally:
         # Cleanup AI processed images
         if isinstance(media_to_send, str) and media_to_send.startswith("processed_") and os.path.exists(media_to_send):
