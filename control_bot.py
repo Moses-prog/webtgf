@@ -349,17 +349,90 @@ async def callback(event):
             interval = user_data.get("drip_interval", 0)
             queue_len = len(user_data.get("drip_queue", []))
             
-            status = f"✅ ON ({interval} mins)" if interval > 0 else "❌ OFF"
+            if interval > 0:
+                if interval < 60:
+                    readable = f"{interval} seconds"
+                elif interval % 60 == 0:
+                    readable = f"{interval // 60} minute(s)"
+                else:
+                    readable = f"{interval // 60}m {interval % 60}s"
+                status = f"✅ ON (every {readable})"
+            else:
+                status = "❌ OFF"
             text = (
                 "🕒 **Drip Posting (Pro Feature)**\n\n"
-                "Instead of forwarding messages instantly, Drip Posting queues incoming messages and sends them one by one at a specific interval to maximize engagement.\n\n"
+                "Instead of forwarding messages instantly, Drip Posting queues them and sends one by one at your chosen interval.\n\n"
                 f"**Status:** {status}\n"
                 f"**Messages in Queue:** {queue_len}\n\n"
-                "To change this, please **reply to this message** with the number of minutes you want to wait between each post (e.g., `60` for 1 hour). Send `0` to disable."
+                "👇 **Pick how often you want to post:**"
             )
-            
-            user_states[chat_id] = {"step": "waiting_for_drip"}
-            await event.edit(text, buttons=[[Button.inline("🔙 Cancel", b"back_autoposting")]])
+            buttons = [
+                [Button.inline("⚡ 30 seconds", b"drip_30"), Button.inline("⏱ 1 minute", b"drip_60")],
+                [Button.inline("🕑 2 minutes", b"drip_120"), Button.inline("🕔 5 minutes", b"drip_300")],
+                [Button.inline("🕙 10 minutes", b"drip_600"), Button.inline("🕧 30 minutes", b"drip_1800")],
+                [Button.inline("🕐 1 hour", b"drip_3600"), Button.inline("✏️ Custom (seconds)", b"drip_custom")],
+                [Button.inline("❌ Disable Drip", b"drip_0")],
+                [Button.inline("🔙 Back", b"back_autoposting")],
+            ]
+            await event.edit(text, buttons=buttons)
+            return
+
+        elif data.startswith("drip_"):
+            val = data[5:]  # e.g. "30", "60", "0", "custom"
+            user_data = get_user_data(chat_id)
+
+            if val == "custom":
+                user_states[chat_id] = {"step": "waiting_for_drip"}
+                await event.edit(
+                    "✏️ **Custom Drip Interval**\n\nType the number of **seconds** you want between each post.\n\nExamples:\n• `10` = 10 seconds\n• `90` = 1 min 30 sec\n• `3600` = 1 hour",
+                    buttons=[[Button.inline("🔙 Cancel", b"menu_drip_posting")]]
+                )
+                return
+
+            seconds = int(val)
+            user_data["drip_interval"] = seconds
+            if seconds == 0:
+                user_data["drip_queue"] = []
+                msg = "❌ Drip Posting has been **DISABLED**. Messages will now forward instantly."
+            else:
+                if seconds < 60:
+                    readable = f"{seconds} seconds"
+                elif seconds % 60 == 0:
+                    readable = f"{seconds // 60} minute(s)"
+                else:
+                    readable = f"{seconds // 60}m {seconds % 60}s"
+                msg = f"✅ Drip Posting **ENABLED**! One message will be sent every **{readable}**."
+            save_user_data(chat_id, user_data)
+            await event.answer(msg, alert=True)
+            # Refresh the drip menu
+            queue_len = len(user_data.get("drip_queue", []))
+            interval = seconds
+            if interval > 0:
+                if interval < 60:
+                    readable = f"{interval} seconds"
+                elif interval % 60 == 0:
+                    readable = f"{interval // 60} minute(s)"
+                else:
+                    readable = f"{interval // 60}m {interval % 60}s"
+                status = f"✅ ON (every {readable})"
+            else:
+                status = "❌ OFF"
+            text = (
+                "🕒 **Drip Posting (Pro Feature)**\n\n"
+                "Instead of forwarding messages instantly, Drip Posting queues them and sends one by one at your chosen interval.\n\n"
+                f"**Status:** {status}\n"
+                f"**Messages in Queue:** {queue_len}\n\n"
+                "👇 **Pick how often you want to post:**"
+            )
+            buttons = [
+                [Button.inline("⚡ 30 seconds", b"drip_30"), Button.inline("⏱ 1 minute", b"drip_60")],
+                [Button.inline("🕑 2 minutes", b"drip_120"), Button.inline("🕔 5 minutes", b"drip_300")],
+                [Button.inline("🕙 10 minutes", b"drip_600"), Button.inline("🕧 30 minutes", b"drip_1800")],
+                [Button.inline("🕐 1 hour", b"drip_3600"), Button.inline("✏️ Custom (seconds)", b"drip_custom")],
+                [Button.inline("❌ Disable Drip", b"drip_0")],
+                [Button.inline("🔙 Back", b"back_autoposting")],
+            ]
+            await event.edit(text, buttons=buttons)
             return
 
         elif data == "menu_instructions":
