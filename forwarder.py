@@ -59,8 +59,17 @@ def apply_rules(text, user_data):
     # 2. Replace Links
     link_replacement = user_data.get("replace_all_links_with", "").strip()
     if link_replacement:
-        url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
-        text = re.sub(url_pattern, link_replacement, text)
+        # Match http/https, www, domain.com/path, and common domains without protocol
+        url_pattern = r'(?i)(?:https?://|www\.)[^\s]+|\b[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/[^\s]*|\b(?:t\.me|telegram\.me|youtube\.com|youtu\.be|instagram\.com|twitter\.com|x\.com|facebook\.com|tiktok\.com|bit\.ly)[^\s]*'
+        
+        def link_replacer(match):
+            matched_str = match.group(0)
+            # If the original link did NOT have http/https, we remove it from the replacement link too!
+            if not matched_str.lower().startswith('http'):
+                return re.sub(r'^https?://', '', link_replacement, flags=re.IGNORECASE)
+            return link_replacement
+            
+        text = re.sub(url_pattern, link_replacer, text)
 
     # 3. Replace Usernames
     user_replacement = user_data.get("replace_all_usernames_with", "").strip()
