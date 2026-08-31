@@ -315,6 +315,15 @@ async def execute_forward(message, chat_id, user_data):
             today = str(datetime.date.today())
             stats = get_stats()
             
+# SAVE MAPPING FOR MIRROR DELETION
+            if success and getattr(sent, 'id', None):
+                # msgs is a list of messages. We just map the first one for simplicity, or loop them
+                if isinstance(msgs, list):
+                    src_id = msgs[0].id
+                else:
+                    src_id = msgs.id
+                save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
+
             if stats.get("date") != today:
                 stats["today"] = 0
                 stats["date"] = today

@@ -435,6 +435,90 @@ async def callback(event):
             await event.edit(text, buttons=buttons)
             return
 
+        elif data == "menu_deletion":
+            toggles = get_feature_toggles()
+            if not toggles.get("deletion_unlocked", False) and not is_admin(chat_id):
+                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
+                return
+                
+            user_data = get_user_data(chat_id)
+            pin = user_data.get("deletion_pin", None)
+            mirror = user_data.get("mirror_delete", False)
+            auto_limit = user_data.get("auto_delete_limit", 0)
+            
+            status_mirror = "✅ ON" if mirror else "❌ OFF"
+            status_limit = f"Keep Last {auto_limit}" if auto_limit > 0 else "❌ OFF"
+            status_pin = "✅ SET" if pin else "❌ NOT SET"
+            
+            text = (
+                "🗑️ **Deletion Suite (Pro Feature)**\n\n"
+                "Manage how the bot deletes messages in your Target channels.\n\n"
+                f"**1. Mirror Delete:** {status_mirror}\n"
+                "*(If a message is deleted in the Source channel, delete it in the Target channel too.)*\n\n"
+                f"**2. Auto-Delete Limit:** {status_limit}\n"
+                "*(Rolling Window: automatically delete older messages to keep the channel clean.)*\n\n"
+                f"**3. Security PIN:** {status_pin}\n"
+                "*(Required to execute manual wipes to prevent accidental data loss.)*\n\n"
+                "👇 **Select an option below:**"
+            )
+            
+            buttons = [
+                [Button.inline(f"Toggle Mirror Delete {'🔴' if mirror else '🟢'}", b"del_toggle_mirror")],
+                [Button.inline("⏱️ Set Auto-Delete Limit", b"del_set_limit")],
+                [Button.inline("🔐 Set/Change Security PIN", b"del_set_pin")],
+                [Button.inline("⚠️ MANUAL WIPES ⚠️", b"ignore_btn")],
+                [Button.inline("Delete Last 10", b"wipe_10"), Button.inline("Delete Last 50", b"wipe_50")],
+                [Button.inline("Wipe All History Today", b"wipe_today")],
+                [Button.inline("🔙 Back to Main Menu", b"back")]
+            ]
+            
+            await event.edit(text, buttons=buttons)
+            return
+
+        elif data == "del_toggle_mirror":
+            user_data = get_user_data(chat_id)
+            user_data["mirror_delete"] = not user_data.get("mirror_delete", False)
+            save_user_data(chat_id, user_data)
+            # Re-render menu
+            event.data = b"menu_deletion"
+            await callback(event)
+            return
+            
+        elif data == "del_set_limit":
+            user_states[chat_id] = {"step": "waiting_for_del_limit"}
+            await event.edit(
+                "⏱️ **Auto-Delete Limit (Rolling Window)**\n\n"
+                "How many messages do you want to keep in the Target channel? If you type `50`, the bot will automatically delete the oldest message whenever the 51st message is forwarded.\n\n"
+                "Type a number (e.g., `50`). Type `0` to disable.",
+                buttons=[[Button.inline("🔙 Cancel", b"menu_deletion")]]
+            )
+            return
+            
+        elif data == "del_set_pin":
+            user_states[chat_id] = {"step": "waiting_for_new_pin"}
+            await event.edit(
+                "🔐 **Set Security PIN**\n\n"
+                "Please reply with a 4-digit PIN (e.g., `1234`). You will need this PIN to authorize any manual message wipes.",
+                buttons=[[Button.inline("🔙 Cancel", b"menu_deletion")]]
+            )
+            return
+            
+        elif data.startswith("wipe_"):
+            val = data[5:]
+            user_data = get_user_data(chat_id)
+            if not user_data.get("deletion_pin"):
+                await event.answer("❌ You must set a Security PIN first!", alert=True)
+                return
+                
+            user_states[chat_id] = {"step": "waiting_for_wipe_pin", "wipe_type": val}
+            await event.edit(
+                f"⚠️ **AUTHORIZATION REQUIRED** ⚠️\n\n"
+                f"You are about to execute a manual wipe: `{val}`\n\n"
+                "Please enter your 4-digit Security PIN to confirm this destructive action.",
+                buttons=[[Button.inline("🔙 Cancel", b"menu_deletion")]]
+            )
+            return
+
         elif data == "menu_instructions":
             text = (
                 "📖 **How To Use This Bot (Step-by-Step Guide)**\n\n"
@@ -1084,6 +1168,51 @@ async def text_handler(event):
             return
 
         # --- LOGIN STEPS ---
+        elif step == "waiting_for_new_pin":
+            if not text.isdigit() or len(text) != 4:
+                await event.respond("❌ Invalid PIN. Please enter exactly 4 digits (e.g. 1234).")
+                return
+            user_data = get_user_data(chat_id)
+            user_data["deletion_pin"] = text
+            save_user_data(chat_id, user_data)
+            await event.respond("✅ **Security PIN Set Successfully!**\n\nYou can now execute manual wipes.", buttons=get_main_keyboard(chat_id))
+            user_states[chat_id] = None
+            return
+            
+        elif step == "waiting_for_del_limit":
+            if not text.isdigit():
+                await event.respond("❌ Invalid limit. Please enter a valid number (e.g. 50).")
+                return
+            limit = int(text)
+            user_data = get_user_data(chat_id)
+            user_data["auto_delete_limit"] = limit
+            save_user_data(chat_id, user_data)
+            
+            if limit > 0:
+                await event.respond(f"✅ **Auto-Delete Limit Set!**\n\nThe bot will now keep exactly {limit} messages in your Target channels. Older messages will be deleted automatically as new ones arrive.", buttons=get_main_keyboard(chat_id))
+            else:
+                await event.respond("✅ **Auto-Delete Limit Disabled!**", buttons=get_main_keyboard(chat_id))
+                
+            user_states[chat_id] = None
+            return
+            
+        elif step == "waiting_for_wipe_pin":
+            user_data = get_user_data(chat_id)
+            pin = user_data.get("deletion_pin")
+            if text != pin:
+                await event.respond("❌ **INCORRECT PIN!** Wipe canceled.", buttons=get_main_keyboard(chat_id))
+                user_states[chat_id] = None
+                return
+                
+            wipe_type = state.get("wipe_type")
+            await event.respond(f"✅ **PIN Verified!** Executing wipe: {wipe_type}...\n*(Please wait, this will be handled by the background engine shortly.)*", buttons=get_main_keyboard(chat_id))
+            
+            # Queue the wipe command for the forwarder engine
+            user_data["pending_wipe"] = wipe_type
+            save_user_data(chat_id, user_data)
+            user_states[chat_id] = None
+            return
+
         elif step == "waiting_for_manual_session":
             await event.respond("⏳ Testing your session string, please wait...")
             try:
