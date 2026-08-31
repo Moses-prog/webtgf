@@ -262,12 +262,16 @@ async def execute_forward(message, chat_id, user_data):
         success = False
         if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
             for target in target_channels:
-                await client.send_file(target, media_to_send, caption=modified_text)
+                try: t = int(target)
+                except ValueError: t = target
+                await client.send_file(t, media_to_send, caption=modified_text)
                 success = True
         else:
             if modified_text:
                 for target in target_channels:
-                    await client.send_message(target, modified_text, link_preview=True)
+                    try: t = int(target)
+                    except ValueError: t = target
+                    await client.send_message(t, modified_text, link_preview=True)
                     success = True
                     
         if success:
@@ -289,7 +293,9 @@ async def execute_forward(message, chat_id, user_data):
         print(f"[Tenant {chat_id}] Failed to forward cleanly: {e}")
         if modified_text:
             for target in target_channels:
-                await client.send_message(target, modified_text)
+                try: t = int(target)
+                except ValueError: t = target
+                await client.send_message(t, modified_text)
     finally:
         # Cleanup AI processed images
         if isinstance(media_to_send, str) and media_to_send.startswith("processed_") and os.path.exists(media_to_send):
