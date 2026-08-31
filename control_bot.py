@@ -523,10 +523,11 @@ async def callback(event):
             current = ", ".join(user_data.get('sources', []))
             await event.edit(
                 f"**📌 Edit Sources**\n\nCurrent Sources:\n`{current}`\n\n"
-                "👉 **How to add a source:**\n"
+                "👉 **How to add or remove a source:**\n"
                 "Simply **Forward any message** from the channel to me here!\n"
+                "*(Forwarding a channel that is already in your list will remove it.)*\n"
                 "*(Or manually reply with a `@username`, `-100` ID, or a private post link like `https://t.me/c/1234...`)*\n\n"
-                "Send /cancel to go back.",
+                "Send /cancel to go back, or type CLEAR to remove all.",
                 buttons=[[Button.inline("🔙 Back", b"back")]]
             )
             
@@ -535,10 +536,11 @@ async def callback(event):
             current = ", ".join(user_data.get('targets', []))
             await event.edit(
                 f"**🎯 Edit Targets**\n\nCurrent Targets:\n`{current}`\n\n"
-                "👉 **How to add a target:**\n"
+                "👉 **How to add or remove a target:**\n"
                 "Simply **Forward any message** from the channel to me here!\n"
+                "*(Forwarding a channel that is already in your list will remove it.)*\n"
                 "*(Or manually reply with a list of `@username`, `-100` IDs, or `https://t.me/c/...` links)*\n\n"
-                "Send /cancel to go back.",
+                "Send /cancel to go back, or type CLEAR to remove all.",
                 buttons=[[Button.inline("🔙 Back", b"back")]]
             )
             
@@ -1161,28 +1163,46 @@ async def text_handler(event):
             await event.respond("❌ I couldn't detect a valid ID. Please forward a message from the channel, or type the ID manually.")
             return
             
+        added = []
+        removed = []
+        
         if state == "waiting_for_sources":
             current_list = user_data.get("sources", [])
             for item in new_items:
-                if item not in current_list:
+                if item in current_list:
+                    current_list.remove(item)
+                    removed.append(item)
+                else:
                     if len(current_list) >= 15:
                         await event.respond("⚠️ You can only have a maximum of 15 sources. Some items were not added.")
                         break
                     current_list.append(item)
+                    added.append(item)
             user_data["sources"] = current_list
         else:
             current_list = user_data.get("targets", [])
             for item in new_items:
-                if item not in current_list:
+                if item in current_list:
+                    current_list.remove(item)
+                    removed.append(item)
+                else:
                     if len(current_list) >= 15:
                         await event.respond("⚠️ You can only have a maximum of 15 targets. Some items were not added.")
                         break
                     current_list.append(item)
+                    added.append(item)
             user_data["targets"] = current_list
             
         save_user_data(chat_id, user_data)
         user_states[chat_id] = None
-        await event.respond(f"✅ Added: {', '.join(new_items)}", buttons=get_main_keyboard(chat_id))
+        
+        res_msg = ""
+        if added:
+            res_msg += f"✅ Added: {', '.join(added)}\n"
+        if removed:
+            res_msg += f"🗑️ Removed: {', '.join(removed)}\n"
+            
+        await event.respond(res_msg.strip() or "No changes made.", buttons=get_main_keyboard(chat_id))
         
     elif state == "waiting_for_link":
         if text.startswith("LINK="):
