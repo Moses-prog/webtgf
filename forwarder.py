@@ -411,6 +411,13 @@ async def monitor_users():
                         client = TelegramClient(StringSession(session_str), api_id, api_hash)
                         await client.connect()
                         
+                        # Populate entity cache to make -100 IDs work for both sources and targets
+                        try:
+                            print(f"[Tenant {chat_id}] Fetching dialogs to populate entity cache...")
+                            await client.get_dialogs()
+                        except Exception as e:
+                            print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
+                            
                         # Use a lambda or partial to pass the chat_id into the event handler
                         client.add_event_handler(lambda e, cid=chat_id: handle_message(e, cid), events.NewMessage)
                         active_clients[chat_id] = client
