@@ -422,8 +422,8 @@ async def monitor_users():
                 if queue and not is_in_sleep_mode(udata):
                     last_drip = udata.get("last_drip_time", 0)
                     
-                    # If interval is 0, we are just waking up from sleep mode, flush 1 message quickly (e.g. every 2 secs)
-                    eff_interval = interval * 60 if interval > 0 else 2
+                    # interval is stored in seconds directly
+                    eff_interval = interval if interval > 0 else 2
                     
                     if time.time() - last_drip >= eff_interval:
                         item = queue.pop(0)

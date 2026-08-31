@@ -986,7 +986,7 @@ async def text_handler(event):
         # --- DRIP POSTING ---
         if step == "waiting_for_drip":
             if not text.isdigit():
-                await event.respond("❌ Please enter a valid number (e.g., 60).")
+                await event.respond("❌ Please enter a valid number in seconds (e.g., 30 for 30 seconds, 300 for 5 minutes).")
                 return
                 
             interval = int(text)
@@ -996,7 +996,16 @@ async def text_handler(event):
                 user_data["drip_queue"] = [] # Clear queue if disabled
             save_user_data(chat_id, user_data)
             
-            status = f"✅ Drip Posting ENABLED! Messages will be queued and sent every {interval} minutes." if interval > 0 else "❌ Drip Posting DISABLED."
+            if interval > 0:
+                if interval < 60:
+                    readable = f"{interval} seconds"
+                elif interval % 60 == 0:
+                    readable = f"{interval // 60} minute(s)"
+                else:
+                    readable = f"{interval // 60}m {interval % 60}s"
+                status = f"✅ Drip Posting ENABLED! Messages will be queued and sent every {readable}."
+            else:
+                status = "❌ Drip Posting DISABLED."
             await event.respond(status, buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
             return
