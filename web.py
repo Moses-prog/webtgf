@@ -583,10 +583,10 @@ html_content = '''<!DOCTYPE html>
         .header { display: flex; flex-direction: column; align-items: center; padding: 30px 20px 20px; }
         .avatar {
             width: 80px; height: 80px; border-radius: 50%;
-            background: linear-gradient(135deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8);
+            background: #2c2c2e;
             display: flex; align-items: center; justify-content: center;
             font-size: 36px; margin-bottom: 14px;
-            box-shadow: 0 4px 20px rgba(239,78,123,0.4);
+            
         }
         .bot-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
         .bot-username { font-size: 14px; color: #8e8e93; }
@@ -605,7 +605,7 @@ html_content = '''<!DOCTYPE html>
         .row-subtitle { font-size: 12px; color: #8e8e93; margin-top: 2px; }
         .row-right { color: #8e8e93; font-size: 20px; line-height: 1; }
         .chip { background: rgba(88,86,214,0.25); color: #a78bfa; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
-        .launch-btn { margin: 20px 16px 10px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border: none; padding: 16px; font-size: 17px; font-weight: 700; border-radius: 14px; cursor: pointer; width: calc(100% - 32px); box-shadow: 0 4px 15px rgba(59,130,246,0.4); transition: opacity 0.15s; }
+        .launch-btn { margin: 20px 16px 10px; background: #3b82f6; color: white; border: none; padding: 16px; font-size: 17px; font-weight: 700; border-radius: 14px; cursor: pointer; width: calc(100% - 32px);  transition: opacity 0.15s; }
         .launch-btn:active { opacity: 0.8; }
         .footer { text-align: center; font-size: 12px; color: #555; padding: 20px; }
     </style>
