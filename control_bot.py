@@ -464,13 +464,10 @@ async def callback(event):
             )
             
             buttons = [
-                [Button.inline(f"Toggle Mirror Delete {'🔴' if mirror else '🟢'}", b"del_toggle_mirror")],
-                [Button.inline("⏱️ Set Auto-Delete Limit", b"del_set_limit")],
-                [Button.inline("🔐 Set/Change Security PIN", b"del_set_pin")],
-                [Button.inline("⚠️ MANUAL WIPES ⚠️", b"ignore_btn")],
-                [Button.inline("Delete Last 10", b"wipe_10"), Button.inline("Delete Last 50", b"wipe_50")],
-                [Button.inline("Wipe All History Today", b"wipe_today")],
-                [Button.inline("🔙 Back to Main Menu", b"back")]
+                [Button.inline(f"🪞 Mirror Delete: {'✅' if mirror else '❌'}", b"del_toggle_mirror"), Button.inline("⏱️ Auto-Delete Limit", b"del_set_limit")],
+                [Button.inline("🔐 Set Security PIN", b"del_set_pin"), Button.inline("🗑️ Wipe: Last 10", b"wipe_10")],
+                [Button.inline("💣 Wipe: Last 50", b"wipe_50"), Button.inline("📅 Wipe: Today", b"wipe_today")],
+                [Button.inline("🔙 Back", b"back")]
             ]
             
             await event.edit(text, buttons=buttons)
@@ -500,13 +497,10 @@ async def callback(event):
                 "👇 **Select an option below:**"
             )
             buttons = [
-                [Button.inline(f"Toggle Mirror Delete {'🔴' if mirror else '🟢'}", b"del_toggle_mirror")],
-                [Button.inline("⏱️ Set Auto-Delete Limit", b"del_set_limit")],
-                [Button.inline("🔐 Set/Change Security PIN", b"del_set_pin")],
-                [Button.inline("⚠️ MANUAL WIPES ⚠️", b"ignore_btn")],
-                [Button.inline("Delete Last 10", b"wipe_10"), Button.inline("Delete Last 50", b"wipe_50")],
-                [Button.inline("Wipe All History Today", b"wipe_today")],
-                [Button.inline("🔙 Back to Main Menu", b"back")]
+                [Button.inline(f"🪞 Mirror Delete: {'✅' if mirror else '❌'}", b"del_toggle_mirror"), Button.inline("⏱️ Auto-Delete Limit", b"del_set_limit")],
+                [Button.inline("🔐 Set Security PIN", b"del_set_pin"), Button.inline("🗑️ Wipe: Last 10", b"wipe_10")],
+                [Button.inline("💣 Wipe: Last 50", b"wipe_50"), Button.inline("📅 Wipe: Today", b"wipe_today")],
+                [Button.inline("🔙 Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
