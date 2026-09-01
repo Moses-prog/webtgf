@@ -279,7 +279,12 @@ async def execute_forward(message, chat_id, user_data):
             try:
                 sent = None
                 if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
-                    sent = await client.send_file(t, media_to_send, caption=modified_text)
+                    if media_to_send == message.media:
+                        # Passing the original message object guarantees Telegram resolves the media access hash
+                        sent = await client.send_message(t, modified_text, file=message)
+                    else:
+                        # Sending a local file or URL override
+                        sent = await client.send_file(t, media_to_send, caption=modified_text)
                 else:
                     if modified_text:
                         sent = await client.send_message(t, modified_text, link_preview=True)
