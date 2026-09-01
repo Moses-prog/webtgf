@@ -572,19 +572,21 @@ async def monitor_users():
                     except Exception as e:
                         print(f"❌ Failed to boot engine for {chat_id}: {e}")
 
-            # Stop disconnected clients
+            # Stop disconnected clients + Health check for revoked sessions
             for chat_id in list(active_clients.keys()):
                 client = active_clients[chat_id]
                 user_data = get_user_data(chat_id)
 
-                # Check if session was revoked while client was running
-                if not client.is_connected():
+                # Proactive ping every 60 seconds — catches revoked sessions
+                # even when TCP connection still appears open
+                last_ping = getattr(client, '_last_ping', 0)
+                if time.time() - last_ping > 60:
+                    client._last_ping = time.time()
                     try:
-                        await client.connect()
-                        await client.get_me()  # Ping — will throw if session dead
+                        await client.get_me()
                     except (AuthKeyUnregisteredError, AuthKeyInvalidError,
                             SessionRevokedError, SessionExpiredError, UserDeactivatedBanError) as e:
-                        print(f"[Tenant {chat_id}] ⚠️ SESSION DEAD during health check: {e}")
+                        print(f"[Tenant {chat_id}] ⚠️ SESSION DEAD (ping): {e}")
                         try: await client.disconnect()
                         except: pass
                         user_data["session_string"] = ""
@@ -605,9 +607,12 @@ async def monitor_users():
                             url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
                             async with aiohttp.ClientSession() as sess:
                                 await sess.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                            print(f"[Tenant {chat_id}] Notified about session revoke.")
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                         continue
+                    except Exception:
+                        pass  # Other ping errors (network etc) are non-fatal
 
                 if not user_data.get("session_string"):
                     print(f"Shutting down Engine for Tenant {chat_id}...")
@@ -616,7 +621,7 @@ async def monitor_users():
 
         except Exception as e:
             print(f"Error in monitor loop: {e}")
-            
+
         await asyncio.sleep(5)
 
 if __name__ == '__main__':
