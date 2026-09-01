@@ -286,10 +286,10 @@ async def execute_forward(message, chat_id, user_data):
                 
                 # SAVE MAPPING FOR MIRROR DELETION
                 if sent and getattr(sent, 'id', None):
-                    if isinstance(msgs, list):
-                        src_id = msgs[0].id
+                    if isinstance(message, list):
+                        src_id = message[0].id
                     else:
-                        src_id = msgs.id
+                        src_id = message.id
                     save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
                 success = True
             except Exception as e:
@@ -299,10 +299,10 @@ async def execute_forward(message, chat_id, user_data):
                     try:
                         sent = await client.send_message(t, modified_text)
                         if sent and getattr(sent, 'id', None):
-                            if isinstance(msgs, list):
-                                src_id = msgs[0].id
+                            if isinstance(message, list):
+                                src_id = message[0].id
                             else:
-                                src_id = msgs.id
+                                src_id = message.id
                             save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
                         success = True
                     except Exception as fallback_e:
