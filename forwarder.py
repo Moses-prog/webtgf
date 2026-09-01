@@ -27,7 +27,7 @@ from telethon.errors import (
     SessionRevokedError, SessionExpiredError, UserDeactivatedBanError
 )
 
-from database_manager import get_all_users, get_user_data
+from database_manager import get_all_users, get_user_data, save_message_map
 
 active_clients = {}
 
@@ -279,8 +279,10 @@ async def execute_forward(message, chat_id, user_data):
             try:
                 sent = None
                 if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
+                    print(f'[{chat_id}] Sending as file. media type: {type(media_to_send)}')
                     sent = await client.send_file(t, media_to_send, caption=modified_text)
                 else:
+                    print(f'[{chat_id}] Sending as text. media_to_send is: {media_to_send}')
                     if modified_text:
                         sent = await client.send_message(t, modified_text, link_preview=True)
                 
