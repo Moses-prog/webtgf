@@ -1184,6 +1184,8 @@ async def text_handler(event):
             return
             
         elif step == "waiting_for_wipe_pin":
+            try: await event.message.delete()
+            except: pass
             user_data = get_user_data(chat_id)
             pin = user_data.get("deletion_pin")
             if text != pin:
@@ -1201,6 +1203,8 @@ async def text_handler(event):
             return
 
         elif step == "waiting_for_manual_session":
+            try: await event.message.delete()
+            except: pass
             await event.respond("⏳ Testing your session string, please wait...")
             try:
                 user_data = get_user_data(chat_id)
@@ -1248,6 +1252,8 @@ async def text_handler(event):
             return
             
         elif step == "waiting_for_phone":
+            try: await event.message.delete()
+            except: pass
             state["phone"] = text
             
             # Spin up a temporary client to request the code
@@ -1281,7 +1287,7 @@ async def text_handler(event):
                     "⚠️ **CRITICAL INSTRUCTION:** Telegram's security system will instantly block the login if you just send the code normally.\n\n"
                     "👉 **You MUST put spaces between the numbers.**\n"
                     "For example, if your code is `12345`, you must reply with:\n`1 2 3 4 5`\n\n"
-                    "*(The bot will automatically remove the spaces for you)*", 
+                    "*(The bot will automatically remove the spaces for you and delete the message for security)*", 
                     buttons=[
                         [Button.inline("🔁 Resend Code", b"resend_code")],
                         [Button.inline("🔙 Cancel", b"back")]
@@ -1294,6 +1300,8 @@ async def text_handler(event):
             return
             
         elif step == "waiting_for_code":
+            try: await event.message.delete()
+            except: pass
             session_data = login_sessions.get(chat_id)
             if not session_data:
                 await event.respond("❌ Session expired. Please try connecting again.")
@@ -1333,6 +1341,8 @@ async def text_handler(event):
             return
             
         elif step == "waiting_for_password":
+            try: await event.message.delete()
+            except: pass
             session_data = login_sessions.get(chat_id)
             if not session_data:
                 return

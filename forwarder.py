@@ -216,10 +216,6 @@ async def ai_process_image(client, message, chat_id, user_data):
                     draw.text((text_x, text_y), replacement_text, fill=text_color, font=font, anchor="mm")
         except Exception as ex:
             print(f"[Tenant {chat_id}] Failed to parse Gemini response: {ex}")
-            try:
-                await client.send_message(message.chat_id, f"❌ AI Error: Could not find the text in the image.")
-            except:
-                pass
             return message.media
                     
         out_path = f"processed_{message.id}_{chat_id}.png"
@@ -234,10 +230,6 @@ async def ai_process_image(client, message, chat_id, user_data):
         
     except Exception as e:
         print(f"[Tenant {chat_id}] AI Watermark error: {e}")
-        try:
-            await client.send_message(message.chat_id, f"❌ API Error: {e}")
-        except:
-            pass
         return message.media
 
 
