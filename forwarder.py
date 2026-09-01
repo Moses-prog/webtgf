@@ -455,6 +455,63 @@ async def monitor_users():
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch queued message: {e}")
 
+                # --- Process Pending Manual Wipes ---
+                pending_wipe = udata.get("pending_wipe")
+                if pending_wipe:
+                    print(f"[Tenant {chat_id}] Executing wipe: {pending_wipe}")
+                    targets = udata.get("targets", [])
+                    for t in targets:
+                        try:
+                            tc = int(t) if str(t).lstrip("-").isdigit() else t
+                            if pending_wipe == "10":
+                                msgs_list = await client.get_messages(tc, limit=10)
+                                if msgs_list:
+                                    await client.delete_messages(tc, [m.id for m in msgs_list])
+                            elif pending_wipe == "50":
+                                msgs_list = await client.get_messages(tc, limit=50)
+                                if msgs_list:
+                                    await client.delete_messages(tc, [m.id for m in msgs_list])
+                            elif pending_wipe == "today":
+                                import datetime
+                                today_start = datetime.datetime.now(datetime.timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+                                ids_to_del = []
+                                async for msg in client.iter_messages(tc):
+                                    if msg.date and msg.date >= today_start:
+                                        ids_to_del.append(msg.id)
+                                    else:
+                                        break
+                                for i in range(0, len(ids_to_del), 100):
+                                    await client.delete_messages(tc, ids_to_del[i:i+100])
+                            print(f"[Tenant {chat_id}] Wipe '{pending_wipe}' done for {tc}")
+                        except Exception as e:
+                            print(f"[Tenant {chat_id}] Wipe failed for {t}: {e}")
+                    udata["pending_wipe"] = None
+                    save_user_data(chat_id, udata)
+
+                # --- Process Auto-Delete Rolling Window ---
+                auto_limit = udata.get("auto_delete_limit", 0)
+                if auto_limit > 0:
+                    last_clean = udata.get("last_auto_clean", 0)
+                    if time.time() - last_clean > 300:
+                        targets = udata.get("targets", [])
+                        for t in targets:
+                            try:
+                                tc = int(t) if str(t).lstrip("-").isdigit() else t
+                                ids_to_del = []
+                                count = 0
+                                async for msg in client.iter_messages(tc):
+                                    count += 1
+                                    if count > auto_limit:
+                                        ids_to_del.append(msg.id)
+                                for i in range(0, len(ids_to_del), 100):
+                                    await client.delete_messages(tc, ids_to_del[i:i+100])
+                                if ids_to_del:
+                                    print(f"[Tenant {chat_id}] Auto-deleted {len(ids_to_del)} old msgs in {tc}")
+                            except Exception as e:
+                                print(f"[Tenant {chat_id}] Auto-delete failed for {t}: {e}")
+                        udata["last_auto_clean"] = time.time()
+                        save_user_data(chat_id, udata)
+
             # Start new clients
             for chat_id in all_users:
                 user_data = get_user_data(chat_id)
