@@ -294,18 +294,34 @@ async def execute_forward(message, chat_id, user_data):
                 t = target
                 
             try:
+                sent = None
                 if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
-                    await client.send_file(t, media_to_send, caption=modified_text)
+                    sent = await client.send_file(t, media_to_send, caption=modified_text)
                 else:
                     if modified_text:
-                        await client.send_message(t, modified_text, link_preview=True)
+                        sent = await client.send_message(t, modified_text, link_preview=True)
+                
+                # SAVE MAPPING FOR MIRROR DELETION
+                if sent and getattr(sent, 'id', None):
+                    if isinstance(msgs, list):
+                        src_id = msgs[0].id
+                    else:
+                        src_id = msgs.id
+                    save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
                 success = True
             except Exception as e:
                 print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
                 # Try fallback just for this target
                 if modified_text:
                     try:
-                        await client.send_message(t, modified_text)
+                        sent = await client.send_message(t, modified_text)
+                        if sent and getattr(sent, 'id', None):
+                            if isinstance(msgs, list):
+                                src_id = msgs[0].id
+                            else:
+                                src_id = msgs.id
+                            save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
+                        success = True
                     except Exception as fallback_e:
                         print(f"[Tenant {chat_id}] Fallback failed for {t}: {fallback_e}")
                         
@@ -314,15 +330,6 @@ async def execute_forward(message, chat_id, user_data):
             from database_manager import get_stats, save_stats
             today = str(datetime.date.today())
             stats = get_stats()
-            
-# SAVE MAPPING FOR MIRROR DELETION
-            if success and getattr(sent, 'id', None):
-                # msgs is a list of messages. We just map the first one for simplicity, or loop them
-                if isinstance(msgs, list):
-                    src_id = msgs[0].id
-                else:
-                    src_id = msgs.id
-                save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
 
             if stats.get("date") != today:
                 stats["today"] = 0
