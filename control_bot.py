@@ -958,9 +958,11 @@ async def callback(event):
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
             sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             
+            del_locked = not toggles.get("deletion_unlocked", False)
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
             sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
+            del_btn_text = "🔓 Unlock Deletion Suite" if del_locked else "🔒 Lock Deletion Suite"
             
             await event.edit(
                 "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
@@ -968,77 +970,44 @@ async def callback(event):
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
                     [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
+                    [Button.inline(del_btn_text, b"toggle_admin_del")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
             
-        elif data == "toggle_admin_drip" and is_admin(chat_id):
+
+        elif data in ("toggle_admin_drip", "toggle_admin_ai", "toggle_admin_sleep", "toggle_admin_del") and is_admin(chat_id):
             toggles = get_feature_toggles()
-            toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
+            if data == "toggle_admin_drip":
+                toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
+            elif data == "toggle_admin_ai":
+                toggles["ai_watermark_unlocked"] = not toggles.get("ai_watermark_unlocked", False)
+            elif data == "toggle_admin_sleep":
+                toggles["sleep_mode_unlocked"] = not toggles.get("sleep_mode_unlocked", False)
+            elif data == "toggle_admin_del":
+                toggles["deletion_unlocked"] = not toggles.get("deletion_unlocked", False)
             save_feature_toggles(toggles)
-            
+
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
             sleep_locked = not toggles.get("sleep_mode_unlocked", False)
+            del_locked = not toggles.get("deletion_unlocked", False)
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
             sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
-            
+            del_btn_text = "🔓 Unlock Deletion Suite" if del_locked else "🔒 Lock Deletion Suite"
+
             await event.edit(
                 "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
                     [Button.inline(btn_text, b"toggle_admin_drip")],
                     [Button.inline(ai_btn_text, b"toggle_admin_ai")],
                     [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
+                    [Button.inline(del_btn_text, b"toggle_admin_del")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
 
-        elif data == "toggle_admin_ai" and is_admin(chat_id):
-            toggles = get_feature_toggles()
-            toggles["ai_watermark_unlocked"] = not toggles.get("ai_watermark_unlocked", False)
-            save_feature_toggles(toggles)
-            
-            drip_locked = not toggles.get("drip_posting_unlocked", False)
-            ai_locked = not toggles.get("ai_watermark_unlocked", False)
-            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
-            
-            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
-            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
-            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
-            
-            await event.edit(
-                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
-                buttons=[
-                    [Button.inline(btn_text, b"toggle_admin_drip")],
-                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
-                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
-                    [Button.inline("🔙 Back", b"admin_panel")]
-                ]
-            )
-            
-        elif data == "toggle_admin_sleep" and is_admin(chat_id):
-            toggles = get_feature_toggles()
-            toggles["sleep_mode_unlocked"] = not toggles.get("sleep_mode_unlocked", False)
-            save_feature_toggles(toggles)
-            
-            drip_locked = not toggles.get("drip_posting_unlocked", False)
-            ai_locked = not toggles.get("ai_watermark_unlocked", False)
-            sleep_locked = not toggles.get("sleep_mode_unlocked", False)
-            
-            btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
-            ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
-            sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
-            
-            await event.edit(
-                "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
-                buttons=[
-                    [Button.inline(btn_text, b"toggle_admin_drip")],
-                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
-                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
-                    [Button.inline("🔙 Back", b"admin_panel")]
-                ]
-            )
         elif data == "admin_ai_broadcast" and is_admin(chat_id):
             if not os.getenv('GEMINI_API_KEY'):
                 await event.answer("⚠️ API Key not found in .env!", alert=True)
