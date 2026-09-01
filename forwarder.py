@@ -266,20 +266,7 @@ async def execute_forward(message, chat_id, user_data):
             # If standard image override is OFF, process AI watermark if enabled
             mode = user_data.get("ai_watermark_mode", "off")
             if mode != "off":
-                status_msg = None
-                try:
-                    # Send a temporary status message to the source chat so the user knows it's working
-                    status_msg = await client.send_message(message.chat_id, "🤖 *AI is cleaning watermark from image...*", reply_to=message.id)
-                except Exception:
-                    pass
-                    
                 media_to_send = await ai_process_image(client, message, chat_id, user_data)
-                
-                if status_msg:
-                    try:
-                        await status_msg.delete()
-                    except Exception:
-                        pass
     
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
@@ -536,10 +523,14 @@ async def monitor_users():
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
                             
-                        # CRITICAL: Remove all existing handlers first to prevent duplicate message firing
-                        client.remove_event_handler(None)
-                        # Use a lambda or partial to pass the chat_id into the event handler
-                        client.add_event_handler(lambda e, cid=chat_id: handle_message(e, cid), events.NewMessage)
+                        # CRITICAL: Properly remove ALL existing handlers to prevent stacking
+                        for cb, ev in list(client.list_event_handlers()):
+                            client.remove_event_handler(cb, ev)
+                        # incoming=True means ONLY messages received, NOT messages sent by this account
+                        client.add_event_handler(
+                            lambda e, cid=chat_id: handle_message(e, cid),
+                            events.NewMessage(incoming=True)
+                        )
                         active_clients[chat_id] = client
                         print(f"✅ Engine ONLINE for Tenant {chat_id}")
                     except (AuthKeyUnregisteredError, AuthKeyInvalidError,

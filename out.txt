@@ -1,0 +1,30 @@
+            )
+            
+        elif data == "menu_targets":
+            user_states[chat_id] = "waiting_for_targets"
+            current = ", ".join(user_data.get('targets', []))
+            await event.edit(
+                f"**🎯 Edit Targets**\n\nCurrent Targets:\n`{current}`\n\n"
+                "👉 **How to add a target:**\n"
+                "Simply **Forward any message** from the channel to me here!\n"
+                "*(Or manually reply with a comma-separated list of `@username`)*\n\n"
+                "Send /cancel to go back.",
+                buttons=[[Button.inline("🔙 Back", b"back")]]
+            )
+            
+        elif data == "menu_words":
+            swaps = user_data.get("text_swaps", {})
+            msg = "**✏️ Word Swapper**\n\nCurrent Swaps:\n"
+            if not swaps:
+                msg += "*(No words are currently being swapped)*\n"
+            for old, new in swaps.items():
+                msg += f"• `{old}` ➡️ `{new}`\n"
+            user_states[chat_id] = {"step": "waiting_for_old_word"}
+            msg += "\n**What word or phrase do you want to FIND in the incoming messages?**"
+            await event.edit(msg, buttons=[[Button.inline("🔙 Back", b"back_modifications")]])
+    
+        elif data == "menu_links":
+            user_states[chat_id] = "waiting_for_link"
+            current_link = user_data.get("replace_all_links_with", "")
+            current_user = user_data.get("replace_all_usernames_with", "")
+            await event.edit(
