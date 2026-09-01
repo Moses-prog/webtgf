@@ -290,7 +290,7 @@ async def execute_forward(message, chat_id, user_data):
                         src_id = message[0].id
                     else:
                         src_id = message.id
-                    save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
+                    save_message_map(chat_id, message.chat_id, src_id, target, sent.id)
                 success = True
             except Exception as e:
                 print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
@@ -303,7 +303,7 @@ async def execute_forward(message, chat_id, user_data):
                                 src_id = message[0].id
                             else:
                                 src_id = message.id
-                            save_message_map(chat_id, source_chat_id, src_id, target, sent.id)
+                            save_message_map(chat_id, message.chat_id, src_id, target, sent.id)
                         success = True
                     except Exception as fallback_e:
                         print(f"[Tenant {chat_id}] Fallback failed for {t}: {fallback_e}")
