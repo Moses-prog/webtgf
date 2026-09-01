@@ -54,13 +54,10 @@ def get_main_keyboard(chat_id):
     else:
         buttons.extend([
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
-            [Button.inline("✨ Modification Rules", b"menu_modifications")],
-            [Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
-            [Button.inline("🗑️ Deletion Suite (Pro)", b"menu_deletion")],
-            [Button.inline("📖 How to Use the Bot", b"menu_instructions")],
-            [Button.inline("⚙️ Settings Panel", b"menu_settings")],
-            [Button.inline("🔌 Disconnect Account", b"disconnect_account")],
-            [Button.inline("💬 24/7 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
+            [Button.inline("✨ Modification Rules", b"menu_modifications"), Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
+            [Button.inline("🗑️ Deletion Suite", b"menu_deletion"), Button.inline("📖 How to Use", b"menu_instructions")],
+            [Button.inline("⚙️ Settings", b"menu_settings"), Button.inline("🔌 Disconnect", b"disconnect_account")],
+            [Button.inline("💬 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
         ])
     
     if is_admin(chat_id):
