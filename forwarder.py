@@ -299,6 +299,10 @@ async def execute_forward(message, chat_id, user_data):
                 success = True
             except Exception as e:
                 print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
+                try:
+                    await client.send_message(chat_id, f"⚠️ **DEBUG: Failed to send media to {t}**\nError: `{e}`")
+                except:
+                    pass
                 # Try fallback just for this target
                 if modified_text:
                     try:
