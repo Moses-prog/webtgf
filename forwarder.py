@@ -570,7 +570,39 @@ async def monitor_users():
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                     except Exception as e:
-                        print(f"❌ Failed to boot engine for {chat_id}: {e}")
+                        # Check if it's an auth/session error (covers revoke, invalid, corrupt session)
+                        err_str = str(type(e).__name__).lower() + str(e).lower()
+                        is_session_error = any(x in err_str for x in [
+                            "authkey", "session", "revoked", "expired", "deactivated",
+                            "banned", "unregistered", "invalid", "struct", "unpack"
+                        ])
+                        if is_session_error:
+                            print(f"[Tenant {chat_id}] ⚠️ SESSION ERROR on boot: {type(e).__name__}: {e}. Clearing.")
+                            try: await client.disconnect()
+                            except: pass
+                            user_data["session_string"] = ""
+                            user_data["is_active"] = False
+                            from database_manager import save_user_data
+                            save_user_data(chat_id, user_data)
+                            active_clients.pop(chat_id, None)
+                            try:
+                                BOT_TOKEN = os.getenv("BOT_TOKEN")
+                                import aiohttp
+                                msg = (
+                                    "⚠️ *Account Disconnected!*\n\n"
+                                    "Your Telegram session was logged out or revoked from outside the bot "
+                                    "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
+                                    "Your forwarding engine has been stopped automatically.\n\n"
+                                    "👉 Please open the bot and reconnect your account to resume forwarding."
+                                )
+                                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+                                async with aiohttp.ClientSession() as sess:
+                                    await sess.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                                print(f"[Tenant {chat_id}] Notified about session error.")
+                            except Exception as notify_err:
+                                print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
+                        else:
+                            print(f"❌ Failed to boot engine for {chat_id}: {type(e).__name__}: {e}")
 
             # Stop disconnected clients + Health check for revoked sessions
             for chat_id in list(active_clients.keys()):
