@@ -68,8 +68,17 @@ def apply_rules(text, user_data):
         # Match http/https, www, domain.com/path, and common domains without protocol
         url_pattern = r'(?i)(?:https?://|www\.)(?!(?:t\.me|telegram\.me))[^\s]+|\b(?!(?:t\.me|telegram\.me))[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/[^\s]*|\b(?:youtube\.com|youtu\.be|instagram\.com|twitter\.com|x\.com|facebook\.com|tiktok\.com|bit\.ly)[^\s]*'
         
+        exclude_keywords = [k.strip().lower() for k in user_data.get("exclude_link_keywords", "").split(",") if k.strip()]
+        
         def link_replacer(match):
             matched_str = match.group(0)
+            
+            # Check exclusions
+            matched_lower = matched_str.lower()
+            for ex in exclude_keywords:
+                if ex in matched_lower:
+                    return matched_str
+                    
             # If the original link did NOT have http/https, we remove it from the replacement link too!
             if not matched_str.lower().startswith('http'):
                 return re.sub(r'^https?://', '', link_replacement, flags=re.IGNORECASE)

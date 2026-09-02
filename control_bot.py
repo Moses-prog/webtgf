@@ -802,8 +802,16 @@ async def callback(event):
             user_states[chat_id] = "waiting_for_link"
             current_link = user_data.get("replace_all_links_with", "")
             current_user = user_data.get("replace_all_usernames_with", "")
+            current_exclude = user_data.get("exclude_link_keywords", "")
             await event.edit(
-                f"**🔗 Link & Branding**\n\nGlobal Link: `{current_link}`\nGlobal Username: `{current_user}`\n\nReply with `LINK=https://yourlink.com` or `USER=@youruser` to update them.",
+                f"**🔗 Link & Branding**\n\n"
+                f"Global Link: `{current_link}`\n"
+                f"Global Username: `{current_user}`\n"
+                f"Excluded Links: `{current_exclude}`\n\n"
+                f"Reply with:\n"
+                f"`LINK=https://yourlink.com`\n"
+                f"`USER=@youruser`\n"
+                f"`EXCLUDE=redbagCode, gift` (Do not replace links containing these words)",
                 buttons=[[Button.inline("🔙 Back", b"back_modifications")]]
             )
             
@@ -1497,8 +1505,18 @@ async def text_handler(event):
             save_user_data(chat_id, user_data)
             user_states[chat_id] = None
             await event.respond("✅ Global username updated!", buttons=get_main_keyboard(chat_id))
+        elif text.startswith("EXCLUDE="):
+            user_data["exclude_link_keywords"] = text.split("=", 1)[1].strip()
+            save_user_data(chat_id, user_data)
+            user_states[chat_id] = None
+            await event.respond("✅ Link exclusions updated!", buttons=get_main_keyboard(chat_id))
+        elif text.upper() == "CLEAR EXCLUDE":
+            user_data["exclude_link_keywords"] = ""
+            save_user_data(chat_id, user_data)
+            user_states[chat_id] = None
+            await event.respond("✅ Link exclusions cleared!", buttons=get_main_keyboard(chat_id))
         else:
-            await event.respond("❌ Invalid format. Use `LINK=...` or `USER=...`")
+            await event.respond("❌ Invalid format. Use `LINK=...`, `USER=...` or `EXCLUDE=...`")
             
     elif state == "waiting_for_image":
         if text.upper() == "CLEAR":
