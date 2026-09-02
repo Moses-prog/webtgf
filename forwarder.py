@@ -269,20 +269,25 @@ async def execute_forward(message, chat_id, user_data):
     if not client: return
 
     if message.media:
-        is_enabled = user_data.get("image_override_enabled", True)
-        if is_enabled and (user_data.get("image_swap_path", "").strip() or user_data.get("image_swap_url", "").strip()):
-            image_swap_path = user_data.get("image_swap_path", "").strip()
-            image_swap_url = user_data.get("image_swap_url", "").strip()
-            
-            if image_swap_path and os.path.exists(image_swap_path):
-                media_to_send = image_swap_path
-            elif image_swap_url:
-                media_to_send = image_swap_url
-        else:
-            # If standard image override is OFF, process AI watermark if enabled
-            mode = user_data.get("ai_watermark_mode", "off")
-            if mode != "off":
-                media_to_send = await ai_process_image(client, message, chat_id, user_data)
+        from telethon.tl.types import MessageMediaPhoto
+        # Only override or AI-process actual PHOTOS. Videos, GIFs and documents must pass through untouched!
+        is_photo = isinstance(message.media, MessageMediaPhoto)
+
+        if is_photo:
+            is_enabled = user_data.get("image_override_enabled", True)
+            if is_enabled and (user_data.get("image_swap_path", "").strip() or user_data.get("image_swap_url", "").strip()):
+                image_swap_path = user_data.get("image_swap_path", "").strip()
+                image_swap_url = user_data.get("image_swap_url", "").strip()
+
+                if image_swap_path and os.path.exists(image_swap_path):
+                    media_to_send = image_swap_path
+                elif image_swap_url:
+                    media_to_send = image_swap_url
+            else:
+                # If standard image override is OFF, process AI watermark if enabled
+                mode = user_data.get("ai_watermark_mode", "off")
+                if mode != "off":
+                    media_to_send = await ai_process_image(client, message, chat_id, user_data)
     
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
@@ -324,9 +329,15 @@ async def execute_forward(message, chat_id, user_data):
             except Exception as e:
                 print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
                 try:
-                    await client.send_message(chat_id, f"⚠️ **DEBUG: Failed to send media to {t}**\nError: `{e}`")
-                except:
-                    pass
+                    import requests
+                    import os
+                    BOT_TOKEN = os.getenv("BOT_TOKEN")
+                    if BOT_TOKEN:
+                        msg = f"⚠️ **DEBUG: Failed to send media to {t}**\nError: `{e}`"
+                        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+                        requests.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                except Exception as notify_err:
+                    print(f"Failed to send debug DM: {notify_err}")
                 # Try fallback just for this target
                 if modified_text:
                     try:
