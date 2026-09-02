@@ -30,6 +30,7 @@ from telethon.errors import (
 from database_manager import get_all_users, get_user_data, save_message_map
 
 active_clients = {}
+ai_semaphore = asyncio.Semaphore(2)  # Limit concurrent AI processing to prevent memory spikes on Render (512MB RAM limit)
 
 import datetime
 import time
@@ -216,10 +217,12 @@ async def ai_process_image(client, message, chat_id, user_data):
                     draw.text((text_x, text_y), replacement_text, fill=text_color, font=font, anchor="mm")
         except Exception as ex:
             print(f"[Tenant {chat_id}] Failed to parse Gemini response: {ex}")
+            if 'img' in locals(): img.close()
             return message.media
                     
         out_path = f"processed_{message.id}_{chat_id}.png"
         img.save(out_path)
+        img.close()
         
         # Cleanup temp
         if os.path.exists(temp_path):
@@ -230,6 +233,7 @@ async def ai_process_image(client, message, chat_id, user_data):
         
     except Exception as e:
         print(f"[Tenant {chat_id}] AI Watermark error: {e}")
+        if 'img' in locals(): img.close()
         return message.media
 
 
