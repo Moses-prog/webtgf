@@ -297,6 +297,7 @@ async def execute_forward(message, chat_id, user_data):
         print(f"[Tenant {chat_id}] Smart Delay: Waiting {delay_seconds} seconds before forwarding...")
         await asyncio.sleep(delay_seconds)
         
+    downloaded_restricted_media = None
     try:
         success = False
         for target in target_channels:
@@ -309,8 +310,22 @@ async def execute_forward(message, chat_id, user_data):
                 sent = None
                 if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
                     if media_to_send == message.media:
-                        # Passing the original message object guarantees Telegram resolves the media access hash
-                        sent = await client.send_message(t, modified_text, file=message)
+                        if downloaded_restricted_media:
+                            sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
+                        else:
+                            try:
+                                sent = await client.send_message(t, modified_text, file=message)
+                            except Exception as forward_err:
+                                err_str = str(forward_err).lower()
+                                if "protected chat" in err_str or "restricted" in err_str or "chatforwardsrestricted" in err_str:
+                                    print(f"[Tenant {chat_id}] Source chat is restricted, downloading media to forward...")
+                                    downloaded_restricted_media = await client.download_media(message, file=f"restricted_{message.id}_{chat_id}")
+                                    if downloaded_restricted_media:
+                                        sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
+                                    else:
+                                        raise forward_err
+                                else:
+                                    raise forward_err
                     else:
                         # Sending a local file or URL override
                         sent = await client.send_file(t, media_to_send, caption=modified_text)
@@ -371,6 +386,13 @@ async def execute_forward(message, chat_id, user_data):
         if isinstance(media_to_send, str) and media_to_send.startswith("processed_") and os.path.exists(media_to_send):
             try:
                 os.remove(media_to_send)
+            except:
+                pass
+                
+        # Cleanup restricted downloads
+        if 'downloaded_restricted_media' in locals() and downloaded_restricted_media and os.path.exists(downloaded_restricted_media):
+            try:
+                os.remove(downloaded_restricted_media)
             except:
                 pass
 
