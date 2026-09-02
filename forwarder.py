@@ -65,7 +65,7 @@ def apply_rules(text, user_data):
     link_replacement = user_data.get("replace_all_links_with", "").strip()
     if link_replacement:
         # Match http/https, www, domain.com/path, and common domains without protocol
-        url_pattern = r'(?i)(?:https?://|www\.)[^\s]+|\b[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/[^\s]*|\b(?:t\.me|telegram\.me|youtube\.com|youtu\.be|instagram\.com|twitter\.com|x\.com|facebook\.com|tiktok\.com|bit\.ly)[^\s]*'
+        url_pattern = r'(?i)(?:https?://|www\.)(?!(?:t\.me|telegram\.me))[^\s]+|\b(?!(?:t\.me|telegram\.me))[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/[^\s]*|\b(?:youtube\.com|youtu\.be|instagram\.com|twitter\.com|x\.com|facebook\.com|tiktok\.com|bit\.ly)[^\s]*'
         
         def link_replacer(match):
             matched_str = match.group(0)
@@ -76,12 +76,20 @@ def apply_rules(text, user_data):
             
         text = re.sub(url_pattern, link_replacer, text)
 
-    # 3. Replace Usernames
+    # 3. Replace Usernames AND Telegram DM/Group Links
     user_replacement = user_data.get("replace_all_usernames_with", "").strip()
     if user_replacement:
-        username_pattern = r'@[\w_]+'
-        text = re.sub(username_pattern, user_replacement, text)
+        username_pattern = r'(?i)(?:https?://)?(?:t\.me/|telegram\.me/|@)[\w_]+'
         
+        def username_replacer(match):
+            matched = match.group(0)
+            if 't.me' in matched.lower() or 'telegram.me' in matched.lower():
+                if user_replacement.startswith('@'):
+                    return f't.me/{user_replacement[1:]}'
+                return user_replacement
+            return user_replacement
+            
+        text = re.sub(username_pattern, username_replacer, text)
     # 4. Strip Account/Payment Details (Crypto & Banks)
     if user_data.get("strip_payment_details", False):
         import re
