@@ -52,6 +52,7 @@ def is_in_sleep_mode(user_data):
         return current_time >= start or current_time <= end
 
 def apply_rules(text, user_data):
+    import re
     if not text:
         return text
     
@@ -92,7 +93,6 @@ def apply_rules(text, user_data):
         text = re.sub(username_pattern, username_replacer, text)
     # 4. Strip Account/Payment Details (Crypto & Banks)
     if user_data.get("strip_payment_details", False):
-        import re
         # ETH/BSC
         text = re.sub(r'(?i)^.*0x[a-f0-9]{40}.*$\n?', '', text, flags=re.MULTILINE)
         # BTC (Legacy, Segwit)
