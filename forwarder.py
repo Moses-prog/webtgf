@@ -92,7 +92,7 @@ def apply_rules(text, user_data):
         # TRON/USDT TRC20 (Starts with T, 34 chars)
         text = re.sub(r'(?i)^.*(?<![a-z0-9])T[a-km-zA-HJ-NP-Z1-9]{33}(?![a-z0-9]).*$\n?', '', text, flags=re.MULTILINE)
         # Bank/Account keywords
-        text = re.sub(r'(?i)^.*(account\s*no|acc\s*no|account\s*number|bank\s*account|routing|iban|sort\s*code|paypal|cashapp|skrill|neteller|paystack).*$\n?', '', text, flags=re.MULTILINE)
+        text = re.sub(r'(?i)^.*(account\s*details|account\s*name|account\s*no|acc\s*no|account\s*number|bank\s*:|bank\s*name|bank\s*account|routing|iban|sort\s*code|paypal|cashapp|skrill|neteller|paystack|opay|palmpay|kuda|moniepoint).*$\n?', '', text, flags=re.MULTILINE)
 
     return text
 
