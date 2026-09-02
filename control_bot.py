@@ -607,43 +607,40 @@ async def callback(event):
             await event.edit(text, buttons=buttons)
             return
 
-        elif data == "menu_settings":
+        elif data in ("menu_settings", "toggle_smart_delay", "toggle_anti_payment"):
             user_data = get_user_data(chat_id)
+            
+            if data == "toggle_smart_delay":
+                user_data["smart_delay_enabled"] = not user_data.get("smart_delay_enabled", False)
+                save_user_data(chat_id, user_data)
+                status = "✅ ON" if user_data["smart_delay_enabled"] else "❌ OFF"
+                await event.answer(f"Smart Delay turned {status}!", alert=True)
+                
+            elif data == "toggle_anti_payment":
+                user_data["strip_payment_details"] = not user_data.get("strip_payment_details", False)
+                save_user_data(chat_id, user_data)
+                status = "✅ ON" if user_data["strip_payment_details"] else "❌ OFF"
+                await event.answer(f"Anti-Payment Stripper turned {status}!", alert=True)
+                
             delay_enabled = user_data.get("smart_delay_enabled", False)
-            status = "✅ ON" if delay_enabled else "❌ OFF"
+            strip_enabled = user_data.get("strip_payment_details", False)
+            
+            d_status = "✅ ON" if delay_enabled else "❌ OFF"
+            s_status = "✅ ON" if strip_enabled else "❌ OFF"
             
             text = (
                 "⚙️ **Advanced Settings Panel**\n\n"
                 "**1. Smart Delay (Anti-Ban)**\n"
-                "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human reading and typing.\n"
-                f"Current Status: {status}"
+                "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human.\n"
+                f"Current Status: {d_status}\n\n"
+                "**2. Anti-Payment Stripper**\n"
+                "If enabled, the bot will automatically delete any Crypto addresses (BTC, ETH, USDT) and Bank Account numbers from the text before forwarding.\n"
+                f"Current Status: {s_status}"
             )
             
             buttons = [
-                [Button.inline(f"Toggle Smart Delay: {status}", b"toggle_smart_delay")],
-                [Button.inline("🔙 Back", b"back")]
-            ]
-            await event.edit(text, buttons=buttons)
-            return
-            
-        elif data == "toggle_smart_delay":
-            user_data = get_user_data(chat_id)
-            user_data["smart_delay_enabled"] = not user_data.get("smart_delay_enabled", False)
-            save_user_data(chat_id, user_data)
-            
-            delay_enabled = user_data.get("smart_delay_enabled", False)
-            status = "✅ ON" if delay_enabled else "❌ OFF"
-            await event.answer(f"Smart Delay turned {status}!", alert=True)
-            
-            # Refresh menu
-            text = (
-                "⚙️ **Advanced Settings Panel**\n\n"
-                "**1. Smart Delay (Anti-Ban)**\n"
-                "If enabled, the bot will wait 1 to 3 minutes before forwarding, making it look like a real human reading and typing.\n"
-                f"Current Status: {status}"
-            )
-            buttons = [
-                [Button.inline(f"Toggle Smart Delay: {status}", b"toggle_smart_delay")],
+                [Button.inline(f"Toggle Smart Delay: {d_status}", b"toggle_smart_delay")],
+                [Button.inline(f"Anti-Payment Stripper: {s_status}", b"toggle_anti_payment")],
                 [Button.inline("🔙 Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)

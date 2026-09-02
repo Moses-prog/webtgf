@@ -82,6 +82,18 @@ def apply_rules(text, user_data):
         username_pattern = r'@[\w_]+'
         text = re.sub(username_pattern, user_replacement, text)
         
+    # 4. Strip Account/Payment Details (Crypto & Banks)
+    if user_data.get("strip_payment_details", False):
+        import re
+        # ETH/BSC
+        text = re.sub(r'(?i)^.*0x[a-f0-9]{40}.*$\n?', '', text, flags=re.MULTILINE)
+        # BTC (Legacy, Segwit)
+        text = re.sub(r'(?i)^.*(?<![a-z0-9])(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-z0-9]{39,59})(?![a-z0-9]).*$\n?', '', text, flags=re.MULTILINE)
+        # TRON/USDT TRC20 (Starts with T, 34 chars)
+        text = re.sub(r'(?i)^.*(?<![a-z0-9])T[a-km-zA-HJ-NP-Z1-9]{33}(?![a-z0-9]).*$\n?', '', text, flags=re.MULTILINE)
+        # Bank/Account keywords
+        text = re.sub(r'(?i)^.*(account\s*no|acc\s*no|account\s*number|bank\s*account|routing|iban|sort\s*code|paypal|cashapp|skrill|neteller|paystack).*$\n?', '', text, flags=re.MULTILINE)
+
     return text
 
 
