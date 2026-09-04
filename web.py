@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, request, render_template_string, redirect, session, url_for
+from flask import Flask, request, render_template_string, redirect, session, url_for, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv, set_key
 
