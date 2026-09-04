@@ -610,13 +610,16 @@ html_content = '''<!DOCTYPE html>
         
         /* Header */
         .header { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 24px; }
-        .avatar {
-            width: 72px; height: 72px; border-radius: 18px;
-            background: var(--accent); color: #fff;
+        .brand-logo {
+            width: 76px; height: 76px; border-radius: 20px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #fff;
             display: flex; align-items: center; justify-content: center;
             margin-bottom: 16px;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .avatar svg { width: 36px; height: 36px; }
+        .brand-logo svg { width: 42px; height: 42px; stroke-width: 1.5; }
         
         .bot-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .bot-username { font-size: 15px; color: var(--text-muted); margin-bottom: 16px; }
@@ -683,8 +686,15 @@ html_content = '''<!DOCTYPE html>
 </head>
 <body>
     <div class="header">
-        <div class="avatar" id="user-avatar-container">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <div class="brand-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
         </div>
         <div class="bot-name" id="user-greeting">Hi, User!</div>
         <div class="bot-username">WebTGF Dashboard</div>
@@ -764,10 +774,7 @@ html_content = '''<!DOCTYPE html>
         const userName = tg.initDataUnsafe?.user?.first_name || tg.initDataUnsafe?.user?.username || 'User';
         document.getElementById('user-greeting').innerText = `Hi, ${userName}!`;
         
-        const photoUrl = tg.initDataUnsafe?.user?.photo_url;
-        if (photoUrl) {
-            document.getElementById('user-avatar-container').innerHTML = `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:18px; object-fit:cover;">`;
-        }
+
         
         // Fetch Real-time status
         async function fetchStatus() {
