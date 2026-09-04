@@ -152,7 +152,12 @@ async def ai_process_image(client, message, chat_id, user_data):
         img = Image.open(temp_path).convert("RGB")
         width, height = img.size
         
-        genai_client = genai.Client(api_key=api_key)
+        # FIX MEMORY LEAK: Use global client instead of instantiating per-request
+        global _shared_genai_client
+        if '_shared_genai_client' not in globals():
+            _shared_genai_client = genai.Client(api_key=api_key)
+        genai_client = _shared_genai_client
+        
         prompt = f"Find the exact bounding box for the text block '{target}'. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (where ymin is top, xmin is left, ymax is bottom, xmax is right). For horizontal text, xmax-xmin is usually much larger than ymax-ymin."
         
         import asyncio
@@ -270,6 +275,10 @@ async def ai_process_image(client, message, chat_id, user_data):
     except Exception as e:
         print(f"[Tenant {chat_id}] AI Watermark error: {e}")
         if 'img' in locals(): img.close()
+        if 'temp_path' in locals() and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except: pass
         return message.media
 
 
