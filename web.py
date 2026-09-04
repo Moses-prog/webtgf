@@ -824,9 +824,10 @@ def api_user_status():
     except:
         return jsonify({"error": "Invalid user_id"}), 400
         
+    import os
     from database_manager import get_user_data
-    from control_bot import ADMIN_ID
     
+    ADMIN_ID = os.getenv("ADMIN_ID", "")
     is_admin = (str(user_id) == str(ADMIN_ID))
     user_data = get_user_data(user_id)
     
