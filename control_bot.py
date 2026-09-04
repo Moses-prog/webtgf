@@ -120,10 +120,13 @@ async def start(event):
     user_data = get_user_data(chat_id)
     badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
     
+    sender = await event.get_sender()
+    name = sender.first_name if sender.first_name else (sender.username if sender.username else "User")
+    
     if not user_data.get('session_string'):
-        msg = f"👋 Welcome to the **Webtgf Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
+        msg = f"👋 Hi, **{name}**! Welcome to the **Webtgf Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
     else:
-        msg = f"👋 Welcome to the **Webtgf Dashboard**!{badge}\n\nManage your forwarding rules, channels, and replacements directly from this menu."
+        msg = f"👋 Hi, **{name}**! Welcome to the **Webtgf Dashboard**!{badge}\n\nManage your forwarding rules, channels, and replacements directly from this menu."
         
     await event.respond(msg, buttons=get_main_keyboard(chat_id))
 
@@ -168,7 +171,9 @@ async def callback(event):
         elif data == "back":
             user_states[chat_id] = None
             badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
-            await event.edit(f"👋 Welcome to the **Webtgf Dashboard**!{badge}", buttons=get_main_keyboard(chat_id))
+            sender = await event.get_sender()
+            name = sender.first_name if sender.first_name else (sender.username if sender.username else "User")
+            await event.edit(f"👋 Hi, **{name}**! Welcome to the **Webtgf Dashboard**!{badge}", buttons=get_main_keyboard(chat_id))
             return
 
         # -----------------------------------------------------

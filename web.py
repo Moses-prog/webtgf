@@ -683,11 +683,11 @@ html_content = '''<!DOCTYPE html>
 </head>
 <body>
     <div class="header">
-        <div class="avatar">
-            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+        <div class="avatar" id="user-avatar-container">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </div>
-        <div class="bot-name">WebTGF</div>
-        <div class="bot-username">@Webtgfbot</div>
+        <div class="bot-name" id="user-greeting">Hi, User!</div>
+        <div class="bot-username">WebTGF Dashboard</div>
         
         <div class="status-badges">
             <div id="tier-badge" class="badge free skeleton">Tier</div>
@@ -759,6 +759,15 @@ html_content = '''<!DOCTYPE html>
         
         // Theme matching
         document.documentElement.style.setProperty('--bg-color', tg.backgroundColor || '#181818');
+        
+        // Set User info
+        const userName = tg.initDataUnsafe?.user?.first_name || tg.initDataUnsafe?.user?.username || 'User';
+        document.getElementById('user-greeting').innerText = `Hi, ${userName}!`;
+        
+        const photoUrl = tg.initDataUnsafe?.user?.photo_url;
+        if (photoUrl) {
+            document.getElementById('user-avatar-container').innerHTML = `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:18px; object-fit:cover;">`;
+        }
         
         // Fetch Real-time status
         async function fetchStatus() {
