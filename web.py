@@ -572,78 +572,277 @@ html_content = '''<!DOCTYPE html>
     <title>WebTGF</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --accent: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000000;
+                --card-bg: #1c1c1e;
+                --text-main: #ffffff;
+                --text-muted: #8e8e93;
+                --border-color: #2c2c2e;
+                --accent: #0a84ff;
+                --success: #30d158;
+                --warning: #ffd60a;
+            }
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #181818;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             padding-bottom: 40px;
         }
-        .header { display: flex; flex-direction: column; align-items: center; padding: 30px 20px 20px; }
+        
+        /* Icons */
+        svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        
+        /* Header */
+        .header { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 24px; }
         .avatar {
-            width: 80px; height: 80px; border-radius: 50%;
-            background: #2c2c2e;
+            width: 72px; height: 72px; border-radius: 18px;
+            background: var(--accent); color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-size: 36px; margin-bottom: 14px;
-            
+            margin-bottom: 16px;
         }
-        .bot-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-        .bot-username { font-size: 14px; color: #8e8e93; }
-        .badge { margin-top: 10px; background: #2c2c2e; border-radius: 20px; padding: 4px 14px; font-size: 12px; color: #f59e0b; font-weight: 600; letter-spacing: 0.5px; }
-        .section-label { font-size: 13px; font-weight: 600; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.8px; padding: 18px 20px 8px; }
-        .card { background: #2c2c2e; margin: 0 16px; overflow: hidden; }
-        .card-top { border-radius: 12px 12px 0 0; }
-        .card-bottom { border-radius: 0 0 12px 12px; margin-bottom: 10px; }
-        .card-solo { border-radius: 12px; margin-bottom: 10px; }
-        .card-mid { border-radius: 0; }
-        .row { display: flex; align-items: center; padding: 14px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.06); gap: 14px; }
-        .card-bottom .row, .card-solo .row { border-bottom: none; }
-        .row-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
-        .row-text { flex: 1; }
-        .row-title { font-size: 16px; font-weight: 500; }
-        .row-subtitle { font-size: 12px; color: #8e8e93; margin-top: 2px; }
-        .row-right { color: #8e8e93; font-size: 20px; line-height: 1; }
-        .chip { background: rgba(88,86,214,0.25); color: #a78bfa; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
-        .launch-btn { margin: 20px 16px 10px; background: #3b82f6; color: white; border: none; padding: 16px; font-size: 17px; font-weight: 700; border-radius: 14px; cursor: pointer; width: calc(100% - 32px);  transition: opacity 0.15s; }
-        .launch-btn:active { opacity: 0.8; }
-        .footer { text-align: center; font-size: 12px; color: #555; padding: 20px; }
+        .avatar svg { width: 36px; height: 36px; }
+        
+        .bot-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .bot-username { font-size: 15px; color: var(--text-muted); margin-bottom: 16px; }
+        
+        .status-badges { display: flex; gap: 8px; }
+        .badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .badge svg { width: 14px; height: 14px; }
+        
+        .badge.pro { background: rgba(10, 132, 255, 0.15); color: var(--accent); }
+        .badge.free { background: rgba(142, 142, 147, 0.15); color: var(--text-muted); }
+        .badge.connected { background: rgba(48, 209, 88, 0.15); color: var(--success); }
+        .badge.disconnected { background: rgba(255, 69, 58, 0.15); color: #ff453a; }
+
+        /* Sections */
+        .section-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 18px 16px 8px; }
+        
+        /* Lists */
+        .list-group { background: var(--card-bg); margin: 0 16px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+        .list-item { 
+            display: flex; align-items: center; padding: 16px; 
+            border-bottom: 1px solid var(--border-color); 
+            gap: 16px; 
+        }
+        .list-item:last-child { border-bottom: none; }
+        
+        .icon-box { 
+            width: 32px; height: 32px; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; 
+            flex-shrink: 0; color: var(--text-main);
+        }
+        
+        .item-text { flex: 1; }
+        .item-title { font-size: 16px; font-weight: 500; margin-bottom: 2px; }
+        .item-subtitle { font-size: 13px; color: var(--text-muted); }
+        
+        .item-right { color: var(--text-muted); font-size: 14px; display: flex; align-items: center; }
+        .item-right svg { width: 18px; height: 18px; color: var(--border-color); }
+
+        .chip { background: var(--border-color); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+
+        /* Buttons */
+        .primary-btn { 
+            margin: 24px 16px 10px; background: var(--accent); color: white; border: none; 
+            padding: 16px; font-size: 16px; font-weight: 600; border-radius: 12px; 
+            cursor: pointer; width: calc(100% - 32px); transition: opacity 0.2s; 
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .primary-btn:active { opacity: 0.8; }
+        .footer { text-align: center; font-size: 13px; color: var(--text-muted); padding: 20px; }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 8px; }
+        .stat-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
+
+        /* Loading state */
+        .skeleton { background: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite; color: transparent !important; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="avatar">&#9881;&#65039;</div>
+        <div class="avatar">
+            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+        </div>
         <div class="bot-name">WebTGF</div>
         <div class="bot-username">@Webtgfbot</div>
-        <div class="badge">&#128640; COMING SOON</div>
+        
+        <div class="status-badges">
+            <div id="tier-badge" class="badge free skeleton">Tier</div>
+            <div id="conn-badge" class="badge disconnected skeleton">Status</div>
+        </div>
     </div>
-    <div class="section-label">Features</div>
-    <div class="card card-top">
-        <div class="row"><div class="row-icon" style="background:#1d3a5f">&#128225;</div><div class="row-text"><div class="row-title">Auto Forwarding</div><div class="row-subtitle">Copy messages across channels</div></div><span class="chip">Soon</span></div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div id="stat-sources" class="stat-value skeleton">0</div>
+            <div class="stat-label">Active Sources</div>
+        </div>
+        <div class="stat-card">
+            <div id="stat-targets" class="stat-value skeleton">0</div>
+            <div class="stat-label">Active Targets</div>
+        </div>
     </div>
-    <div class="card card-mid">
-        <div class="row"><div class="row-icon" style="background:#1d3d2e">&#9999;&#65039;</div><div class="row-text"><div class="row-title">Message Modifier</div><div class="row-subtitle">Replace words, links and usernames</div></div><span class="chip">Soon</span></div>
+
+    <div class="section-label">Core Features</div>
+    <div class="list-group">
+        <div class="list-item">
+            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg></div>
+            <div class="item-text">
+                <div class="item-title">Auto Forwarding</div>
+                <div class="item-subtitle">Copy messages across channels</div>
+            </div>
+            <span class="chip">Active</span>
+        </div>
+        <div class="list-item">
+            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+            <div class="item-text">
+                <div class="item-title">Message Modifier</div>
+                <div class="item-subtitle">Replace words, links and usernames</div>
+            </div>
+            <span class="chip">Active</span>
+        </div>
     </div>
-    <div class="card card-mid">
-        <div class="row"><div class="row-icon" style="background:#3d2020">&#129302;</div><div class="row-text"><div class="row-title">AI Watermark Remover</div><div class="row-subtitle">Powered by Gemini AI</div></div><span class="chip">Soon</span></div>
+
+    <div class="section-label">Pro Features</div>
+    <div class="list-group">
+        <div class="list-item">
+            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
+            <div class="item-text">
+                <div class="item-title">AI Watermark Engine</div>
+                <div class="item-subtitle">Automatically brand images</div>
+            </div>
+            <span class="chip">PRO</span>
+        </div>
+        <div class="list-item">
+            <div class="icon-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+            <div class="item-text">
+                <div class="item-title">Drip Posting</div>
+                <div class="item-subtitle">Auto-post on a delayed schedule</div>
+            </div>
+            <span class="chip">PRO</span>
+        </div>
     </div>
-    <div class="card card-bottom">
-        <div class="row"><div class="row-icon" style="background:#2d2a0f">&#9201;</div><div class="row-text"><div class="row-title">Drip Posting and Scheduler</div><div class="row-subtitle">Auto-post on your own schedule</div></div><span class="chip">Soon</span></div>
-    </div>
-    <div class="section-label">Stay Updated</div>
-    <div class="card card-solo">
-        <div class="row"><div class="row-icon" style="background:#1a2f4a">&#128172;</div><div class="row-text"><div class="row-title">Join our Channel</div><div class="row-subtitle">Get notified on launch</div></div><div class="row-right">&#8250;</div></div>
-    </div>
-    <button class="launch-btn" onclick="Telegram.WebApp.close()">Close App</button>
-    <div class="footer">Full app launching very soon. Stay tuned!</div>
+
+    <button class="primary-btn" onclick="Telegram.WebApp.close()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        Close Dashboard
+    </button>
+    <div class="footer">WebTGF Dashboard &bull; Version 2.0</div>
+
     <script>
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-        window.Telegram.WebApp.setHeaderColor("#181818");
-        window.Telegram.WebApp.setBackgroundColor("#181818");
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        // Theme matching
+        document.documentElement.style.setProperty('--bg-color', tg.backgroundColor || '#181818');
+        
+        // Fetch Real-time status
+        async function fetchStatus() {
+            try {
+                // If opening outside Telegram (for dev), use a dummy user
+                const userId = tg.initDataUnsafe?.user?.id || '123456';
+                
+                const response = await fetch('/api/user_status?user_id=' + userId);
+                const data = await response.json();
+                
+                // Update Badges
+                const tierBadge = document.getElementById('tier-badge');
+                tierBadge.classList.remove('skeleton', 'free', 'pro');
+                if (data.is_pro || data.is_admin) {
+                    tierBadge.classList.add('pro');
+                    tierBadge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M2.7 10.3l9.3 9.3 9.3-9.3L12 2z"></path></svg> PRO';
+                } else {
+                    tierBadge.classList.add('free');
+                    tierBadge.innerHTML = 'FREE';
+                }
+                
+                const connBadge = document.getElementById('conn-badge');
+                connBadge.classList.remove('skeleton', 'connected', 'disconnected');
+                if (data.has_session) {
+                    connBadge.classList.add('connected');
+                    connBadge.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Connected';
+                } else {
+                    connBadge.classList.add('disconnected');
+                    connBadge.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Disconnected';
+                }
+                
+                // Update Stats
+                const srcEl = document.getElementById('stat-sources');
+                srcEl.classList.remove('skeleton');
+                srcEl.innerText = data.sources || 0;
+                
+                const tgtEl = document.getElementById('stat-targets');
+                tgtEl.classList.remove('skeleton');
+                tgtEl.innerText = data.targets || 0;
+                
+            } catch (err) {
+                console.error("Error fetching status:", err);
+                document.getElementById('tier-badge').classList.remove('skeleton');
+                document.getElementById('tier-badge').innerText = 'ERROR';
+                document.getElementById('conn-badge').classList.remove('skeleton');
+                document.getElementById('conn-badge').innerText = 'ERROR';
+            }
+        }
+        
+        fetchStatus();
     </script>
 </body>
 </html>'''
+
+@app.route('/api/user_status', methods=['GET'])
+def api_user_status():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+        
+    try:
+        user_id = int(user_id)
+    except:
+        return jsonify({"error": "Invalid user_id"}), 400
+        
+    from database_manager import get_user_data
+    from control_bot import ADMIN_ID
+    
+    is_admin = (str(user_id) == str(ADMIN_ID))
+    user_data = get_user_data(user_id)
+    
+    has_session = bool(user_data.get('session_string'))
+    is_pro = user_data.get('is_pro', False)
+    
+    if is_admin:
+        is_pro = True
+        
+    return jsonify({
+        "is_admin": is_admin,
+        "is_pro": is_pro,
+        "has_session": has_session,
+        "sources": len(user_data.get('sources', [])),
+        "targets": len(user_data.get('targets', []))
+    })
 
 @app.route('/miniapp')
 def miniapp():
