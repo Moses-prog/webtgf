@@ -176,7 +176,7 @@ async def callback(event):
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
                 [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding [PRO 💎]", b"menu_links")],
+                [Button.inline("🔗 Link & Branding", b"menu_links")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -199,7 +199,7 @@ async def callback(event):
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
                 [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding [PRO 💎]", b"menu_links")],
+                [Button.inline("🔗 Link & Branding", b"menu_links")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -929,6 +929,7 @@ async def callback(event):
             tenants = get_tenants()
             msg = f"👑 **Admin Panel**\n\nTotal Tenants: {len(tenants)}\n\nSelect an action:"
             buttons = [
+                [Button.inline("💎 Manage PRO Users", b"admin_manage_pro")],
                 [Button.inline("➕ Add Tenant", b"admin_add"), Button.inline("➖ Remove Tenant", b"admin_remove")],
                 [Button.inline("👥 View Tenants", b"admin_view"), Button.inline("📊 Analytics", b"admin_analytics")],
                 [Button.inline("⚙️ Feature Toggles", b"admin_features")],
@@ -953,10 +954,17 @@ async def callback(event):
                 stats["today"] = 0
                 
             tenants = get_tenants()
+            pro_count = 0
+            for t in tenants:
+                if get_user_data(t).get("is_pro", False) or is_admin(t):
+                    pro_count += 1
+            free_count = len(tenants) - pro_count
             
             msg = (
                 "📊 **Webtgf Analytics Dashboard**\n\n"
                 f"👥 **Total Tenants:** `{len(tenants)}`\n"
+                f"💎 **Total PRO Users:** `{pro_count}`\n"
+                f"🟢 **Total FREE Users:** `{free_count}`\n\n"
                 f"📈 **Total Messages Forwarded:** `{stats['total']}`\n"
                 f"🔥 **Messages Forwarded Today:** `{stats['today']}`\n"
             )
@@ -1039,6 +1047,16 @@ async def callback(event):
                 "*(Send /cancel to abort)*", 
                 buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]]
             )
+            
+        elif data == "admin_manage_pro" and is_admin(chat_id):
+            user_states[chat_id] = "waiting_for_pro_id"
+            await event.edit(
+                "💎 **Manage PRO Users**\n\n"
+                "To Grant or Revoke PRO status, please reply with the user's Telegram ID.\n\n"
+                "*(You can get their ID from the 'View Tenants' menu)*",
+                buttons=[[Button.inline("🔙 Back to Admin", b"admin_panel")]]
+            )
+            return
             
         elif data == "admin_view" and is_admin(chat_id):
             tenants = get_tenants()
@@ -1558,6 +1576,29 @@ async def text_handler(event):
     # -----------------------------------------------------
     # ADMIN SYSTEM
     # -----------------------------------------------------
+    elif state == "waiting_for_pro_id" and is_admin(chat_id):
+        target_uid = text.strip()
+        if not target_uid.lstrip('-').isdigit():
+            await event.respond("❌ Invalid ID. It must be a number.", buttons=get_main_keyboard(chat_id))
+            user_states[chat_id] = None
+            return
+            
+        target_uid = int(target_uid)
+        t_data = get_user_data(target_uid)
+        
+        # Toggle PRO status
+        current_pro = t_data.get("is_pro", False)
+        t_data["is_pro"] = not current_pro
+        
+        # Save
+        from database_manager import save_user_data
+        save_user_data(target_uid, t_data)
+        
+        status = "✅ GRANTED" if t_data["is_pro"] else "❌ REVOKED"
+        await event.respond(f"💎 PRO status for user `{target_uid}` is now {status}.", buttons=get_main_keyboard(chat_id))
+        user_states[chat_id] = None
+        return
+
     elif state == "waiting_for_broadcast":
         if is_admin(chat_id):
             tenants = get_tenants()
