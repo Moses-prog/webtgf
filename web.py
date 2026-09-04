@@ -614,11 +614,23 @@ html_content = '''<!DOCTYPE html>
             position: relative;
             width: 86px; height: 86px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            background: var(--text-muted); /* Grey for FREE */
             padding: 3px; 
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
             margin-bottom: 16px;
             display: flex;
+            transition: all 0.3s ease;
+        }
+        
+        .avatar-frame.pro {
+            background: linear-gradient(135deg, #ff4500, #ff8c00, #ff003c, #ff4500);
+            background-size: 300% 300%;
+            animation: proGlow 3s ease infinite;
+        }
+        
+        @keyframes proGlow {
+            0% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); }
+            50% { background-position: 100% 50%; box-shadow: 0 0 25px rgba(255, 0, 60, 0.7); }
+            100% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); }
         }
         .avatar-inner {
             width: 100%; height: 100%;
@@ -635,14 +647,14 @@ html_content = '''<!DOCTYPE html>
             display: flex; align-items: center; justify-content: center;
         }
         .avatar-image svg { width: 36px; height: 36px; color: var(--text-muted); }
-        .tier-crown {
+        .tier-diamond {
             position: absolute;
             top: -6px; right: -6px;
             background: var(--bg-color);
             border-radius: 50%; padding: 4px;
             display: none; /* Shown via JS if PRO */
         }
-        .tier-crown svg { width: 16px; height: 16px; color: #f59e0b; fill: #f59e0b; }
+        .tier-diamond svg { width: 16px; height: 16px; color: #ff4500; fill: #ff4500; }
         
         .bot-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .bot-username { font-size: 15px; color: var(--text-muted); margin-bottom: 16px; }
@@ -709,14 +721,14 @@ html_content = '''<!DOCTYPE html>
 </head>
 <body>
     <div class="header">
-        <div class="avatar-frame">
+        <div class="avatar-frame" id="avatar-frame">
             <div class="avatar-inner">
                 <div class="avatar-image" id="user-avatar-container">
                     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 </div>
             </div>
-            <div class="tier-crown" id="tier-crown">
-                <svg viewBox="0 0 24 24"><path d="M2 4h20v2H2zM3 8h18l-3 14H6z"></path></svg>
+            <div class="tier-diamond" id="tier-diamond">
+                <svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"></path><path d="M11 3l-4 6 5 13"></path><path d="M13 3l4 6-5 13"></path><path d="M2 9h20"></path></svg>
             </div>
         </div>
         <div class="bot-name" id="user-greeting">Hi, User!</div>
@@ -818,8 +830,9 @@ html_content = '''<!DOCTYPE html>
                 tierBadge.classList.remove('skeleton', 'free', 'pro');
                 if (data.is_pro || data.is_admin) {
                     tierBadge.classList.add('pro');
-                    tierBadge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M2.7 10.3l9.3 9.3 9.3-9.3L12 2z"></path></svg> PRO';
-                    document.getElementById('tier-crown').style.display = 'block';
+                    tierBadge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"></path><path d="M11 3l-4 6 5 13"></path><path d="M13 3l4 6-5 13"></path><path d="M2 9h20"></path></svg> PRO';
+                    document.getElementById('tier-diamond').style.display = 'block';
+                    document.getElementById('avatar-frame').classList.add('pro');
                 } else {
                     tierBadge.classList.add('free');
                     tierBadge.innerHTML = 'FREE';
