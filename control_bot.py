@@ -54,9 +54,9 @@ def get_main_keyboard(chat_id):
     else:
         buttons.extend([
             [Button.inline(f"📌 Sources ({len(sources)})", b"menu_sources"), Button.inline(f"🎯 Targets ({len(targets)})", b"menu_targets")],
-            [Button.inline("✨ Modification Rules", b"menu_modifications"), Button.inline("🚀 Auto-Posting Suite", b"menu_autoposting")],
+            [Button.inline("✨ Modification Rules", b"menu_modifications"), Button.inline("🚀 Auto-Posting Suite [PRO 💎]", b"menu_autoposting")],
             [Button.inline("🗑️ Deletion Suite", b"menu_deletion"), Button.inline("📖 How to Use", b"menu_instructions")],
-            [Button.inline("⚙️ Settings", b"menu_settings"), Button.inline("🔌 Disconnect", b"disconnect_account")],
+            [Button.inline("⚙️ Settings [PRO 💎]", b"menu_settings"), Button.inline("🔌 Disconnect", b"disconnect_account")],
             [Button.inline("💬 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
         ])
     
@@ -175,8 +175,8 @@ async def callback(event):
             user_states.pop(chat_id, None)
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links")],
+                [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
+                [Button.inline("🔗 Link & Branding [PRO 💎]", b"menu_links")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -188,7 +188,7 @@ async def callback(event):
             queue_len = len(user_data.get("drip_queue", []))
             text = f"🚀 **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
             buttons = [
-                [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
+                [Button.inline("🕐 Drip Posting [PRO 💎]", b"menu_drip_posting"), Button.inline("💤 Sleep Mode [PRO 💎]", b"menu_sleep")],
                 [Button.inline(f"📥 View Queue ({queue_len})", b"menu_queue")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
@@ -198,8 +198,8 @@ async def callback(event):
         elif data == "menu_modifications":
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline("🖼 Image Branding", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links")],
+                [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
+                [Button.inline("🔗 Link & Branding [PRO 💎]", b"menu_links")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -210,7 +210,7 @@ async def callback(event):
             queue_len = len(user_data.get("drip_queue", []))
             text = f"🚀 **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
             buttons = [
-                [Button.inline("🕐 Drip Posting", b"menu_drip_posting"), Button.inline("💤 Sleep Mode", b"menu_sleep")],
+                [Button.inline("🕐 Drip Posting [PRO 💎]", b"menu_drip_posting"), Button.inline("💤 Sleep Mode [PRO 💎]", b"menu_sleep")],
                 [Button.inline(f"📥 View Queue ({queue_len})", b"menu_queue")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
@@ -653,8 +653,8 @@ async def callback(event):
             )
             
             buttons = [
-                [Button.inline(f"Toggle Smart Delay: {d_status}", b"toggle_smart_delay")],
-                [Button.inline(f"Anti-Payment Stripper: {s_status}", b"toggle_anti_payment")],
+                [Button.inline(f"Smart Delay [PRO 💎]: {d_status}", b"toggle_smart_delay")],
+                [Button.inline(f"Anti-Payment Stripper [PRO 💎]: {s_status}", b"toggle_anti_payment")],
                 [Button.inline("🔙 Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -854,8 +854,8 @@ async def callback(event):
                 "Automatically hunt and remove/replace competitor text on images!",
                 buttons=[
                     [Button.inline(toggle_btn, b"toggle_image")],
-                    [Button.inline("🪄 AI Watermark Remover", b"ai_watermark_remover")],
-                    [Button.inline("✍️ AI Watermark Replacer", b"ai_watermark_replacer")],
+                    [Button.inline("🪄 AI Watermark Remover [PRO 💎]", b"ai_watermark_remover")],
+                    [Button.inline("✍️ AI Watermark Replacer [PRO 💎]", b"ai_watermark_replacer")],
                     [Button.inline("🔙 Back", b"back_modifications")]
                 ]
             )
