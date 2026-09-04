@@ -118,10 +118,12 @@ async def start(event):
     user_states[chat_id] = None
     
     user_data = get_user_data(chat_id)
+    badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
+    
     if not user_data.get('session_string'):
-        msg = "👋 Welcome to the **Webtgf Dashboard**!\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
+        msg = f"👋 Welcome to the **Webtgf Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
     else:
-        msg = "👋 Welcome to the **Webtgf Dashboard**!\n\nManage your forwarding rules, channels, and replacements directly from this menu."
+        msg = f"👋 Welcome to the **Webtgf Dashboard**!{badge}\n\nManage your forwarding rules, channels, and replacements directly from this menu."
         
     await event.respond(msg, buttons=get_main_keyboard(chat_id))
 
@@ -165,7 +167,8 @@ async def callback(event):
             
         elif data == "back":
             user_states[chat_id] = None
-            await event.edit("👋 Welcome to the **Webtgf Dashboard**!", buttons=get_main_keyboard(chat_id))
+            badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
+            await event.edit(f"👋 Welcome to the **Webtgf Dashboard**!{badge}", buttons=get_main_keyboard(chat_id))
             return
 
         # -----------------------------------------------------
@@ -1065,7 +1068,8 @@ async def callback(event):
                 msg += "No tenants added yet."
             else:
                 for t in tenants:
-                    msg += f"• `{t}`\n"
+                    badge = " 💎 PRO" if (get_user_data(t).get("is_pro", False) or is_admin(t)) else " 🟢 FREE"
+                    msg += f"• `{t}`{badge}\n"
             await event.edit(msg, buttons=[[Button.inline("🔙 Back to Admin Panel", b"admin_panel")]])
             
         elif data == "admin_add" and is_admin(chat_id):
