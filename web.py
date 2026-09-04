@@ -610,16 +610,39 @@ html_content = '''<!DOCTYPE html>
         
         /* Header */
         .header { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 24px; }
-        .brand-logo {
-            width: 76px; height: 76px; border-radius: 20px;
+        .avatar-frame {
+            position: relative;
+            width: 86px; height: 86px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 16px;
+            padding: 3px; 
             box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 16px;
+            display: flex;
         }
-        .brand-logo svg { width: 42px; height: 42px; stroke-width: 1.5; }
+        .avatar-inner {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--bg-color);
+            padding: 3px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .avatar-image {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .avatar-image svg { width: 36px; height: 36px; color: var(--text-muted); }
+        .tier-crown {
+            position: absolute;
+            top: -6px; right: -6px;
+            background: var(--bg-color);
+            border-radius: 50%; padding: 4px;
+            display: none; /* Shown via JS if PRO */
+        }
+        .tier-crown svg { width: 16px; height: 16px; color: #f59e0b; fill: #f59e0b; }
         
         .bot-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .bot-username { font-size: 15px; color: var(--text-muted); margin-bottom: 16px; }
@@ -686,15 +709,15 @@ html_content = '''<!DOCTYPE html>
 </head>
 <body>
     <div class="header">
-        <div class="brand-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
-                <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
-                <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-            </svg>
+        <div class="avatar-frame">
+            <div class="avatar-inner">
+                <div class="avatar-image" id="user-avatar-container">
+                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+            </div>
+            <div class="tier-crown" id="tier-crown">
+                <svg viewBox="0 0 24 24"><path d="M2 4h20v2H2zM3 8h18l-3 14H6z"></path></svg>
+            </div>
         </div>
         <div class="bot-name" id="user-greeting">Hi, User!</div>
         <div class="bot-username">WebTGF Dashboard</div>
@@ -776,6 +799,11 @@ html_content = '''<!DOCTYPE html>
         
 
         
+        const photoUrl = tg.initDataUnsafe?.user?.photo_url;
+        if (photoUrl) {
+            document.getElementById('user-avatar-container').innerHTML = `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        }
+        
         // Fetch Real-time status
         async function fetchStatus() {
             try {
@@ -791,6 +819,7 @@ html_content = '''<!DOCTYPE html>
                 if (data.is_pro || data.is_admin) {
                     tierBadge.classList.add('pro');
                     tierBadge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M2.7 10.3l9.3 9.3 9.3-9.3L12 2z"></path></svg> PRO';
+                    document.getElementById('tier-crown').style.display = 'block';
                 } else {
                     tierBadge.classList.add('free');
                     tierBadge.innerHTML = 'FREE';
