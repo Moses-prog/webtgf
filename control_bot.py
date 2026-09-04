@@ -548,6 +548,7 @@ async def callback(event):
                 [Button.inline("🎯 2. Sources & Targets", b"inst_channels")],
                 [Button.inline("✨ 3. Modifying Messages", b"inst_modify")],
                 [Button.inline("🚀 4. Auto-Posting (Drip/Sleep)", b"inst_auto")],
+                [Button.inline("⚙️ 5. Advanced & AI Features", b"inst_advanced")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -588,8 +589,8 @@ async def callback(event):
                 "✨ **Step 3: Modifying Your Messages**\n\n"
                 "You don't want to just forward messages raw. You want to brand them as your own! Click **Modification Rules** on the main menu to set this up.\n\n"
                 "• **✏️ Word Swapper**: Did the source channel type their name? Tell the bot to swap their name to your own name automatically!\n"
-                "• **🖼 Image Branding**: You can set a custom photo. If the source posts a picture, the bot will remove their picture and attach your own promotional picture instead.\n"
-                "• **🔗 Link Replacement**: The bot can scan for any link in the message and replace it with your own referral link or group link."
+                "• **🖼 Image Branding**: You can set a custom photo. If the source posts a picture, the bot will remove their picture and attach your own promotional picture instead. *(Videos & GIFs are completely untouched!)*\n"
+                "• **🔗 Link Replacement**: The bot replaces links with your own referral link. You can also set **Excluded Links** (e.g. `EXCLUDE=redbagCode, gift`) so it completely ignores and preserves special casino or giveaway links!"
             )
             buttons = [[Button.inline("🔙 Back to Instructions", b"menu_instructions")]]
             await event.edit(text, buttons=buttons)
@@ -599,9 +600,22 @@ async def callback(event):
             text = (
                 "🚀 **Step 4: Auto-Posting Suite**\n\n"
                 "Don't just dump 20 messages into your channel at once, it will annoy your subscribers. Manage the flow!\n\n"
-                "• **🕐 Drip Posting**: This holds your forwarded messages in a queue, and releases them one by one based on the time interval you set (e.g., every 5 minutes). Keeps your channel active all day!\n"
+                "• **🕐 Drip Posting**: Holds your forwarded messages in a queue, and releases them one by one based on the time interval you set (e.g., every 5 minutes). Keeps your channel active all day!\n"
                 "• **💤 Sleep Mode**: Set your sleeping time (e.g., 10:00 PM to 7:00 AM). The bot will hold all messages that arrive in the night. Once you wake up by 7:00 AM, it will start dripping them automatically.\n\n"
                 "You can always check your held messages in the **📥 View Queue** menu."
+            )
+            buttons = [[Button.inline("🔙 Back to Instructions", b"menu_instructions")]]
+            await event.edit(text, buttons=buttons)
+            return
+            
+        elif data == "inst_advanced":
+            text = (
+                "⚙️ **Step 5: Advanced & AI Features**\n\n"
+                "The bot has powerful features hidden in the **Advanced Settings** and **AI Watermark** menus!\n\n"
+                "• **🚫 Restricted Channel Bypass**: If the source channel has 'Restrict Saving Content' ON, the bot will automatically defeat it by silently downloading the video/image to memory and re-uploading it to your target.\n"
+                "• **💵 Anti-Payment Stripper**: Automatically scans and deletes BTC, ETH, USDT, SOL, and Bank Account (Kuda, Opay, etc.) details from forwarded messages.\n"
+                "• **⏱ Smart Delay**: Delays forwarding by 1 to 3 minutes to mimic human behavior and avoid Telegram spam bans.\n"
+                "• **🤖 AI Watermark Generator**: Automatically converts incoming photos into stunning promotional banners with your target text embedded right inside the image!"
             )
             buttons = [[Button.inline("🔙 Back to Instructions", b"menu_instructions")]]
             await event.edit(text, buttons=buttons)
