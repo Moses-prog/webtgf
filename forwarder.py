@@ -313,6 +313,18 @@ async def _do_execute_forward(message, chat_id, user_data):
         await asyncio.sleep(delay_seconds)
         
     downloaded_restricted_media = None
+    
+    # CTA Buttons (PRO)
+    from telethon.tl.custom import Button
+    reply_markup = None
+    if user_data.get("cta_buttons") and is_pro(chat_id):
+        toggles = get_feature_toggles()
+        if toggles.get("cta_buttons_unlocked", True):
+            button_rows = []
+            for btn in user_data["cta_buttons"]:
+                button_rows.append([Button.url(btn["text"], btn["url"])])
+            reply_markup = button_rows
+
     try:
         success = False
         for target in target_channels:
@@ -326,10 +338,10 @@ async def _do_execute_forward(message, chat_id, user_data):
                 if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
                     if media_to_send == message.media:
                         if downloaded_restricted_media:
-                            sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
+                            sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text, buttons=reply_markup)
                         else:
                             try:
-                                sent = await client.send_message(t, modified_text, file=message)
+                                sent = await client.send_message(t, modified_text, file=message, buttons=reply_markup)
                             except Exception as forward_err:
                                 err_str = str(forward_err).lower()
                                 if "protected chat" in err_str or "restricted" in err_str or "chatforwardsrestricted" in err_str:
@@ -337,17 +349,17 @@ async def _do_execute_forward(message, chat_id, user_data):
                                     async with restricted_download_semaphore:
                                         downloaded_restricted_media = await client.download_media(message, file=f"restricted_{message.id}_{chat_id}")
                                     if downloaded_restricted_media:
-                                        sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
+                                        sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text, buttons=reply_markup)
                                     else:
                                         raise forward_err
                                 else:
                                     raise forward_err
                     else:
                         # Sending a local file or URL override
-                        sent = await client.send_file(t, media_to_send, caption=modified_text)
+                        sent = await client.send_file(t, media_to_send, caption=modified_text, buttons=reply_markup)
                 else:
                     if modified_text:
-                        sent = await client.send_message(t, modified_text, link_preview=True)
+                        sent = await client.send_message(t, modified_text, link_preview=True, buttons=reply_markup)
                 
                 # SAVE MAPPING FOR MIRROR DELETION
                 if sent and getattr(sent, 'id', None):
@@ -372,7 +384,7 @@ async def _do_execute_forward(message, chat_id, user_data):
                 # Try fallback just for this target
                 if modified_text:
                     try:
-                        sent = await client.send_message(t, modified_text)
+                        sent = await client.send_message(t, modified_text, buttons=reply_markup)
                         if sent and getattr(sent, 'id', None):
                             if isinstance(message, list):
                                 src_id = message[0].id

@@ -184,7 +184,7 @@ async def callback(event):
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
                 [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links")],
+                [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("🧲 CTA Buttons [PRO 💎]", b"menu_cta")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -207,7 +207,7 @@ async def callback(event):
             text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
                 [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links")],
+                [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("🧲 CTA Buttons [PRO 💎]", b"menu_cta")],
                 [Button.inline("🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
@@ -837,6 +837,57 @@ async def callback(event):
                 buttons=[[Button.inline("🔙 Back", b"back_modifications")]]
             )
             
+        elif data == "menu_cta":
+            if not is_pro(chat_id):
+                await event.answer("💎 This is a PRO feature. Contact admin to upgrade.", alert=True)
+                return
+            toggles = get_feature_toggles()
+            if not toggles.get("cta_buttons_unlocked", True):
+                await event.answer("🔒 This feature is currently locked by the Admin.", alert=True)
+                return
+                
+            user_data = get_user_data(chat_id)
+            btns = user_data.get("cta_buttons", [])
+            
+            msg = "🧲 **Call-to-Action Buttons [PRO]**\n\n"
+            if not btns:
+                msg += "You have no CTA buttons attached. The bot will automatically append these buttons to the bottom of every forwarded message!"
+            else:
+                msg += "Current active CTA buttons:\n\n"
+                for i, b in enumerate(btns):
+                    msg += f"{i+1}. `{b['text']}` -> {b['url']}\n"
+                    
+            msg += "\n\nClick below to Add or Clear all buttons."
+            buttons = [
+                [Button.inline("➕ Add Button", b"cta_add"), Button.inline("🗑 Clear All", b"cta_clear")],
+                [Button.inline("🔙 Back", b"menu_modifications")]
+            ]
+            await event.edit(msg, buttons=buttons)
+            
+        elif data == "cta_add":
+            user_states[chat_id] = "waiting_for_cta_add"
+            await event.edit(
+                "➕ **Add CTA Button**\n\n"
+                "Send me the button text and URL separated by a pipe `|`.\n"
+                "Example:\n`🎁 CLAIM BONUS | https://example.com/bonus`",
+                buttons=[[Button.inline("🔙 Cancel", b"menu_cta")]]
+            )
+            
+        elif data == "cta_clear":
+            user_data = get_user_data(chat_id)
+            user_data["cta_buttons"] = []
+            from database_manager import save_user_data
+            save_user_data(chat_id, user_data)
+            await event.answer("🗑 All buttons cleared!", alert=True)
+            # Re-render menu
+            btns = user_data.get("cta_buttons", [])
+            msg = "🧲 **Call-to-Action Buttons [PRO]**\n\nYou have no CTA buttons attached."
+            buttons = [
+                [Button.inline("➕ Add Button", b"cta_add"), Button.inline("🗑 Clear All", b"cta_clear")],
+                [Button.inline("🔙 Back", b"menu_modifications")]
+            ]
+            await event.edit(msg, buttons=buttons)
+
         elif data == "menu_image":
             user_states[chat_id] = "waiting_for_image"
             current_url = user_data.get("image_swap_url", "")
@@ -985,24 +1036,26 @@ async def callback(event):
             sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             
             del_locked = not toggles.get("deletion_unlocked", False)
+            cta_locked = not toggles.get("cta_buttons_unlocked", True)
+            
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
             sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
             del_btn_text = "🔓 Unlock Deletion Suite" if del_locked else "🔒 Lock Deletion Suite"
+            cta_btn_text = "🔓 Unlock CTA Buttons" if cta_locked else "🔒 Lock CTA Buttons"
             
             await event.edit(
                 "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
-                    [Button.inline(btn_text, b"toggle_admin_drip")],
-                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
-                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
-                    [Button.inline(del_btn_text, b"toggle_admin_del")],
+                    [Button.inline(btn_text, b"toggle_admin_drip"), Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep"), Button.inline(del_btn_text, b"toggle_admin_del")],
+                    [Button.inline(cta_btn_text, b"toggle_admin_cta")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
             
 
-        elif data in ("toggle_admin_drip", "toggle_admin_ai", "toggle_admin_sleep", "toggle_admin_del") and is_admin(chat_id):
+        elif data in ("toggle_admin_drip", "toggle_admin_ai", "toggle_admin_sleep", "toggle_admin_del", "toggle_admin_cta") and is_admin(chat_id):
             toggles = get_feature_toggles()
             if data == "toggle_admin_drip":
                 toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
@@ -1012,24 +1065,28 @@ async def callback(event):
                 toggles["sleep_mode_unlocked"] = not toggles.get("sleep_mode_unlocked", False)
             elif data == "toggle_admin_del":
                 toggles["deletion_unlocked"] = not toggles.get("deletion_unlocked", False)
+            elif data == "toggle_admin_cta":
+                toggles["cta_buttons_unlocked"] = not toggles.get("cta_buttons_unlocked", True)
             save_feature_toggles(toggles)
 
             drip_locked = not toggles.get("drip_posting_unlocked", False)
             ai_locked = not toggles.get("ai_watermark_unlocked", False)
             sleep_locked = not toggles.get("sleep_mode_unlocked", False)
             del_locked = not toggles.get("deletion_unlocked", False)
+            cta_locked = not toggles.get("cta_buttons_unlocked", True)
+            
             btn_text = "🔓 Unlock Drip Posting" if drip_locked else "🔒 Lock Drip Posting"
             ai_btn_text = "🔓 Unlock AI Watermark" if ai_locked else "🔒 Lock AI Watermark"
             sleep_btn_text = "🔓 Unlock Sleep Mode" if sleep_locked else "🔒 Lock Sleep Mode"
             del_btn_text = "🔓 Unlock Deletion Suite" if del_locked else "🔒 Lock Deletion Suite"
+            cta_btn_text = "🔓 Unlock CTA Buttons" if cta_locked else "🔒 Lock CTA Buttons"
 
             await event.edit(
                 "🎛️ **Admin Feature Toggles**\n\nLock or unlock features for all tenants.",
                 buttons=[
-                    [Button.inline(btn_text, b"toggle_admin_drip")],
-                    [Button.inline(ai_btn_text, b"toggle_admin_ai")],
-                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep")],
-                    [Button.inline(del_btn_text, b"toggle_admin_del")],
+                    [Button.inline(btn_text, b"toggle_admin_drip"), Button.inline(ai_btn_text, b"toggle_admin_ai")],
+                    [Button.inline(sleep_btn_text, b"toggle_admin_sleep"), Button.inline(del_btn_text, b"toggle_admin_del")],
+                    [Button.inline(cta_btn_text, b"toggle_admin_cta")],
                     [Button.inline("🔙 Back", b"admin_panel")]
                 ]
             )
@@ -1585,6 +1642,30 @@ async def text_handler(event):
     # -----------------------------------------------------
     # ADMIN SYSTEM
     # -----------------------------------------------------
+    elif state == "waiting_for_cta_add":
+        if "|" not in text:
+            await event.respond("❌ Invalid format. Please use `Button Text | URL`", buttons=[[Button.inline("🔙 Back", b"menu_cta")]])
+            return
+            
+        parts = text.split("|", 1)
+        btn_text = parts[0].strip()
+        btn_url = parts[1].strip()
+        
+        if not btn_url.startswith("http"):
+            btn_url = "https://" + btn_url
+            
+        user_data = get_user_data(chat_id)
+        if "cta_buttons" not in user_data:
+            user_data["cta_buttons"] = []
+            
+        user_data["cta_buttons"].append({"text": btn_text, "url": btn_url})
+        from database_manager import save_user_data
+        save_user_data(chat_id, user_data)
+        
+        user_states[chat_id] = None
+        await event.respond(f"✅ Added Button:\n`{btn_text}` -> {btn_url}", buttons=get_main_keyboard(chat_id))
+        return
+
     elif state == "waiting_for_pro_id" and is_admin(chat_id):
         target_uid = text.strip()
         if not target_uid.lstrip('-').isdigit():
