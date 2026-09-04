@@ -31,6 +31,8 @@ from database_manager import get_all_users, get_user_data, save_message_map
 
 active_clients = {}
 ai_semaphore = asyncio.Semaphore(2)  # Limit concurrent AI processing to prevent memory spikes on Render (512MB RAM limit)
+restricted_download_semaphore = asyncio.Semaphore(1)  # Prevent mass OOM from concurrent restricted downloads
+forward_semaphore = asyncio.Semaphore(15)  # Limit concurrent message processing to prevent OOM on massive channel dumps
 
 import datetime
 import time
@@ -267,6 +269,10 @@ async def ai_process_image(client, message, chat_id, user_data):
 
 
 async def execute_forward(message, chat_id, user_data):
+    async with forward_semaphore:
+        return await _do_execute_forward(message, chat_id, user_data)
+
+async def _do_execute_forward(message, chat_id, user_data):
     import os
     from database_manager import save_user_data
     target_channels = user_data.get('targets', [])
@@ -328,7 +334,8 @@ async def execute_forward(message, chat_id, user_data):
                                 err_str = str(forward_err).lower()
                                 if "protected chat" in err_str or "restricted" in err_str or "chatforwardsrestricted" in err_str:
                                     print(f"[Tenant {chat_id}] Source chat is restricted, downloading media to forward...")
-                                    downloaded_restricted_media = await client.download_media(message, file=f"restricted_{message.id}_{chat_id}")
+                                    async with restricted_download_semaphore:
+                                        downloaded_restricted_media = await client.download_media(message, file=f"restricted_{message.id}_{chat_id}")
                                     if downloaded_restricted_media:
                                         sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
                                     else:
