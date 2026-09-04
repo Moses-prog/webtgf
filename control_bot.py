@@ -29,6 +29,10 @@ def is_admin(chat_id):
     admin_id = os.getenv('ADMIN_ID', '').strip()
     return str(chat_id) == admin_id
 
+def is_pro(chat_id):
+    if is_admin(chat_id): return True
+    return get_user_data(chat_id).get("is_pro", False)
+
 def is_tenant(chat_id):
     if is_admin(chat_id):
         return True

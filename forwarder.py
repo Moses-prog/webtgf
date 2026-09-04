@@ -37,6 +37,11 @@ forward_semaphore = asyncio.Semaphore(15)  # Limit concurrent message processing
 import datetime
 import time
 
+def is_pro(chat_id):
+    import os
+    if str(chat_id) == str(os.getenv("ADMIN_ID", "")).strip(): return True
+    return get_user_data(chat_id).get("is_pro", False)
+
 def is_in_sleep_mode(user_data):
     sleep_mode = user_data.get("sleep_mode", {})
     if not sleep_mode.get("enabled"): return False
