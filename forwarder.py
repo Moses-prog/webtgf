@@ -27,7 +27,7 @@ from telethon.errors import (
     SessionRevokedError, SessionExpiredError, UserDeactivatedBanError
 )
 
-from database_manager import get_all_users, get_user_data, save_message_map
+from database_manager import get_all_users, get_user_data, save_message_map, get_feature_toggles
 
 active_clients = {}
 ai_semaphore = asyncio.Semaphore(2)  # Limit concurrent AI processing to prevent memory spikes on Render (512MB RAM limit)
