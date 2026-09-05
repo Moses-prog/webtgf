@@ -880,7 +880,6 @@ async def callback(event):
         elif data == "cta_clear":
             user_data = get_user_data(chat_id)
             user_data["cta_buttons"] = []
-            from database_manager import save_user_data
             save_user_data(chat_id, user_data)
             await event.answer("🗑 All buttons cleared!", alert=True)
             # Re-render menu
@@ -1663,7 +1662,6 @@ async def text_handler(event):
             user_data["cta_buttons"] = []
             
         user_data["cta_buttons"].append({"text": btn_text, "url": btn_url})
-        from database_manager import save_user_data
         save_user_data(chat_id, user_data)
         
         user_states[chat_id] = None
@@ -1685,7 +1683,6 @@ async def text_handler(event):
         t_data["is_pro"] = not current_pro
         
         # Save
-        from database_manager import save_user_data
         save_user_data(target_uid, t_data)
         
         status = "✅ GRANTED" if t_data["is_pro"] else "❌ REVOKED"
