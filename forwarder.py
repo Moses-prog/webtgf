@@ -27,10 +27,10 @@ from telethon.errors import (
     SessionRevokedError, SessionExpiredError, UserDeactivatedBanError
 )
 
-from database_manager import get_all_users, get_user_data, save_message_map, get_feature_toggles
+from database_manager import get_all_users, get_user_data, save_user_data, save_message_map, get_feature_toggles
 
 active_clients = {}
-ai_semaphore = asyncio.Semaphore(2)  # Limit concurrent AI processing to prevent memory spikes on Render (512MB RAM limit)
+db_semaphore = asyncio.Semaphore(10)
 restricted_download_semaphore = asyncio.Semaphore(1)  # Prevent mass OOM from concurrent restricted downloads
 forward_semaphore = asyncio.Semaphore(15)  # Limit concurrent message processing to prevent OOM on massive channel dumps
 
@@ -448,7 +448,7 @@ async def _do_execute_forward(message, chat_id, user_data):
 async def handle_message(event, chat_id):
     print(f"[DEBUG-ALL-MESSAGES] Tenant {chat_id} received message from {event.chat_id}")
     from database_manager import save_user_data
-    user_data = get_user_data(chat_id)
+    user_data = await asyncio.to_thread(get_user_data, chat_id)
     
     source_channels = user_data.get('sources', [])
     target_channels = user_data.get('targets', [])
@@ -505,7 +505,7 @@ async def handle_message(event, chat_id):
             "added_at": time.time()
         })
         user_data["drip_queue"] = queue
-        save_user_data(chat_id, user_data)
+        await asyncio.to_thread(save_user_data, chat_id, user_data)
         reason = "Sleep Mode" if in_sleep else "Drip Posting"
         print(f"[Tenant {chat_id}] Message queued for {reason}. (Queue size: {len(queue)})")
         return
@@ -522,13 +522,13 @@ async def monitor_users():
                 json.dump({"last_seen": time.time(), "status": "online"}, f)
                 
             # 2. Check all tenants
-            all_users = get_all_users()
+            all_users = await asyncio.to_thread(get_all_users)
             
             import time
             from database_manager import save_user_data
                         # Process Drip Queues
             for chat_id, client in list(active_clients.items()):
-                udata = get_user_data(chat_id)
+                udata = await asyncio.to_thread(get_user_data, chat_id)
                 interval = udata.get("drip_interval", 0)
                 queue = udata.get("drip_queue", [])
                 
@@ -542,7 +542,7 @@ async def monitor_users():
                         item = queue.pop(0)
                         udata["last_drip_time"] = time.time()
                         udata["drip_queue"] = queue
-                        save_user_data(chat_id, udata)
+                        await asyncio.to_thread(save_user_data, chat_id, udata)
                         
                         print(f"[Tenant {chat_id}] Popping queued message {item['msg_id']}...")
                         try:
@@ -583,7 +583,7 @@ async def monitor_users():
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Wipe failed for {t}: {e}")
                     udata["pending_wipe"] = None
-                    save_user_data(chat_id, udata)
+                    await asyncio.to_thread(save_user_data, chat_id, udata)
 
                 # --- Process Auto-Delete Rolling Window ---
                 auto_limit = udata.get("auto_delete_limit", 0)
@@ -607,11 +607,11 @@ async def monitor_users():
                             except Exception as e:
                                 print(f"[Tenant {chat_id}] Auto-delete failed for {t}: {e}")
                         udata["last_auto_clean"] = time.time()
-                        save_user_data(chat_id, udata)
+                        await asyncio.to_thread(save_user_data, chat_id, udata)
 
             # Start new clients
             for chat_id in all_users:
-                user_data = get_user_data(chat_id)
+                user_data = await asyncio.to_thread(get_user_data, chat_id)
                 session_str = user_data.get("session_string", "")
                 
                 if session_str and chat_id not in active_clients:
@@ -648,7 +648,7 @@ async def monitor_users():
                         user_data["session_string"] = ""
                         user_data["is_active"] = False
                         from database_manager import save_user_data
-                        save_user_data(chat_id, user_data)
+                        await asyncio.to_thread(save_user_data, chat_id, user_data)
                         active_clients.pop(chat_id, None)
                         # Notify tenant
                         try:
@@ -680,7 +680,7 @@ async def monitor_users():
                             user_data["session_string"] = ""
                             user_data["is_active"] = False
                             from database_manager import save_user_data
-                            save_user_data(chat_id, user_data)
+                            await asyncio.to_thread(save_user_data, chat_id, user_data)
                             active_clients.pop(chat_id, None)
                             try:
                                 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -704,7 +704,7 @@ async def monitor_users():
             # Stop disconnected clients + Health check for revoked sessions
             for chat_id in list(active_clients.keys()):
                 client = active_clients[chat_id]
-                user_data = get_user_data(chat_id)
+                user_data = await asyncio.to_thread(get_user_data, chat_id)
 
                 # Proactive ping every 60 seconds — catches revoked sessions
                 # even when TCP connection still appears open
@@ -721,7 +721,7 @@ async def monitor_users():
                         user_data["session_string"] = ""
                         user_data["is_active"] = False
                         from database_manager import save_user_data
-                        save_user_data(chat_id, user_data)
+                        await asyncio.to_thread(save_user_data, chat_id, user_data)
                         active_clients.pop(chat_id, None)
                         try:
                             BOT_TOKEN = os.getenv("BOT_TOKEN")
