@@ -371,7 +371,25 @@ HTML_TEMPLATE = """
                         <i class="fa-solid fa-plus mr-2"></i> Add Another Row
                     </button>
                     
-                    <script>
+                
+    <!-- MODAL POPUP -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal" id="manager-modal">
+        <div class="modal-drag"></div>
+        <div class="modal-header">
+            <div class="modal-title" id="modal-title">Manage Channels</div>
+            <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+        <div class="modal-body" id="modal-list">
+            <div class="empty-state">Loading...</div>
+        </div>
+        <div class="add-channel-row">
+            <input type="text" id="modal-input" class="add-input" placeholder="@channel or ID">
+            <button class="btn-add" onclick="submitModalAdd()">Add</button>
+        </div>
+    </div>
+
+    <script>
                         function addRow() {
                             const container = document.getElementById('swaps-container');
                             const row = document.createElement('div');
@@ -710,28 +728,6 @@ html_content = '''<!DOCTYPE html>
         
         /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 8px; }
-        
-        /* Channel Manager */
-        .manager-card { background: var(--card-bg); margin: 16px; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
-        .manager-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .manager-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .manager-title svg { color: var(--accent); }
-        .manager-body { padding: 0; }
-        .channel-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
-        .channel-row:last-child { border-bottom: none; }
-        .channel-name { font-size: 14px; font-family: monospace; background: var(--bg-color); padding: 4px 8px; border-radius: 6px; color: var(--text-main); word-break: break-all; }
-        .btn-remove { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: none; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .btn-remove:active { background: #ff453a; color: white; }
-        .btn-remove svg { width: 16px; height: 16px; }
-        
-        .add-channel-row { display: flex; padding: 12px 16px; gap: 8px; background: var(--bg-color); }
-        .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; }
-        .add-input:focus { border-color: var(--accent); }
-        .btn-add { background: var(--accent); color: white; border: none; padding: 0 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-add:active { opacity: 0.8; }
-        
-        .empty-state { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
-
         .stat-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
         .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
         .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
@@ -739,6 +735,48 @@ html_content = '''<!DOCTYPE html>
         /* Loading state */
         .skeleton { background: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite; color: transparent !important; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        /* Modal Popup */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 100;
+            display: none; opacity: 0; transition: opacity 0.3s;
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        }
+        .modal {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background: var(--bg-color); border-radius: 20px 20px 0 0;
+            z-index: 101; transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            max-height: 80vh; display: flex; flex-direction: column;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+        .modal.active { bottom: 0; }
+        .modal-overlay.active { display: block; opacity: 1; }
+        
+        .modal-drag { width: 40px; height: 5px; background: var(--border-color); border-radius: 3px; margin: 12px auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 16px; border-bottom: 1px solid var(--border-color); }
+        .modal-title { font-size: 18px; font-weight: 700; }
+        .modal-close { background: none; border: none; color: var(--text-muted); padding: 4px; cursor: pointer; }
+        .modal-close svg { width: 24px; height: 24px; }
+        
+        .modal-body { overflow-y: auto; padding: 16px; flex: 1; }
+        
+        .channel-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .channel-name { font-size: 14px; font-family: monospace; color: var(--text-main); word-break: break-all; }
+        .btn-remove { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: none; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-remove:active { background: #ff453a; color: white; }
+        .btn-remove svg { width: 16px; height: 16px; }
+        
+        .add-channel-row { display: flex; padding: 16px; gap: 8px; background: var(--bg-color); border-top: 1px solid var(--border-color); }
+        .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); padding: 12px 16px; border-radius: 10px; font-size: 15px; outline: none; }
+        .add-input:focus { border-color: var(--accent); }
+        .btn-add { background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-add:active { opacity: 0.8; }
+        
+        .empty-state { padding: 24px; text-align: center; color: var(--text-muted); font-size: 14px; }
+        
+        .stat-card { cursor: pointer; transition: transform 0.1s; }
+        .stat-card:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -763,13 +801,13 @@ html_content = '''<!DOCTYPE html>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" onclick="openModal('sources')">
             <div id="stat-sources" class="stat-value skeleton">0</div>
-            <div class="stat-label">Active Sources</div>
+            <div class="stat-label">Active Sources &rarr;</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="openModal('targets')">
             <div id="stat-targets" class="stat-value skeleton">0</div>
-            <div class="stat-label">Active Targets</div>
+            <div class="stat-label">Active Targets &rarr;</div>
         </div>
     </div>
 
@@ -813,46 +851,29 @@ html_content = '''<!DOCTYPE html>
         </div>
     </div>
 
-
-    <!-- SOURCE MANAGER -->
-    <div class="manager-card">
-        <div class="manager-header">
-            <div class="manager-title">
-                <svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg>
-                Source Channels
-            </div>
-        </div>
-        <div class="manager-body" id="sources-list">
-            <div class="empty-state skeleton">Loading...</div>
-        </div>
-        <div class="add-channel-row">
-            <input type="text" id="new-source-input" class="add-input" placeholder="@channel or ID">
-            <button class="btn-add" onclick="manageChannel('sources', 'add')">Add</button>
-        </div>
-    </div>
-
-    <!-- TARGET MANAGER -->
-    <div class="manager-card">
-        <div class="manager-header">
-            <div class="manager-title">
-                <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                Target Channels
-            </div>
-        </div>
-        <div class="manager-body" id="targets-list">
-            <div class="empty-state skeleton">Loading...</div>
-        </div>
-        <div class="add-channel-row">
-            <input type="text" id="new-target-input" class="add-input" placeholder="@group or ID">
-            <button class="btn-add" onclick="manageChannel('targets', 'add')">Add</button>
-        </div>
-    </div>
-
     <button class="primary-btn" onclick="Telegram.WebApp.close()">
         <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         Close Dashboard
     </button>
     <div class="footer">WebTGF Dashboard &bull; Version 2.0</div>
+
+
+    <!-- MODAL POPUP -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal" id="manager-modal">
+        <div class="modal-drag"></div>
+        <div class="modal-header">
+            <div class="modal-title" id="modal-title">Manage Channels</div>
+            <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+        <div class="modal-body" id="modal-list">
+            <div class="empty-state">Loading...</div>
+        </div>
+        <div class="add-channel-row">
+            <input type="text" id="modal-input" class="add-input" placeholder="@channel or ID">
+            <button class="btn-add" onclick="submitModalAdd()">Add</button>
+        </div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -896,14 +917,14 @@ html_content = '''<!DOCTYPE html>
                 }
                 
                 
+                window.globalSources = data.sources || [];
+                window.globalTargets = data.targets || [];
+                
                 document.getElementById('stat-sources').innerText = data.sources_count;
                 document.getElementById('stat-targets').innerText = data.targets_count;
                 document.getElementById('stat-sources').classList.remove('skeleton');
                 document.getElementById('stat-targets').classList.remove('skeleton');
                 
-                renderChannelList('sources', data.sources);
-                renderChannelList('targets', data.targets);
-
                 const connBadge = document.getElementById('conn-badge');
                 connBadge.classList.remove('skeleton', 'connected', 'disconnected');
                 if (data.has_session) {
@@ -933,33 +954,57 @@ html_content = '''<!DOCTYPE html>
         }
         
         
-        function renderChannelList(type, list) {
-            const container = document.getElementById(type + '-list');
+        let currentModalType = '';
+        
+        function openModal(type) {
+            currentModalType = type;
+            document.getElementById('modal-title').innerText = type === 'sources' ? 'Source Channels' : 'Target Channels';
+            document.getElementById('modal-overlay').classList.add('active');
+            
+            // tiny delay for animation
+            setTimeout(() => {
+                document.getElementById('manager-modal').classList.add('active');
+            }, 10);
+            
+            renderModalList();
+        }
+        
+        function closeModal() {
+            document.getElementById('manager-modal').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('modal-overlay').classList.remove('active');
+            }, 300);
+        }
+        
+        function renderModalList() {
+            const list = currentModalType === 'sources' ? window.globalSources : window.globalTargets;
+            const container = document.getElementById('modal-list');
+            
             if (!list || list.length === 0) {
-                container.innerHTML = `<div class="empty-state">No ${type} added yet.</div>`;
+                container.innerHTML = `<div class="empty-state">No ${currentModalType} added yet.</div>`;
                 return;
             }
             
             container.innerHTML = list.map(item => `
                 <div class="channel-row">
                     <div class="channel-name">${item}</div>
-                    <button class="btn-remove" onclick="manageChannel('${type}', 'remove', '${item}')">
+                    <button class="btn-remove" onclick="manageChannel('${currentModalType}', 'remove', '${item}')">
                         <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
             `).join('');
         }
+        
+        function submitModalAdd() {
+            const inputEl = document.getElementById('modal-input');
+            const val = inputEl.value.trim();
+            if(!val) return;
+            manageChannel(currentModalType, 'add', val);
+            inputEl.value = '';
+        }
 
-        async function manageChannel(type, action, existingId = null) {
+        async function manageChannel(type, action, channelId) {
             const userId = tg.initDataUnsafe?.user?.id || '123456';
-            let channelId = existingId;
-            
-            if (action === 'add') {
-                const inputEl = document.getElementById(`new-${type.slice(0, -1)}-input`);
-                channelId = inputEl.value.trim();
-                if (!channelId) return;
-                inputEl.value = ''; // clear
-            }
             
             try {
                 tg.HapticFeedback.impactOccurred('medium');
@@ -975,8 +1020,14 @@ html_content = '''<!DOCTYPE html>
                 });
                 const data = await response.json();
                 if (data.success) {
-                    renderChannelList(type, data.list);
-                    document.getElementById(`stat-${type}`).innerText = data.list.length;
+                    if (type === 'sources') {
+                        window.globalSources = data.list;
+                        document.getElementById('stat-sources').innerText = data.list.length;
+                    } else {
+                        window.globalTargets = data.list;
+                        document.getElementById('stat-targets').innerText = data.list.length;
+                    }
+                    renderModalList();
                 } else {
                     tg.showAlert(data.error || "Failed to update channel.");
                 }
