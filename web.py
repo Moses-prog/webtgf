@@ -710,6 +710,28 @@ html_content = '''<!DOCTYPE html>
         
         /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 8px; }
+        
+        /* Channel Manager */
+        .manager-card { background: var(--card-bg); margin: 16px; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
+        .manager-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .manager-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .manager-title svg { color: var(--accent); }
+        .manager-body { padding: 0; }
+        .channel-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+        .channel-row:last-child { border-bottom: none; }
+        .channel-name { font-size: 14px; font-family: monospace; background: var(--bg-color); padding: 4px 8px; border-radius: 6px; color: var(--text-main); word-break: break-all; }
+        .btn-remove { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: none; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-remove:active { background: #ff453a; color: white; }
+        .btn-remove svg { width: 16px; height: 16px; }
+        
+        .add-channel-row { display: flex; padding: 12px 16px; gap: 8px; background: var(--bg-color); }
+        .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 14px; outline: none; }
+        .add-input:focus { border-color: var(--accent); }
+        .btn-add { background: var(--accent); color: white; border: none; padding: 0 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-add:active { opacity: 0.8; }
+        
+        .empty-state { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
         .stat-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
         .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
         .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
@@ -791,6 +813,41 @@ html_content = '''<!DOCTYPE html>
         </div>
     </div>
 
+
+    <!-- SOURCE MANAGER -->
+    <div class="manager-card">
+        <div class="manager-header">
+            <div class="manager-title">
+                <svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg>
+                Source Channels
+            </div>
+        </div>
+        <div class="manager-body" id="sources-list">
+            <div class="empty-state skeleton">Loading...</div>
+        </div>
+        <div class="add-channel-row">
+            <input type="text" id="new-source-input" class="add-input" placeholder="@channel or ID">
+            <button class="btn-add" onclick="manageChannel('sources', 'add')">Add</button>
+        </div>
+    </div>
+
+    <!-- TARGET MANAGER -->
+    <div class="manager-card">
+        <div class="manager-header">
+            <div class="manager-title">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                Target Channels
+            </div>
+        </div>
+        <div class="manager-body" id="targets-list">
+            <div class="empty-state skeleton">Loading...</div>
+        </div>
+        <div class="add-channel-row">
+            <input type="text" id="new-target-input" class="add-input" placeholder="@group or ID">
+            <button class="btn-add" onclick="manageChannel('targets', 'add')">Add</button>
+        </div>
+    </div>
+
     <button class="primary-btn" onclick="Telegram.WebApp.close()">
         <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         Close Dashboard
@@ -838,6 +895,15 @@ html_content = '''<!DOCTYPE html>
                     tierBadge.innerHTML = 'FREE';
                 }
                 
+                
+                document.getElementById('stat-sources').innerText = data.sources_count;
+                document.getElementById('stat-targets').innerText = data.targets_count;
+                document.getElementById('stat-sources').classList.remove('skeleton');
+                document.getElementById('stat-targets').classList.remove('skeleton');
+                
+                renderChannelList('sources', data.sources);
+                renderChannelList('targets', data.targets);
+
                 const connBadge = document.getElementById('conn-badge');
                 connBadge.classList.remove('skeleton', 'connected', 'disconnected');
                 if (data.has_session) {
@@ -866,7 +932,61 @@ html_content = '''<!DOCTYPE html>
             }
         }
         
+        
+        function renderChannelList(type, list) {
+            const container = document.getElementById(type + '-list');
+            if (!list || list.length === 0) {
+                container.innerHTML = `<div class="empty-state">No ${type} added yet.</div>`;
+                return;
+            }
+            
+            container.innerHTML = list.map(item => `
+                <div class="channel-row">
+                    <div class="channel-name">${item}</div>
+                    <button class="btn-remove" onclick="manageChannel('${type}', 'remove', '${item}')">
+                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function manageChannel(type, action, existingId = null) {
+            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            let channelId = existingId;
+            
+            if (action === 'add') {
+                const inputEl = document.getElementById(`new-${type.slice(0, -1)}-input`);
+                channelId = inputEl.value.trim();
+                if (!channelId) return;
+                inputEl.value = ''; // clear
+            }
+            
+            try {
+                tg.HapticFeedback.impactOccurred('medium');
+                const response = await fetch('/api/manage_channel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        type: type,
+                        action: action,
+                        channel_id: channelId
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderChannelList(type, data.list);
+                    document.getElementById(`stat-${type}`).innerText = data.list.length;
+                } else {
+                    tg.showAlert(data.error || "Failed to update channel.");
+                }
+            } catch (err) {
+                tg.showAlert("Network error.");
+            }
+        }
+        
         fetchStatus();
+
     </script>
 </body>
 </html>'''
@@ -899,9 +1019,43 @@ def api_user_status():
         "is_admin": is_admin,
         "is_pro": is_pro,
         "has_session": has_session,
-        "sources": len(user_data.get('sources', [])),
-        "targets": len(user_data.get('targets', []))
+        "sources_count": len(user_data.get('sources', [])),
+        "targets_count": len(user_data.get('targets', [])),
+        "sources": user_data.get('sources', []),
+        "targets": user_data.get('targets', [])
     })
+
+
+@app.route('/api/manage_channel', methods=['POST'])
+def api_manage_channel():
+    data = request.json
+    user_id = data.get('user_id')
+    channel_type = data.get('type') # 'sources' or 'targets'
+    action = data.get('action') # 'add' or 'remove'
+    channel_id = data.get('channel_id')
+    
+    if not all([user_id, channel_type, action, channel_id]):
+        return jsonify({"error": "Missing params"}), 400
+        
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    
+    if channel_type not in ['sources', 'targets']:
+        return jsonify({"error": "Invalid type"}), 400
+        
+    current_list = user_data.get(channel_type, [])
+    
+    if action == 'add':
+        if channel_id not in current_list:
+            current_list.append(channel_id)
+    elif action == 'remove':
+        if channel_id in current_list:
+            current_list.remove(channel_id)
+            
+    user_data[channel_type] = current_list
+    save_user_data(user_id, user_data)
+    
+    return jsonify({"success": True, "list": current_list})
 
 @app.route('/miniapp')
 def miniapp():
