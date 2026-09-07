@@ -727,7 +727,7 @@ html_content = '''<!DOCTYPE html>
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
         .modal {
-            position: fixed; bottom: -100%; left: 0; width: 100%; height: 85vh;
+            position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 85vh;
             background: var(--bg-color); border-radius: 24px 24px 0 0;
             z-index: 101; transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: flex; flex-direction: column;
@@ -753,7 +753,7 @@ html_content = '''<!DOCTYPE html>
         .btn-remove:active { background: #ff453a; color: white; }
         .btn-remove svg { width: 16px; height: 16px; }
         
-        .add-channel-row { display: flex; padding: 20px; gap: 12px; background: var(--card-bg); border-top: 1px solid var(--border-color); }
+        .add-channel-row { display: flex; padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 16px)) 20px; gap: 12px; background: var(--card-bg); border-top: 1px solid var(--border-color); }
         .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); padding: 14px 16px; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; }
         .add-input:focus { border-color: var(--accent); }
         .btn-add { background: var(--accent); color: white; border: none; padding: 0 24px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }\n        .btn-add:active { transform: scale(0.95); opacity: 0.9; }
@@ -929,14 +929,7 @@ html_content = '''<!DOCTYPE html>
                     connBadge.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Disconnected';
                 }
                 
-                // Update Stats
-                const srcEl = document.getElementById('stat-sources');
-                srcEl.classList.remove('skeleton');
-                srcEl.innerText = data.sources || 0;
-                
-                const tgtEl = document.getElementById('stat-targets');
-                tgtEl.classList.remove('skeleton');
-                tgtEl.innerText = data.targets || 0;
+
                 
             } catch (err) {
                 console.error("Error fetching status:", err);
