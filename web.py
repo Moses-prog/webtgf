@@ -372,24 +372,7 @@ HTML_TEMPLATE = """
                     </button>
                     
                 
-    <!-- MODAL POPUP -->
-    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
-    <div class="modal" id="manager-modal">
-        <div class="modal-drag"></div>
-        <div class="modal-header">
-            <div class="modal-title" id="modal-title">Manage Channels</div>
-            <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-        </div>
-        <div class="modal-body" id="modal-list">
-            <div class="empty-state">Loading...</div>
-        </div>
-        <div class="add-channel-row">
-            <input type="text" id="modal-input" class="add-input" placeholder="@channel or ID">
-            <button class="btn-add" onclick="submitModalAdd()">Add</button>
-        </div>
-    </div>
-
-    <script>
+        <script>
                         function addRow() {
                             const container = document.getElementById('swaps-container');
                             const row = document.createElement('div');
@@ -744,36 +727,41 @@ html_content = '''<!DOCTYPE html>
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
         .modal {
-            position: fixed; bottom: -100%; left: 0; width: 100%;
-            background: var(--bg-color); border-radius: 20px 20px 0 0;
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 85vh;
+            background: var(--bg-color); border-radius: 24px 24px 0 0;
             z-index: 101; transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            max-height: 80vh; display: flex; flex-direction: column;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
         }
         .modal.active { bottom: 0; }
         .modal-overlay.active { display: block; opacity: 1; }
         
         .modal-drag { width: 40px; height: 5px; background: var(--border-color); border-radius: 3px; margin: 12px auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 16px; border-bottom: 1px solid var(--border-color); }
-        .modal-title { font-size: 18px; font-weight: 700; }
+        .modal-header { padding: 8px 20px 20px; border-bottom: 1px solid var(--border-color); }
+        .modal-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .modal-title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .modal-subtitle { font-size: 14px; color: var(--text-muted); }
+
         .modal-close { background: none; border: none; color: var(--text-muted); padding: 4px; cursor: pointer; }
         .modal-close svg { width: 24px; height: 24px; }
         
         .modal-body { overflow-y: auto; padding: 16px; flex: 1; }
         
-        .channel-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--card-bg); margin-bottom: 8px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .channel-name { font-size: 14px; font-family: monospace; color: var(--text-main); word-break: break-all; }
-        .btn-remove { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: none; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .channel-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--card-bg); margin-bottom: 12px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .channel-name { font-size: 15px; font-family: monospace; font-weight: 600; color: var(--text-main); word-break: break-all; }
+        .btn-remove { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: none; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .btn-remove:active { background: #ff453a; color: white; }
         .btn-remove svg { width: 16px; height: 16px; }
         
-        .add-channel-row { display: flex; padding: 16px; gap: 8px; background: var(--bg-color); border-top: 1px solid var(--border-color); }
-        .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); padding: 12px 16px; border-radius: 10px; font-size: 15px; outline: none; }
+        .add-channel-row { display: flex; padding: 20px; gap: 12px; background: var(--card-bg); border-top: 1px solid var(--border-color); }
+        .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); padding: 14px 16px; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; }
         .add-input:focus { border-color: var(--accent); }
-        .btn-add { background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-add { background: var(--accent); color: white; border: none; padding: 0 24px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }\n        .btn-add:active { transform: scale(0.95); opacity: 0.9; }
         .btn-add:active { opacity: 0.8; }
         
-        .empty-state { padding: 24px; text-align: center; color: var(--text-muted); font-size: 14px; }
+        .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .empty-icon { width: 64px; height: 64px; color: var(--border-color); background: var(--card-bg); border-radius: 50%; padding: 16px; margin-bottom: 8px; }
+        .empty-title { font-weight: 600; color: var(--text-main); font-size: 18px; }
         
         .stat-card { cursor: pointer; transition: transform 0.1s; }
         .stat-card:active { transform: scale(0.98); }
@@ -863,8 +851,14 @@ html_content = '''<!DOCTYPE html>
     <div class="modal" id="manager-modal">
         <div class="modal-drag"></div>
         <div class="modal-header">
-            <div class="modal-title" id="modal-title">Manage Channels</div>
-            <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            <div class="modal-header-top">
+                <div class="modal-title" id="modal-title">
+                    <svg viewBox="0 0 24 24" id="modal-icon"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg>
+                    Manage Channels
+                </div>
+                <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal-subtitle" id="modal-subtitle">Add or remove channels from your routing list.</div>
         </div>
         <div class="modal-body" id="modal-list">
             <div class="empty-state">Loading...</div>
@@ -958,7 +952,15 @@ html_content = '''<!DOCTYPE html>
         
         function openModal(type) {
             currentModalType = type;
-            document.getElementById('modal-title').innerText = type === 'sources' ? 'Source Channels' : 'Target Channels';
+            
+            if (type === 'sources') {
+                document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg> Source Channels';
+                document.getElementById('modal-subtitle').innerText = 'Messages posted here will be forwarded.';
+            } else {
+                document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Target Channels';
+                document.getElementById('modal-subtitle').innerText = 'Messages will be forwarded to these groups.';
+            }
+            
             document.getElementById('modal-overlay').classList.add('active');
             
             // tiny delay for animation
@@ -981,7 +983,12 @@ html_content = '''<!DOCTYPE html>
             const container = document.getElementById('modal-list');
             
             if (!list || list.length === 0) {
-                container.innerHTML = `<div class="empty-state">No ${currentModalType} added yet.</div>`;
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg></div>
+                        <div class="empty-title">No ${currentModalType}</div>
+                        <div>Add a channel ID or @username below to get started.</div>
+                    </div>`;
                 return;
             }
             
