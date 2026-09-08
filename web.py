@@ -1077,6 +1077,37 @@ def api_user_status():
     })
 
 
+def validate_channel_input(x):
+    import re
+    x = x.strip()
+    if not x: return None, "Empty input"
+    
+    # Is it a standard numeric ID?
+    if x.startswith('-100') and x[4:].isdigit():
+        return x, None
+    if x.lstrip('-').isdigit():
+        return x, None
+        
+    # Is it an @username?
+    if x.startswith('@') and len(x) > 3:
+        return x, None
+        
+    # Is it a t.me link?
+    if 't.me/c/' in x:
+        match = re.search(r't\.me/c/(\d+)', x)
+        if match:
+            return f"-100{match.group(1)}", None
+            
+    if 't.me/' in x:
+        match = re.search(r't\.me/([^/\?]+)', x)
+        if match:
+            username = match.group(1)
+            if username in ['joinchat'] or username.startswith('+'):
+                return None, "Private invite links (joinchat/+) are not supported. Please use a public @username or the numeric -100 Channel ID."
+            return f"@{username}", None
+            
+    return None, "Invalid format. Please enter a valid @username, -100 ID, or public t.me link."
+
 @app.route('/api/manage_channel', methods=['POST'])
 def api_manage_channel():
     data = request.json
@@ -1087,6 +1118,12 @@ def api_manage_channel():
     
     if not all([user_id, channel_type, action, channel_id]):
         return jsonify({"error": "Missing params"}), 400
+        
+    if action == 'add':
+        parsed_id, err = validate_channel_input(channel_id)
+        if err:
+            return jsonify({"error": err}), 400
+        channel_id = parsed_id
         
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
