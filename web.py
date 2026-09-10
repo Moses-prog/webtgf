@@ -753,10 +753,10 @@ html_content = '''<!DOCTYPE html>
         .btn-remove:active { background: #ff453a; color: white; }
         .btn-remove svg { width: 16px; height: 16px; }
         
-        .add-channel-row { display: flex; padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 16px)) 20px; gap: 12px; background: var(--card-bg); border-top: 1px solid var(--border-color); }
+        .add-channel-row { display: flex; flex-direction: column; padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 16px)) 20px; gap: 12px; background: var(--card-bg); border-top: 1px solid var(--border-color); }
         .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); padding: 14px 16px; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; }
         .add-input:focus { border-color: var(--accent); }
-        .btn-add { background: var(--accent); color: white; border: none; padding: 0 24px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }\n        .btn-add:active { transform: scale(0.95); opacity: 0.9; }
+        .btn-add { background: var(--accent); color: white; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); width: 100%; }\n        .btn-add:active { transform: scale(0.98); opacity: 0.9; }
         .btn-add:active { opacity: 0.8; }
         
         .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
