@@ -797,6 +797,10 @@ html_content = '''<!DOCTYPE html>
             <div id="stat-targets" class="stat-value skeleton">0</div>
             <div class="stat-label">Active Targets &rarr;</div>
         </div>
+        <div class="stat-card" style="grid-column: span 2;" onclick="openModal('replacements')">
+            <div id="stat-replacements" class="stat-value skeleton">0</div>
+            <div class="stat-label">Word Replacements &rarr;</div>
+        </div>
     </div>
 
     <div class="section-label">Core Features</div>
@@ -863,8 +867,9 @@ html_content = '''<!DOCTYPE html>
         <div class="modal-body" id="modal-list">
             <div class="empty-state">Loading...</div>
         </div>
-        <div class="add-channel-row">
+        <div class="add-channel-row" id="modal-add-row">
             <input type="text" id="modal-input" class="add-input" placeholder="@channel or ID">
+            <input type="text" id="modal-input-2" class="add-input" placeholder="Replace with..." style="display:none;">
             <button class="btn-add" onclick="submitModalAdd()">Add</button>
         </div>
     </div>
@@ -913,9 +918,12 @@ html_content = '''<!DOCTYPE html>
                 
                 window.globalSources = data.sources || [];
                 window.globalTargets = data.targets || [];
+                window.globalSwaps = data.text_swaps || {};
                 
                 document.getElementById('stat-sources').innerText = data.sources_count;
                 document.getElementById('stat-targets').innerText = data.targets_count;
+                document.getElementById('stat-replacements').innerText = Object.keys(window.globalSwaps).length;
+                document.getElementById('stat-replacements').classList.remove('skeleton');
                 document.getElementById('stat-sources').classList.remove('skeleton');
                 document.getElementById('stat-targets').classList.remove('skeleton');
                 
@@ -949,9 +957,17 @@ html_content = '''<!DOCTYPE html>
             if (type === 'sources') {
                 document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg> Source Channels';
                 document.getElementById('modal-subtitle').innerText = 'Messages posted here will be forwarded.';
-            } else {
+            } else if (type === 'targets') {
                 document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Target Channels';
                 document.getElementById('modal-subtitle').innerText = 'Messages will be forwarded to these groups.';
+                document.getElementById('modal-input-2').style.display = 'none';
+                document.getElementById('modal-input').placeholder = '@channel or ID';
+            } else if (type === 'replacements') {
+                document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Word Swaps';
+                document.getElementById('modal-subtitle').innerText = 'Auto-replace words, links, and text in messages.';
+                document.getElementById('modal-input').placeholder = 'Find what...';
+                document.getElementById('modal-input-2').placeholder = 'Replace with...';
+                document.getElementById('modal-input-2').style.display = 'block';
             }
             
             document.getElementById('modal-overlay').classList.add('active');
@@ -972,9 +988,33 @@ html_content = '''<!DOCTYPE html>
         }
         
         function renderModalList() {
-            const list = currentModalType === 'sources' ? window.globalSources : window.globalTargets;
             const container = document.getElementById('modal-list');
             
+            if (currentModalType === 'replacements') {
+                const swaps = window.globalSwaps || {};
+                const keys = Object.keys(swaps);
+                if (keys.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg></div>
+                            <div class="empty-title">No Word Swaps</div>
+                            <div>Enter a word to find and replace below.</div>
+                        </div>`;
+                    return;
+                }
+                
+                container.innerHTML = keys.map(k => `
+                    <div class="channel-row">
+                        <div class="channel-name" style="flex:1;"><span style="color:var(--text-muted)">Find:</span> ${k}<br><span style="color:var(--text-muted)">Replace:</span> ${swaps[k]}</div>
+                        <button class="btn-remove" onclick="manageSwap('remove', '${k}')">
+                            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
+                `).join('');
+                return;
+            }
+
+            const list = currentModalType === 'sources' ? window.globalSources : window.globalTargets;
             if (!list || list.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -999,8 +1039,39 @@ html_content = '''<!DOCTYPE html>
             const inputEl = document.getElementById('modal-input');
             const val = inputEl.value.trim();
             if(!val) return;
-            manageChannel(currentModalType, 'add', val);
-            inputEl.value = '';
+            
+            if (currentModalType === 'replacements') {
+                const inputEl2 = document.getElementById('modal-input-2');
+                const val2 = inputEl2.value.trim();
+                manageSwap('add', val, val2);
+                inputEl.value = '';
+                inputEl2.value = '';
+            } else {
+                manageChannel(currentModalType, 'add', val);
+                inputEl.value = '';
+            }
+        }
+        
+        async function manageSwap(action, oldWord, newWord = null) {
+            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            try {
+                tg.HapticFeedback.impactOccurred('medium');
+                const response = await fetch('/api/manage_swap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, action: action, old_word: oldWord, new_word: newWord })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.globalSwaps = data.swaps;
+                    document.getElementById('stat-replacements').innerText = Object.keys(data.swaps).length;
+                    renderModalList();
+                } else {
+                    tg.showAlert(data.error || "Failed to update word swap.");
+                }
+            } catch (err) {
+                tg.showAlert("Network error.");
+            }
         }
 
         async function manageChannel(type, action, channelId) {
@@ -1073,7 +1144,8 @@ def api_user_status():
         "sources_count": len(user_data.get('sources', [])),
         "targets_count": len(user_data.get('targets', [])),
         "sources": user_data.get('sources', []),
-        "targets": user_data.get('targets', [])
+        "targets": user_data.get('targets', []),
+        "text_swaps": user_data.get('text_swaps', {})
     })
 
 
@@ -1144,6 +1216,35 @@ def api_manage_channel():
     save_user_data(user_id, user_data)
     
     return jsonify({"success": True, "list": current_list})
+
+
+@app.route('/api/manage_swap', methods=['POST'])
+def api_manage_swap():
+    data = request.json
+    user_id = data.get('user_id')
+    action = data.get('action') # 'add' or 'remove'
+    old_word = data.get('old_word')
+    new_word = data.get('new_word')
+    
+    if not all([user_id, action, old_word]):
+        return jsonify({"error": "Missing params"}), 400
+        
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    text_swaps = user_data.get('text_swaps', {})
+    
+    if action == 'add':
+        if not new_word:
+            return jsonify({"error": "Missing replacement word"}), 400
+        text_swaps[old_word] = new_word
+    elif action == 'remove':
+        if old_word in text_swaps:
+            del text_swaps[old_word]
+            
+    user_data['text_swaps'] = text_swaps
+    save_user_data(user_id, user_data)
+    
+    return jsonify({"success": True, "swaps": text_swaps})
 
 @app.route('/miniapp')
 def miniapp():
