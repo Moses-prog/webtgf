@@ -667,6 +667,7 @@ async def callback(event):
             buttons = [
                 [Button.inline(f"Smart Delay [PRO 💎]: {d_status}", b"toggle_smart_delay")],
                 [Button.inline(f"Anti-Payment Stripper [PRO 💎]: {s_status}", b"toggle_anti_payment")],
+                [Button.inline(f"Skip Voice Notes [PRO 💎]: {v_status}", b"toggle_skip_voice")],
                 [Button.inline("🔙 Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)

@@ -823,7 +823,7 @@ html_content = '''<!DOCTYPE html>
             </div>
             <div class="item-action">
                 <label class="switch">
-                    <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_crypto', this.checked)">
+                    <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_payment_details', this.checked)">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -970,7 +970,7 @@ html_content = '''<!DOCTYPE html>
                 document.getElementById('stat-sources').classList.remove('skeleton');
                 document.getElementById('stat-targets').classList.remove('skeleton');
                 
-                document.getElementById('toggle-strip').checked = data.strip_crypto;
+                document.getElementById('toggle-strip').checked = data.strip_payment_details;
                 document.getElementById('toggle-voice').checked = data.disable_voicenotes;
                 
                 const connBadge = document.getElementById('conn-badge');
@@ -1207,7 +1207,7 @@ def api_user_status():
         "sources": user_data.get('sources', []),
         "targets": user_data.get('targets', []),
         "text_swaps": user_data.get('text_swaps', {}),
-        "strip_crypto": user_data.get('strip_crypto', False),
+        "strip_payment_details": user_data.get('strip_payment_details', False),
         "disable_voicenotes": user_data.get('disable_voicenotes', False)
     })
 
