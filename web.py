@@ -885,6 +885,30 @@ html_content = '''<!DOCTYPE html>
         <div class="modal-body" id="modal-list">
             <div class="empty-state">Loading...</div>
         </div>
+        
+        <div id="modal-settings-content" style="display:none; padding: 20px; overflow-y: auto; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-color); border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border-color);">
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main); font-size: 16px; margin-bottom: 4px;">Anti-Payment Stripper</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">Deletes Banks & Crypto details</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_payment_details', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);">
+                <div>
+                    <div style="font-weight: 700; color: var(--text-main); font-size: 16px; margin-bottom: 4px;">Skip Voice Notes</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">Blocks voice note forwarding</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-voice" onchange="toggleSetting('disable_voicenotes', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
         <div class="add-channel-row" id="modal-add-row">
             <input type="text" id="modal-input" class="add-input" placeholder="@channel or ID">
             <input type="text" id="modal-input-2" class="add-input" placeholder="Replace with..." style="display:none;">
