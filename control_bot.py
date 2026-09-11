@@ -633,7 +633,7 @@ async def callback(event):
             await event.edit(text, buttons=buttons)
             return
 
-        elif data in ("menu_settings", "toggle_smart_delay", "toggle_anti_payment"):
+        elif data in ("menu_settings", "toggle_smart_delay", "toggle_anti_payment", "toggle_skip_voice"):
             user_data = get_user_data(chat_id)
             
             if data == "toggle_smart_delay":
@@ -648,12 +648,19 @@ async def callback(event):
                 status = "✅ ON" if user_data["strip_payment_details"] else "❌ OFF"
                 await event.answer(f"Anti-Payment Stripper turned {status}!", alert=True)
                 
+            elif data == "toggle_skip_voice":
+                user_data["disable_voicenotes"] = not user_data.get("disable_voicenotes", False)
+                save_user_data(chat_id, user_data)
+                status = "✅ ON" if user_data["disable_voicenotes"] else "❌ OFF"
+                await event.answer(f"Skip Voice Notes turned {status}!", alert=True)
+                
             delay_enabled = user_data.get("smart_delay_enabled", False)
             strip_enabled = user_data.get("strip_payment_details", False)
-    voice_enabled = user_data.get("disable_voicenotes", False)
+            voice_enabled = user_data.get("disable_voicenotes", False)
             
             d_status = "✅ ON" if delay_enabled else "❌ OFF"
             s_status = "✅ ON" if strip_enabled else "❌ OFF"
+            v_status = "✅ ON" if voice_enabled else "❌ OFF"
             
             text = (
                 "⚙️ **Advanced Settings Panel**\n\n"
@@ -662,7 +669,10 @@ async def callback(event):
                 f"Current Status: {d_status}\n\n"
                 "**2. Anti-Payment Stripper**\n"
                 "If enabled, the bot will automatically delete any Crypto addresses (BTC, ETH, USDT) and Bank Account numbers from the text before forwarding.\n"
-                f"Current Status: {s_status}"
+                f"Current Status: {s_status}\n\n"
+                "**3. Skip Voice Notes**\n"
+                "If enabled, the bot will drop any voice notes instead of forwarding them.\n"
+                f"Current Status: {v_status}"
             )
             
             buttons = [
@@ -673,7 +683,6 @@ async def callback(event):
             ]
             await event.edit(text, buttons=buttons)
             return
-
         # -----------------------------------------------------
         # CONNECT / DISCONNECT ACCOUNT LOGIC
         # -----------------------------------------------------
