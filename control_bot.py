@@ -650,6 +650,7 @@ async def callback(event):
                 
             delay_enabled = user_data.get("smart_delay_enabled", False)
             strip_enabled = user_data.get("strip_payment_details", False)
+    voice_enabled = user_data.get("disable_voicenotes", False)
             
             d_status = "✅ ON" if delay_enabled else "❌ OFF"
             s_status = "✅ ON" if strip_enabled else "❌ OFF"

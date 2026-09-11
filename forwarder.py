@@ -457,11 +457,6 @@ async def handle_message(event, chat_id):
     
     source_channels = user_data.get('sources', [])
     target_channels = user_data.get('targets', [])
-
-    # --- VOICE NOTE FILTER ---
-    if message.voice and user_data.get('disable_voicenotes', False):
-        print(f"[Tenant {chat_id}] Message is a voice note. Skipping due to settings.")
-        return
     
     if not source_channels or not target_channels:
         return
