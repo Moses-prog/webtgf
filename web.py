@@ -805,46 +805,19 @@ html_content = '''<!DOCTYPE html>
             <div id="stat-targets" class="stat-value skeleton">0</div>
             <div class="stat-label">Active Targets &rarr;</div>
         </div>
-        <div class="stat-card" style="grid-column: span 2;" onclick="openModal('replacements')">
+                <div class="stat-card" onclick="openModal('replacements')">
             <div id="stat-replacements" class="stat-value skeleton">0</div>
-            <div class="stat-label">Word Replacements &rarr;</div>
+            <div class="stat-label">Replacements &rarr;</div>
+        </div>
+        <div class="stat-card" onclick="openModal('settings')">
+            <div class="stat-value">
+                <svg style="width:28px; height:28px; color: var(--accent); margin-top:2px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </div>
+            <div class="stat-label">Filters & Settings</div>
         </div>
     </div>
 
-    <div class="section-label">Automated Filters</div>
-    <div class="list-group">
-        <div class="list-item">
-            <div class="item-icon" style="background: rgba(255,69,58,0.1); color: #ff453a;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            </div>
-            <div class="item-text">
-                <div class="item-title">Anti-Payment Stripper</div>
-                <div class="item-desc">Deletes Banks & Crypto details</div>
-            </div>
-            <div class="item-action">
-                <label class="switch">
-                    <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_payment_details', this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        
-        <div class="list-item">
-            <div class="item-icon" style="background: rgba(10,132,255,0.1); color: #0a84ff;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-            </div>
-            <div class="item-text">
-                <div class="item-title">Skip Voice Notes</div>
-                <div class="item-desc">Blocks voice note forwarding</div>
-            </div>
-            <div class="item-action">
-                <label class="switch">
-                    <input type="checkbox" id="toggle-voice" onchange="toggleSetting('disable_voicenotes', this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-    </div>
+    
     
     <div class="section-label">Core Features</div>
     <div class="list-group">
