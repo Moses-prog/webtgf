@@ -763,6 +763,14 @@ html_content = '''<!DOCTYPE html>
         .empty-icon { width: 64px; height: 64px; color: var(--border-color); background: var(--card-bg); border-radius: 50%; padding: 16px; margin-bottom: 8px; }
         .empty-title { font-weight: 600; color: var(--text-main); font-size: 18px; }
         
+        /* iOS Switch */
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .3s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #34c759; }
+        input:checked + .slider:before { transform: translateX(22px); }
+        
         .stat-card { cursor: pointer; transition: transform 0.1s; }
         .stat-card:active { transform: scale(0.98); }
     </style>
@@ -803,6 +811,41 @@ html_content = '''<!DOCTYPE html>
         </div>
     </div>
 
+    <div class="section-label">Automated Filters</div>
+    <div class="list-group">
+        <div class="list-item">
+            <div class="item-icon" style="background: rgba(255,69,58,0.1); color: #ff453a;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div class="item-text">
+                <div class="item-title">Anti-Payment Stripper</div>
+                <div class="item-desc">Deletes Banks & Crypto details</div>
+            </div>
+            <div class="item-action">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_crypto', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="list-item">
+            <div class="item-icon" style="background: rgba(10,132,255,0.1); color: #0a84ff;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            </div>
+            <div class="item-text">
+                <div class="item-title">Skip Voice Notes</div>
+                <div class="item-desc">Blocks voice note forwarding</div>
+            </div>
+            <div class="item-action">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-voice" onchange="toggleSetting('disable_voicenotes', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
     <div class="section-label">Core Features</div>
     <div class="list-group">
         <div class="list-item">
@@ -926,6 +969,9 @@ html_content = '''<!DOCTYPE html>
                 document.getElementById('stat-replacements').classList.remove('skeleton');
                 document.getElementById('stat-sources').classList.remove('skeleton');
                 document.getElementById('stat-targets').classList.remove('skeleton');
+                
+                document.getElementById('toggle-strip').checked = data.strip_crypto;
+                document.getElementById('toggle-voice').checked = data.disable_voicenotes;
                 
                 const connBadge = document.getElementById('conn-badge');
                 connBadge.classList.remove('skeleton', 'connected', 'disconnected');
@@ -1107,6 +1153,21 @@ html_content = '''<!DOCTYPE html>
             }
         }
         
+        
+        async function toggleSetting(key, val) {
+            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            tg.HapticFeedback.impactOccurred('light');
+            try {
+                await fetch('/api/toggle_setting', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, key: key, val: val })
+                });
+            } catch (err) {
+                tg.showAlert("Failed to save setting.");
+            }
+        }
+        
         fetchStatus();
 
     </script>
@@ -1145,7 +1206,9 @@ def api_user_status():
         "targets_count": len(user_data.get('targets', [])),
         "sources": user_data.get('sources', []),
         "targets": user_data.get('targets', []),
-        "text_swaps": user_data.get('text_swaps', {})
+        "text_swaps": user_data.get('text_swaps', {}),
+        "strip_crypto": user_data.get('strip_crypto', False),
+        "disable_voicenotes": user_data.get('disable_voicenotes', False)
     })
 
 
@@ -1245,6 +1308,24 @@ def api_manage_swap():
     save_user_data(user_id, user_data)
     
     return jsonify({"success": True, "swaps": text_swaps})
+
+
+@app.route('/api/toggle_setting', methods=['POST'])
+def api_toggle_setting():
+    data = request.json
+    user_id = data.get('user_id')
+    key = data.get('key')
+    val = data.get('val')
+    
+    if not user_id or not key:
+        return jsonify({"error": "Missing params"}), 400
+        
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    user_data[key] = bool(val)
+    save_user_data(user_id, user_data)
+    
+    return jsonify({"success": True, "val": bool(val)})
 
 @app.route('/miniapp')
 def miniapp():

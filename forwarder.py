@@ -290,6 +290,11 @@ async def _do_execute_forward(message, chat_id, user_data):
     import os
     from database_manager import save_user_data
     target_channels = user_data.get('targets', [])
+
+    # --- VOICE NOTE FILTER ---
+    if message.voice and user_data.get('disable_voicenotes', False):
+        print(f"[Tenant {chat_id}] Message is a voice note. Skipping due to settings.")
+        return
     
     modified_text = apply_rules(message.text, user_data)
     media_to_send = message.media
@@ -452,6 +457,11 @@ async def handle_message(event, chat_id):
     
     source_channels = user_data.get('sources', [])
     target_channels = user_data.get('targets', [])
+
+    # --- VOICE NOTE FILTER ---
+    if message.voice and user_data.get('disable_voicenotes', False):
+        print(f"[Tenant {chat_id}] Message is a voice note. Skipping due to settings.")
+        return
     
     if not source_channels or not target_channels:
         return
