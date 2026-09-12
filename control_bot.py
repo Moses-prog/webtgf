@@ -39,7 +39,8 @@ def is_tenant(chat_id):
     return str(chat_id) in get_tenants()
 
 def get_main_keyboard(chat_id):
-        sources = user_data.get('sources', [])
+    user_data = get_user_data(chat_id)
+    sources = user_data.get('sources', [])
     targets = user_data.get('targets', [])
     
     # Check if they have an active session string configured
@@ -91,7 +92,8 @@ async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api
         return
 
     # Success
-        user_data["session_string"] = tmp_client.session.save()
+    user_data = get_user_data(chat_id)
+    user_data["session_string"] = tmp_client.session.save()
     user_data["api_id"] = api_id
     user_data["api_hash"] = api_hash
     save_user_data(chat_id, user_data)
@@ -119,7 +121,8 @@ async def start(event):
         
     user_states[chat_id] = None
     
-        badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
+    user_data = get_user_data(chat_id)
+    badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
     
     sender = await event.get_sender()
     name = sender.first_name if sender.first_name else (sender.username if sender.username else "User")
@@ -193,7 +196,8 @@ async def callback(event):
 
         elif data == "back_autoposting":
             user_states.pop(chat_id, None)
-                        queue_len = len(user_data.get("drip_queue", []))
+            user_data = get_user_data(chat_id)
+            queue_len = len(user_data.get("drip_queue", []))
             text = f"🚀 **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
             buttons = [
                 [Button.inline("🕐 Drip Posting [PRO 💎]", b"menu_drip_posting"), Button.inline("💤 Sleep Mode [PRO 💎]", b"menu_sleep")],
@@ -214,7 +218,8 @@ async def callback(event):
             return
 
         elif data == "menu_autoposting":
-                        queue_len = len(user_data.get("drip_queue", []))
+            user_data = get_user_data(chat_id)
+            queue_len = len(user_data.get("drip_queue", []))
             text = f"🚀 **Auto-Posting Suite**\n\nControl the flow of your messages.\n\n**Messages in Queue:** {queue_len}"
             buttons = [
                 [Button.inline("🕐 Drip Posting [PRO 💎]", b"menu_drip_posting"), Button.inline("💤 Sleep Mode [PRO 💎]", b"menu_sleep")],
@@ -230,7 +235,8 @@ async def callback(event):
                 await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
                 return
                 
-                        sleep_mode = user_data.get("sleep_mode", {})
+            user_data = get_user_data(chat_id)
+            sleep_mode = user_data.get("sleep_mode", {})
             
             is_enabled = sleep_mode.get("enabled", False)
             start_t = sleep_mode.get("start_time", "22:00")
@@ -256,7 +262,8 @@ async def callback(event):
             return
 
         elif data == "sleep_toggle":
-                        sleep_mode = user_data.get("sleep_mode", {})
+            user_data = get_user_data(chat_id)
+            sleep_mode = user_data.get("sleep_mode", {})
             sleep_mode["enabled"] = not sleep_mode.get("enabled", False)
             user_data["sleep_mode"] = sleep_mode
             save_user_data(chat_id, user_data)
@@ -302,7 +309,8 @@ async def callback(event):
             return
 
         elif data == "menu_queue":
-                        queue = user_data.get("drip_queue", [])
+            user_data = get_user_data(chat_id)
+            queue = user_data.get("drip_queue", [])
             
             if not queue:
                 await event.edit("📥 **Message Queue**\n\nYour queue is currently empty.", buttons=[[Button.inline("🔙 Back", b"back_autoposting")]])
@@ -324,7 +332,8 @@ async def callback(event):
             return
             
         elif data == "queue_forward_all":
-                        user_data["drip_interval"] = 0
+            user_data = get_user_data(chat_id)
+            user_data["drip_interval"] = 0
             user_data["sleep_mode"] = user_data.get("sleep_mode", {})
             user_data["sleep_mode"]["enabled"] = False
             save_user_data(chat_id, user_data)
@@ -333,7 +342,8 @@ async def callback(event):
             return
             
         elif data == "queue_clear":
-                        user_data["drip_queue"] = []
+            user_data = get_user_data(chat_id)
+            user_data["drip_queue"] = []
             save_user_data(chat_id, user_data)
             await event.answer("Queue cleared!", alert=True)
             await event.edit("🗑️ **Queue Cleared**\n\nAll held messages have been deleted.", buttons=[[Button.inline("🔙 Back", b"back_autoposting")]])
@@ -345,7 +355,8 @@ async def callback(event):
                 await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
                 return
                 
-                        interval = user_data.get("drip_interval", 0)
+            user_data = get_user_data(chat_id)
+            interval = user_data.get("drip_interval", 0)
             queue_len = len(user_data.get("drip_queue", []))
             
             if interval > 0:
@@ -378,7 +389,8 @@ async def callback(event):
 
         elif data.startswith("drip_"):
             val = data[5:]  # e.g. "30", "60", "0", "custom"
-            
+            user_data = get_user_data(chat_id)
+
             if val == "custom":
                 user_states[chat_id] = {"step": "waiting_for_drip"}
                 await event.edit(
@@ -439,7 +451,8 @@ async def callback(event):
                 await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
                 return
                 
-                        pin = user_data.get("deletion_pin", None)
+            user_data = get_user_data(chat_id)
+            pin = user_data.get("deletion_pin", None)
             mirror = user_data.get("mirror_delete", False)
             auto_limit = user_data.get("auto_delete_limit", 0)
             
@@ -470,7 +483,8 @@ async def callback(event):
             return
 
         elif data == "del_toggle_mirror":
-                        user_data["mirror_delete"] = not user_data.get("mirror_delete", False)
+            user_data = get_user_data(chat_id)
+            user_data["mirror_delete"] = not user_data.get("mirror_delete", False)
             save_user_data(chat_id, user_data)
             
             # Re-render menu directly
@@ -521,7 +535,8 @@ async def callback(event):
             
         elif data.startswith("wipe_"):
             val = data[5:]
-                        if not user_data.get("deletion_pin"):
+            user_data = get_user_data(chat_id)
+            if not user_data.get("deletion_pin"):
                 await event.answer("❌ You must set a Security PIN first!", alert=True)
                 return
                 
@@ -619,7 +634,8 @@ async def callback(event):
             return
 
         elif data in ("menu_settings", "toggle_smart_delay", "toggle_anti_payment", "toggle_skip_voice"):
-                        
+            user_data = get_user_data(chat_id)
+            
             if data == "toggle_smart_delay":
                 user_data["smart_delay_enabled"] = not user_data.get("smart_delay_enabled", False)
                 save_user_data(chat_id, user_data)
@@ -740,7 +756,8 @@ async def callback(event):
             return
             
         elif data == "disconnect_account":
-                        user_data["session_string"] = ""
+            user_data = get_user_data(chat_id)
+            user_data["session_string"] = ""
             user_data["api_id"] = ""
             user_data["api_hash"] = ""
             save_user_data(chat_id, user_data)
@@ -776,7 +793,8 @@ async def callback(event):
         # -----------------------------------------------------
         # CONFIGURATION MENUS
         # -----------------------------------------------------
-                if not user_data.get('session_string') and data.startswith("menu_"):
+        user_data = get_user_data(chat_id)
+        if not user_data.get('session_string') and data.startswith("menu_"):
             await event.answer("⚠️ You must connect your account first!", alert=True)
             return
 
@@ -843,7 +861,8 @@ async def callback(event):
                 await event.answer("🔒 This feature is currently locked by the Admin.", alert=True)
                 return
                 
-                        btns = user_data.get("cta_buttons", [])
+            user_data = get_user_data(chat_id)
+            btns = user_data.get("cta_buttons", [])
             
             msg = "🧲 **Call-to-Action Buttons [PRO]**\n\n"
             if not btns:
@@ -870,7 +889,8 @@ async def callback(event):
             )
             
         elif data == "cta_clear":
-                        user_data["cta_buttons"] = []
+            user_data = get_user_data(chat_id)
+            user_data["cta_buttons"] = []
             save_user_data(chat_id, user_data)
             await event.answer("🗑 All buttons cleared!", alert=True)
             # Re-render menu
@@ -1173,7 +1193,8 @@ async def text_handler(event):
     state = user_states.get(chat_id)
     if not state:
         # MANUAL EXTRACTOR
-                        
+        # (Raw mode: bypasses rules)
+        
         # 1. Forwarded message
         if getattr(event.message, 'fwd_from', None):
             mod_text = event.message.text or ""
@@ -1227,7 +1248,8 @@ async def text_handler(event):
         return
         
     text = event.text.replace('`', '').strip()
-    
+    user_data = get_user_data(chat_id)
+
     # -----------------------------------------------------
     # OTP LOGIN FLOW (Multi-step dict state)
     # -----------------------------------------------------
@@ -1278,7 +1300,8 @@ async def text_handler(event):
                 return
                 
             interval = int(text)
-                        user_data["drip_interval"] = interval
+            user_data = get_user_data(chat_id)
+            user_data["drip_interval"] = interval
             if interval == 0:
                 user_data["drip_queue"] = [] # Clear queue if disabled
             save_user_data(chat_id, user_data)
@@ -1302,7 +1325,8 @@ async def text_handler(event):
             if not text.isdigit() or len(text) != 4:
                 await event.respond("❌ Invalid PIN. Please enter exactly 4 digits (e.g. 1234).")
                 return
-                        user_data["deletion_pin"] = text
+            user_data = get_user_data(chat_id)
+            user_data["deletion_pin"] = text
             save_user_data(chat_id, user_data)
             await event.respond("✅ **Security PIN Set Successfully!**\n\nYou can now execute manual wipes.", buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
@@ -1313,7 +1337,8 @@ async def text_handler(event):
                 await event.respond("❌ Invalid limit. Please enter a valid number (e.g. 50).")
                 return
             limit = int(text)
-                        user_data["auto_delete_limit"] = limit
+            user_data = get_user_data(chat_id)
+            user_data["auto_delete_limit"] = limit
             save_user_data(chat_id, user_data)
             
             if limit > 0:
@@ -1327,7 +1352,8 @@ async def text_handler(event):
         elif step == "waiting_for_wipe_pin":
             try: await event.message.delete()
             except: pass
-                        pin = user_data.get("deletion_pin")
+            user_data = get_user_data(chat_id)
+            pin = user_data.get("deletion_pin")
             if text != pin:
                 await event.respond("❌ **INCORRECT PIN!** Wipe canceled.", buttons=get_main_keyboard(chat_id))
                 user_states[chat_id] = None
@@ -1347,7 +1373,8 @@ async def text_handler(event):
             except: pass
             await event.respond("⏳ Testing your session string, please wait...")
             try:
-                                # Use standard Telegram Android API ID for testing the session
+                user_data = get_user_data(chat_id)
+                # Use standard Telegram Android API ID for testing the session
                 tmp_client = TelegramClient(StringSession(text), 6, "eb06d4abfb49dc3eeb1aeb98ae0f581e")
                 await tmp_client.connect()
                 if await tmp_client.is_user_authorized():
@@ -1459,7 +1486,8 @@ async def text_handler(event):
                 del login_sessions[chat_id]
                 
                 # Save to user database
-                                user_data["api_id"] = session_data["api_id"]
+                user_data = get_user_data(chat_id)
+                user_data["api_id"] = session_data["api_id"]
                 user_data["api_hash"] = session_data["api_hash"]
                 user_data["session_string"] = session_string
                 save_user_data(chat_id, user_data)
@@ -1499,7 +1527,8 @@ async def text_handler(event):
                         
                 del login_sessions[chat_id]
                 
-                                user_data["api_id"] = session_data["api_id"]
+                user_data = get_user_data(chat_id)
+                user_data["api_id"] = session_data["api_id"]
                 user_data["api_hash"] = session_data["api_hash"]
                 user_data["session_string"] = session_string
                 save_user_data(chat_id, user_data)
@@ -1688,7 +1717,8 @@ async def text_handler(event):
         if not btn_url.startswith("http"):
             btn_url = "https://" + btn_url
             
-                if "cta_buttons" not in user_data:
+        user_data = get_user_data(chat_id)
+        if "cta_buttons" not in user_data:
             user_data["cta_buttons"] = []
             
         user_data["cta_buttons"].append({"text": btn_text, "url": btn_url})
