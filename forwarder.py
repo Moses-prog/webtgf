@@ -541,18 +541,52 @@ async def monitor_users():
                     udata["manual_extract_url"] = ""
                     try:
                         import re
-                        m = re.search(r't\.me/c/(\d+)/(\d+)', extract_url)
-                        if m:
-                            group_id = int("-100" + m.group(1))
-                            msg_id = int(m.group(2))
+                        m_priv = re.search(r't\.me/c/(\d+)/(\d+)', extract_url)
+                        m_pub = re.search(r't\.me/([a-zA-Z0-9_]+)/(\d+)', extract_url)
+                        
+                        group_id = None
+                        msg_id = None
+                        if m_priv:
+                            group_id = int("-100" + m_priv.group(1))
+                            msg_id = int(m_priv.group(2))
+                        elif m_pub:
+                            group_id = m_pub.group(1)
+                            msg_id = int(m_pub.group(2))
+                            
+                        if group_id and msg_id:
                             msgs = await client.get_messages(group_id, ids=[msg_id])
                             if msgs and msgs[0]:
-                                text = msgs[0].text or ""
-                                udata["manual_extract_result"] = f"**Extracted Output:**\n\n{text}"
+                                msg_obj = msgs[0]
+                                text = msg_obj.text or ""
+                                media_path = ""
+                                limit_msg = ""
+                                
+                                if msg_obj.video or msg_obj.gif or msg_obj.document:
+                                    limit_msg = "\n\n⚠️ **Notice:** Due to server bandwidth limits, videos/documents are not extracted."
+                                elif msg_obj.photo:
+                                    import datetime
+                                    today_str = datetime.date.today().isoformat()
+                                    last_date = udata.get("manual_image_date", "")
+                                    img_count = udata.get("manual_image_count", 0)
+                                    
+                                    if last_date != today_str:
+                                        img_count = 0
+                                        udata["manual_image_date"] = today_str
+                                        
+                                    if img_count < 5:
+                                        media_path = await client.download_media(msg_obj, file=f"temp_extract_{chat_id}.jpg")
+                                        img_count += 1
+                                        udata["manual_image_count"] = img_count
+                                        limit_msg = f"\n\n*(Daily bandwidth: Image {img_count}/5)*"
+                                    else:
+                                        limit_msg = "\n\n⚠️ **Notice:** Daily bandwidth limit reached (5/5 images). Image was not extracted."
+                                        
+                                udata["manual_extract_result"] = f"**Raw Extracted Output:**\n\n{text}{limit_msg}"
+                                udata["manual_extract_media"] = media_path or ""
                             else:
                                 udata["manual_extract_result"] = "❌ Could not find that message."
                         else:
-                            udata["manual_extract_result"] = "❌ Invalid private link format."
+                            udata["manual_extract_result"] = "❌ Invalid link format."
                     except Exception as e:
                         udata["manual_extract_result"] = f"❌ Error extracting: {str(e)}"
                     await asyncio.to_thread(save_user_data, chat_id, udata)
