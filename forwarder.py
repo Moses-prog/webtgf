@@ -534,6 +534,30 @@ async def monitor_users():
                         # Process Drip Queues
             for chat_id, client in list(active_clients.items()):
                 udata = await asyncio.to_thread(get_user_data, chat_id)
+                
+                # Process Manual Extract Requests
+                extract_url = udata.get("manual_extract_url")
+                if extract_url:
+                    udata["manual_extract_url"] = ""
+                    try:
+                        import re
+                        m = re.search(r't\.me/c/(\d+)/(\d+)', extract_url)
+                        if m:
+                            group_id = int("-100" + m.group(1))
+                            msg_id = int(m.group(2))
+                            msgs = await client.get_messages(group_id, ids=[msg_id])
+                            if msgs and msgs[0]:
+                                text = msgs[0].text or ""
+                                udata["manual_extract_result"] = f"**Extracted Output:**\n\n{text}"
+                            else:
+                                udata["manual_extract_result"] = "❌ Could not find that message."
+                        else:
+                            udata["manual_extract_result"] = "❌ Invalid private link format."
+                    except Exception as e:
+                        udata["manual_extract_result"] = f"❌ Error extracting: {str(e)}"
+                    await asyncio.to_thread(save_user_data, chat_id, udata)
+                    continue
+
                 interval = udata.get("drip_interval", 0)
                 queue = udata.get("drip_queue", [])
                 

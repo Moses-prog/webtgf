@@ -1204,7 +1204,25 @@ async def text_handler(event):
         # 2. Telegram Link
         if "t.me/" in event.text:
             if "/c/" in event.text:
-                await event.reply("I cannot extract directly from private group links (`t.me/c/...`). Please **FORWARD** the message directly to me instead!")
+                url = event.text.strip()
+                user_data = get_user_data(chat_id)
+                user_data["manual_extract_url"] = url
+                save_user_data(chat_id, user_data)
+                
+                import asyncio
+                msg = await event.reply("⏳ Fetching from private group using your connected account...")
+                
+                for _ in range(15):
+                    await asyncio.sleep(2)
+                    ud = get_user_data(chat_id)
+                    res = ud.get("manual_extract_result")
+                    if res:
+                        ud["manual_extract_result"] = ""
+                        save_user_data(chat_id, ud)
+                        await msg.edit(res)
+                        return
+                
+                await msg.edit("❌ Timeout fetching private link. Is your forwarding engine running?")
                 return
                 
             import re
