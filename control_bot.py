@@ -1192,6 +1192,60 @@ async def text_handler(event):
         
     state = user_states.get(chat_id)
     if not state:
+        # MANUAL EXTRACTOR
+        from forwarder import apply_rules
+        user_data = get_user_data(chat_id)
+        
+        # 1. Forwarded message
+        if getattr(event.message, 'fwd_from', None):
+            mod_text = apply_rules(event.message.text or "", user_data)
+            await event.reply(f"**Extracted Output:**\n\n{mod_text}" if mod_text else "No text found.")
+            return
+
+        # 2. Telegram Link
+        if "t.me/" in event.text:
+            if "/c/" in event.text:
+                await event.reply("I cannot extract directly from private group links (`t.me/c/...`). Please **FORWARD** the message directly to me instead!")
+                return
+                
+            import re
+            m = re.search(r'https?://t\.me/[a-zA-Z0-9_]+/\d+', event.text)
+            if m:
+                url = m.group(0)
+                import urllib.request
+                import ssl
+                import asyncio
+                
+                def fetch_telegram_html(url):
+                    try:
+                        ctx = ssl.create_default_context()
+                        ctx.check_hostname = False
+                        ctx.verify_mode = ssl.CERT_NONE
+                        req = urllib.request.Request(url + "?embed=1", headers={'User-Agent': 'Mozilla/5.0'})
+                        html = urllib.request.urlopen(req, context=ctx, timeout=5).read().decode('utf-8')
+                        return html
+                    except Exception as e:
+                        return None
+                        
+                msg = await event.reply("⏳ Extracting...")
+                html = await asyncio.to_thread(fetch_telegram_html, url)
+                if html:
+                    m2 = re.search(r'<div class="tgme_widget_message_text[^>]*>(.*?)</div>', html, re.DOTALL)
+                    if m2:
+                        raw_html = m2.group(1)
+                        # Replace <br> and <br/> with newlines
+                        clean_text = re.sub(r'<br\s*/?>', '\n', raw_html)
+                        # Strip remaining HTML tags
+                        clean_text = re.sub(r'<[^>]+>', '', clean_text)
+                        
+                        mod_text = apply_rules(clean_text, user_data)
+                        await msg.edit(f"**Extracted Output:**\n\n{mod_text}" if mod_text else "No text found after cleaning.")
+                    else:
+                        await msg.edit("Could not extract text. Ensure it is a valid public post with text.")
+                else:
+                    await msg.edit("Failed to fetch the link. Ensure it is a valid public post.")
+                return
+        
         return
         
     text = event.text.replace('`', '').strip()
