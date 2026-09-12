@@ -934,10 +934,8 @@ async def callback(event):
             )
             
         elif data == "ai_watermark_remover":
-            toggles = get_feature_toggles()
-            if not toggles.get("ai_watermark_unlocked", False) and not is_admin(chat_id):
-                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
-                return
+            await event.answer(" Locked! This feature is temporarily disabled for all users (including Admin) to conserve server bandwidth.", alert=True)
+            return
             user_states[chat_id] = "waiting_for_watermark_remove"
             await event.edit(
                 "🪄 **AI Watermark Remover**\n\n"
@@ -950,10 +948,8 @@ async def callback(event):
             return
 
         elif data == "ai_watermark_replacer":
-            toggles = get_feature_toggles()
-            if not toggles.get("ai_watermark_unlocked", False) and not is_admin(chat_id):
-                await event.answer("👨‍🍳 Still cooking... This feature is locked by the Admin.", alert=True)
-                return
+            await event.answer(" Locked! This feature is temporarily disabled for all users (including Admin) to conserve server bandwidth.", alert=True)
+            return
             user_states[chat_id] = "waiting_for_watermark_replace"
             await event.edit(
                 "✍️ **AI Watermark Replacer**\n\n"
