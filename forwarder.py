@@ -292,8 +292,8 @@ async def _do_execute_forward(message, chat_id, user_data):
     target_channels = user_data.get('targets', [])
 
     # --- VOICE NOTE FILTER ---
-    if message.voice and user_data.get('disable_voicenotes', False):
-        print(f"[Tenant {chat_id}] Message is a voice note. Skipping due to settings.")
+    if (message.voice or getattr(message, 'audio', None)) and user_data.get('disable_voicenotes', False):
+        print(f"[Tenant {chat_id}] Message is a voice note or audio file. Skipping due to settings.")
         return
     
     modified_text = apply_rules(message.text, user_data)

@@ -670,15 +670,15 @@ async def callback(event):
                 "**2. Anti-Payment Stripper**\n"
                 "If enabled, the bot will automatically delete any Crypto addresses (BTC, ETH, USDT) and Bank Account numbers from the text before forwarding.\n"
                 f"Current Status: {s_status}\n\n"
-                "**3. Skip Voice Notes**\n"
-                "If enabled, the bot will drop any voice notes instead of forwarding them.\n"
+                "**3. Skip Audio & Voice Notes**\n"
+                "If enabled, the bot will drop any music files or voice notes instead of forwarding them.\n"
                 f"Current Status: {v_status}"
             )
             
             buttons = [
                 [Button.inline(f"Smart Delay [PRO 💎]: {d_status}", b"toggle_smart_delay")],
                 [Button.inline(f"Anti-Payment Stripper [PRO 💎]: {s_status}", b"toggle_anti_payment")],
-                [Button.inline(f"Skip Voice Notes [PRO 💎]: {v_status}", b"toggle_skip_voice")],
+                [Button.inline(f"Skip Audio/Voice [PRO 💎]: {v_status}", b"toggle_skip_voice")],
                 [Button.inline("🔙 Back", b"back")]
             ]
             await event.edit(text, buttons=buttons)
