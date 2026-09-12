@@ -47,60 +47,7 @@ HTML_TEMPLATE = """
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #b0b0b0; border-radius: 4px; }
-    
-/* Bottom Navigation */
-body { padding-bottom: 80px; }
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 10px 0;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    z-index: 900;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-weight: 500;
-    gap: 4px;
-    cursor: pointer;
-    transition: 0.2s;
-    width: 60px;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.nav-item:active {
-    opacity: 0.7;
-    transform: scale(0.95);
-}
-
-.nav-item.active {
-    color: var(--primary-color);
-}
-
-.nav-item svg {
-    width: 24px;
-    height: 24px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-</style>
+    </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row antialiased text-gray-800 bg-[#d1d5db]">
 
@@ -826,60 +773,7 @@ html_content = '''<!DOCTYPE html>
         
         .stat-card { cursor: pointer; transition: transform 0.1s; }
         .stat-card:active { transform: scale(0.98); }
-    
-/* Bottom Navigation */
-body { padding-bottom: 80px; }
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 10px 0;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    z-index: 900;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-weight: 500;
-    gap: 4px;
-    cursor: pointer;
-    transition: 0.2s;
-    width: 60px;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.nav-item:active {
-    opacity: 0.7;
-    transform: scale(0.95);
-}
-
-.nav-item.active {
-    color: var(--primary-color);
-}
-
-.nav-item svg {
-    width: 24px;
-    height: 24px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-</style>
+    </style>
 </head>
 <body>
     <div class="header">
@@ -972,23 +866,6 @@ body { padding-bottom: 80px; }
         Close Dashboard
     </button>
     <div class="footer">WebTGF Dashboard &bull; Version 2.0</div>
-
-    <!-- BOTTOM NAVIGATION -->
-    <div class="bottom-nav">
-        <div class="nav-item active">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span class="nav-label">Home</span>
-        </div>
-        <div class="nav-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-            <span class="nav-label">Tools</span>
-        </div>
-        <div class="nav-item" onclick="openModal('settings')">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            <span class="nav-label">Settings</span>
-        </div>
-    </div>
-
 
 
     <!-- MODAL POPUP -->
