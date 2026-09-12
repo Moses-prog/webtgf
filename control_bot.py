@@ -1231,9 +1231,7 @@ async def text_handler(event):
                             if os.path.exists(media_path):
                                 os.remove(media_path)
                         except Exception as e:
-                            await event.reply(f"Fetched text, but failed to upload media: {e}
-
-{res}")
+                            await event.reply(f"Fetched text, but failed to upload media: {e}\\n\\n{res}")
                     else:
                         await event.reply(res)
                     return
