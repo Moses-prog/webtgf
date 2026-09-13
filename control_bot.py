@@ -1786,7 +1786,7 @@ async def text_handler(event):
             try:
                 from google import genai
                 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-                prompt = f"You are an expert community manager. Write a highly engaging broadcast message based on these exact instructions: {text}. Keep the tone natural and use appropriate emojis."
+                prompt = f"You are an expert community manager. Write exactly ONE highly engaging broadcast message based on these exact instructions: {text}. Keep the tone natural and use appropriate emojis. IMPORTANT: Output ONLY the final message itself. Do not provide options, do not include introductory text, and do not wrap it in quotes."
                 response = client.models.generate_content(
                     model='gemini-3.1-flash-lite',
                     contents=prompt,
