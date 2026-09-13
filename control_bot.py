@@ -1786,7 +1786,7 @@ async def text_handler(event):
             try:
                 from google import genai
                 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-                prompt = f"You are a professional marketing manager for a Telegram Bot called Webtgf. Write a highly engaging, hype-building announcement message about this new feature: {text}. Keep it under 150 words. Use emojis. Make it sound exciting."
+                prompt = f"You are an expert community manager. Write a highly engaging broadcast message based on these exact instructions: {text}. Keep the tone natural and use appropriate emojis."
                 response = client.models.generate_content(
                     model='gemini-3.1-flash-lite',
                     contents=prompt,
@@ -1815,6 +1815,67 @@ async def text_handler(event):
             else:
                 await event.respond(f"❌ Tenant ID `{text}` not found.", buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
+
+
+@bot.on(events.InlineQuery)
+async def inline_handler(event):
+    chat_id = event.sender_id
+    if not is_tenant(chat_id):
+        await event.answer([])
+        return
+        
+    query = event.text.lower().strip()
+    builder = event.builder
+    
+    results = []
+    
+    if query == "pause":
+        results.append(
+            builder.article(
+                title="Pause Forwarding Engine",
+                description="Click to instantly pause your engine.",
+                text="❌ I have manually **PAUSED** my forwarding engine.",
+                buttons=[Button.inline("Confirm Pause", b"inline_pause")]
+            )
+        )
+    elif query == "resume":
+        results.append(
+            builder.article(
+                title="Resume Forwarding Engine",
+                description="Click to instantly resume your engine.",
+                text="✅ I have manually **RESUMED** my forwarding engine.",
+                buttons=[Button.inline("Confirm Resume", b"inline_resume")]
+            )
+        )
+    else:
+        results.append(
+            builder.article(
+                title="Quick Commands",
+                description="Type '@yourbot pause' or '@yourbot resume'",
+                text="You can use `@yourbot pause` or `@yourbot resume` to quickly control your engine from any chat!"
+            )
+        )
+        
+    await event.answer(results)
+
+@bot.on(events.CallbackQuery(data=b"inline_pause"))
+async def handle_inline_pause(event):
+    chat_id = event.sender_id
+    if not is_tenant(chat_id): return
+    ud = get_user_data(chat_id)
+    ud["is_active"] = False
+    save_user_data(chat_id, ud)
+    await event.edit("❌ **Forwarding Engine Paused.**")
+
+@bot.on(events.CallbackQuery(data=b"inline_resume"))
+async def handle_inline_resume(event):
+    chat_id = event.sender_id
+    if not is_tenant(chat_id): return
+    ud = get_user_data(chat_id)
+    ud["is_active"] = True
+    save_user_data(chat_id, ud)
+    await event.edit("✅ **Forwarding Engine Resumed.**")
+
 
 print("Starting Webtgf Control Bot with OTP capabilities...")
 bot.start(bot_token=BOT_TOKEN)
