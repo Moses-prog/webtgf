@@ -1225,7 +1225,7 @@ async def text_handler(event):
                     except: pass
                     
                     if media_path:
-                        import os
+
                         try:
                             await event.reply(res, file=media_path)
                             if os.path.exists(media_path):
