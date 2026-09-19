@@ -1817,7 +1817,7 @@ async def text_handler(event):
 
     elif state == "waiting_for_pro_id" and is_admin(chat_id):
         target_uid = text.strip()
-        if not target_uid.lstrip('-').isdigit():
+        if not target_uid.lstrip("-").isdigit():
             await event.respond("❌ Invalid ID. It must be a number.", buttons=get_main_keyboard(chat_id))
             user_states[chat_id] = None
             return
@@ -1839,34 +1839,13 @@ async def text_handler(event):
         if t_data.get("is_pro") and not t_data.get("pro_expiry"): expiry = "Lifetime"
         
         await event.respond(
-            f"**Manage PRO Subscription**
-
-"
-            f"👤 User: `{target_uid}`
-"
-            f"📊 Status: {status_text}
-"
-            f"⏳ Expires: {expiry}
-
-"
+            f"**Manage PRO Subscription**\n\n"
+            f"👤 User: `{target_uid}`\n"
+            f"📊 Status: {status_text}\n"
+            f"⏳ Expires: {expiry}\n\n"
             f"Select a subscription duration to apply:",
             buttons=buttons
         )
-        return
-            
-        target_uid = int(target_uid)
-        t_data = get_user_data(target_uid)
-        
-        # Toggle PRO status
-        current_pro = t_data.get("is_pro", False)
-        t_data["is_pro"] = not current_pro
-        
-        # Save
-        save_user_data(target_uid, t_data)
-        
-        status = "✅ GRANTED" if t_data["is_pro"] else "❌ REVOKED"
-        await event.respond(f"💎 PRO status for user `{target_uid}` is now {status}.", buttons=get_main_keyboard(chat_id))
-        user_states[chat_id] = None
         return
 
     elif state == "waiting_for_broadcast":
