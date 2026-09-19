@@ -1825,6 +1825,38 @@ async def text_handler(event):
         target_uid = int(target_uid)
         t_data = get_user_data(target_uid)
         
+        user_states[chat_id] = {"step": "waiting_for_pro_duration", "target_uid": target_uid}
+        
+        buttons = [
+            [Button.inline("1 Month", b"pro_1_month"), Button.inline("3 Months", b"pro_3_months")],
+            [Button.inline("6 Months", b"pro_6_months"), Button.inline("Lifetime", b"pro_lifetime")],
+            [Button.inline("❌ Revoke PRO", b"pro_revoke")],
+            [Button.inline("🔙 Cancel", b"admin_panel")]
+        ]
+        
+        status_text = "🟢 Active" if t_data.get("is_pro") else "🔴 Inactive"
+        expiry = t_data.get("pro_expiry", "N/A") if t_data.get("is_pro") else "-"
+        if t_data.get("is_pro") and not t_data.get("pro_expiry"): expiry = "Lifetime"
+        
+        await event.respond(
+            f"**Manage PRO Subscription**
+
+"
+            f"👤 User: `{target_uid}`
+"
+            f"📊 Status: {status_text}
+"
+            f"⏳ Expires: {expiry}
+
+"
+            f"Select a subscription duration to apply:",
+            buttons=buttons
+        )
+        return
+            
+        target_uid = int(target_uid)
+        t_data = get_user_data(target_uid)
+        
         # Toggle PRO status
         current_pro = t_data.get("is_pro", False)
         t_data["is_pro"] = not current_pro
