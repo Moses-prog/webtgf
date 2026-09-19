@@ -35,7 +35,20 @@ def get_user_data(chat_id):
         response = supabase.table('users').select('data').eq('chat_id', chat_id).execute()
         if response.data and len(response.data) > 0:
             # Merge with default to ensure keys exist
-            return {**default_data, **response.data[0]['data']}
+            data = {**default_data, **response.data[0]['data']}
+            
+            # Check PRO Expiry
+            if data.get('is_pro') and data.get('pro_expiry'):
+                import datetime
+                try:
+                    expiry = datetime.datetime.fromisoformat(data['pro_expiry'])
+                    if datetime.datetime.now() > expiry:
+                        data['is_pro'] = False
+                        data['pro_expiry'] = None
+                        save_user_data(chat_id, data)
+                except: pass
+                
+            return data
         else:
             return default_data
     except Exception as e:

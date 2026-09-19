@@ -1123,6 +1123,99 @@ async def callback(event):
                 buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]]
             )
             
+        elif data.startswith("pro_") and is_admin(chat_id):
+            state = user_states.get(chat_id)
+            if not isinstance(state, dict) or state.get("step") != "waiting_for_pro_duration":
+                await event.answer("Session expired.", alert=True)
+                return
+                
+            target_uid = state.get("target_uid")
+            t_data = get_user_data(target_uid)
+            
+            import datetime
+            now = datetime.datetime.now()
+            
+            if data == "pro_revoke":
+                t_data["is_pro"] = False
+                t_data["pro_expiry"] = None
+                action = "Revoked"
+                
+            elif data == "pro_lifetime":
+                t_data["is_pro"] = True
+                t_data["pro_expiry"] = None
+                action = "Granted Lifetime"
+                
+            else:
+                t_data["is_pro"] = True
+                months = 1
+                if data == "pro_3_months": months = 3
+                if data == "pro_6_months": months = 6
+                
+                expiry_date = now + datetime.timedelta(days=30 * months)
+                t_data["pro_expiry"] = expiry_date.isoformat()
+                action = f"Granted {months} Month(s) (Expires: {expiry_date.strftime('%Y-%m-%d')})"
+                
+            save_user_data(target_uid, t_data)
+            user_states[chat_id] = None
+            
+            await event.edit(
+                f"✅ **Subscription Updated**\n\n👤 User: `{target_uid}`\n⚙️ Action: {action}",
+                buttons=[[Button.inline("🔙 Back to Admin", b"admin_panel")]]
+            )
+            
+            # Notify the user
+            try:
+                await bot.send_message(
+                    target_uid, 
+                    f"🎉 **Your account has been updated!**\n\nStatus: **PRO Tier**\n{action}" if t_data["is_pro"] else "⚠️ **Your PRO status has been revoked.**"
+                )
+            except: pass
+            
+        elif data.startswith("pro_") and is_admin(chat_id):
+            state = user_states.get(chat_id)
+            if not isinstance(state, dict) or state.get("step") != "waiting_for_pro_duration":
+                await event.answer("Session expired.", alert=True)
+                return
+                
+            target_uid = state.get("target_uid")
+            t_data = get_user_data(target_uid)
+            
+            import datetime
+            now = datetime.datetime.now()
+            
+            if data == "pro_revoke":
+                t_data["is_pro"] = False
+                t_data["pro_expiry"] = None
+                action = "Revoked"
+                
+            elif data == "pro_lifetime":
+                t_data["is_pro"] = True
+                t_data["pro_expiry"] = None
+                action = "Granted Lifetime"
+                
+            else:
+                t_data["is_pro"] = True
+                months = 1
+                if data == "pro_3_months": months = 3
+                if data == "pro_6_months": months = 6
+                
+                expiry_date = now + datetime.timedelta(days=30 * months)
+                t_data["pro_expiry"] = expiry_date.isoformat()
+                action = f"Granted {months} Month(s) (Expires: {expiry_date.strftime('%Y-%m-%d')})"
+                
+            save_user_data(target_uid, t_data)
+            user_states[chat_id] = None
+            
+            await event.edit(
+                f"✅ **Subscription Updated**\n\n👤 User: `{target_uid}`\n⚙️ Action: {action}",
+                buttons=[[Button.inline("🔙 Back to Admin", b"admin_panel")]]
+            )
+            
+            try:
+                msg = f"🎉 **Your account has been updated!**\n\nStatus: **PRO Tier**\n{action}" if t_data["is_pro"] else "⚠️ **Your PRO status has been revoked.**"
+                await bot.send_message(target_uid, msg)
+            except: pass
+            
         elif data == "admin_manage_pro" and is_admin(chat_id):
             user_states[chat_id] = "waiting_for_pro_id"
             await event.edit(
