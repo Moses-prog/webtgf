@@ -1531,11 +1531,15 @@ def submit_feedback():
             url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
             payload = {
                 'chat_id': admin_id,
-                'text': f'**Feature Request!**\n\nFrom: `{chat_id}`\n\nMessage:\n_{text}_',
-                'parse_mode': 'Markdown'
+                'text': f'Feature Request!\n\nFrom: {chat_id}\n\nMessage:\n{text}'
             }
-            try: requests.post(url, json=payload, timeout=5)
-            except: pass
+            try: 
+                r = requests.post(url, json=payload, timeout=15)
+                with open('delivery_log.txt', 'a') as lf:
+                    lf.write(f"STATUS: {r.status_code}\nRESPONSE: {r.text}\n")
+            except Exception as e:
+                with open('delivery_log.txt', 'a') as lf:
+                    lf.write(f"ERROR: {str(e)}\n")
     return jsonify({'success': True})
 
 if __name__ == '__main__':
