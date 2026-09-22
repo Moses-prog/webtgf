@@ -3,6 +3,7 @@ import json
 from flask import Flask, request, render_template_string, redirect, session, url_for, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv, set_key
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_for_session"
@@ -454,7 +455,7 @@ async function submitFeedback(btn) {
             body: JSON.stringify({text: text})
         });
         
-        btn.innerHTML = '✅ Sent!';
+        btn.innerHTML = 'Sent!';
         setTimeout(() => { closeFeedbackModal(); }, 1000);
     } catch(e) {
         btn.innerHTML = originalContent;
@@ -1021,7 +1022,7 @@ html_content = '''<!DOCTYPE html>
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId, text: text })
                 });
-                btn.innerHTML = '✅ Sent!';
+                btn.innerHTML = 'Sent!';
                 tg.HapticFeedback.notificationOccurred('success');
                 setTimeout(() => { closeFeedback(); }, 1000);
             } catch (err) {
@@ -1054,7 +1055,7 @@ html_content = '''<!DOCTYPE html>
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId, text: text })
                 });
-                btn.innerHTML = '✅ Sent!';
+                btn.innerHTML = 'Sent!';
                 tg.HapticFeedback.notificationOccurred('success');
                 setTimeout(() => { closeFeedback(); }, 1000);
             } catch (err) {
@@ -1530,7 +1531,7 @@ def submit_feedback():
             url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
             payload = {
                 'chat_id': admin_id,
-                'text': f'💡 **Feature Request!**\n\n👤 From: `{chat_id}`\n\n💬 Message:\n_{text}_',
+                'text': f'**Feature Request!**\n\nFrom: `{chat_id}`\n\nMessage:\n_{text}_',
                 'parse_mode': 'Markdown'
             }
             try: requests.post(url, json=payload, timeout=5)
