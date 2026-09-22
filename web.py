@@ -997,23 +997,73 @@ html_content = '''<!DOCTYPE html>
         
         // Fetch Real-time status
         async 
-        async function openFeedback() {
-            let feedback = prompt("What feature should we build next? Is there anything you wish worked better?");
-            if (feedback && feedback.trim() !== "") {
+        \n        
+        function showFeedback() {
+            document.getElementById('feedbackOverlay').classList.add('active');
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+        function closeFeedback() {
+            document.getElementById('feedbackOverlay').classList.remove('active');
+            document.getElementById('feedbackModal').classList.remove('active');
+            sessionStorage.setItem('feedbackClosed', 'true');
+        }
+        async function submitFeedbackIOS() {
+            const text = document.getElementById('feedbackTextIOS').value.trim();
+            if(!text) return;
+            const btn = document.getElementById('feedbackBtnIOS');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = 'Sending...';
+            
+            try {
+                const userId = tg.initDataUnsafe?.user?.id || '123456';
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, text: text })
+                });
+                btn.innerHTML = '✅ Sent!';
                 tg.HapticFeedback.notificationOccurred('success');
-                try {
-                    await fetch('/api/feedback', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: userId, text: feedback })
-                    });
-                    tg.showAlert("✅ Thank you! Your idea has been sent directly to the developer.");
-                } catch (err) {
-                    tg.showAlert("Failed to send.");
-                }
+                setTimeout(() => { closeFeedback(); }, 1000);
+            } catch (err) {
+                btn.innerHTML = originalHtml;
+                tg.showAlert("Failed to send.");
             }
         }
-\n        function fetchStatus() {
+    
+        
+        function showFeedback() {
+            document.getElementById('feedbackOverlay').classList.add('active');
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+        function closeFeedback() {
+            document.getElementById('feedbackOverlay').classList.remove('active');
+            document.getElementById('feedbackModal').classList.remove('active');
+            sessionStorage.setItem('feedbackClosed', 'true');
+        }
+        async function submitFeedbackIOS() {
+            const text = document.getElementById('feedbackTextIOS').value.trim();
+            if(!text) return;
+            const btn = document.getElementById('feedbackBtnIOS');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = 'Sending...';
+            
+            try {
+                const userId = tg.initDataUnsafe?.user?.id || '123456';
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, text: text })
+                });
+                btn.innerHTML = '✅ Sent!';
+                tg.HapticFeedback.notificationOccurred('success');
+                setTimeout(() => { closeFeedback(); }, 1000);
+            } catch (err) {
+                btn.innerHTML = originalHtml;
+                tg.showAlert("Failed to send.");
+            }
+        }
+    
+        async function fetchStatus() {
             try {
                 // If opening outside Telegram (for dev), use a dummy user
                 const userId = tg.initDataUnsafe?.user?.id || '123456';
@@ -1265,6 +1315,30 @@ html_content = '''<!DOCTYPE html>
         fetchStatus();
 
     </script>
+
+    <!-- Feedback Custom iOS Modal -->
+    <div class="modal-overlay" id="feedbackOverlay"></div>
+    <div class="modal" id="feedbackModal">
+        <div class="modal-drag"></div>
+        <div class="modal-header">
+            <div class="modal-header-top">
+                <div class="modal-title">💡 Help Us Improve</div>
+                <button class="modal-close" onclick="closeFeedback()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-subtitle">What feature should we build next? Is there anything you find confusing or wish worked better?</div>
+        </div>
+        <div class="add-channel-row">
+            <textarea id="feedbackTextIOS" class="add-input" rows="3" placeholder="I would love to have a feature that..."></textarea>
+            <button id="feedbackBtnIOS" class="btn-add" onclick="submitFeedbackIOS()">
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                    Send to Developer 
+                    <svg style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </div>
+            </button>
+        </div>
+    </div>
 </body>
 </html>'''
 
@@ -1294,6 +1368,7 @@ def api_user_status():
         
     return jsonify({
         "is_admin": is_admin,
+        "has_given_feedback": user_data.get("has_given_feedback", False),
         "is_pro": is_pro,
         "has_session": has_session,
         "sources_count": len(user_data.get('sources', [])),
