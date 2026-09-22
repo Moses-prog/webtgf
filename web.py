@@ -1527,6 +1527,7 @@ def submit_feedback():
     chat_id = session.get('chat_id') or data.get('user_id')
     text = data.get('text', '')
     if text and chat_id:
+        from database_manager import get_user_data, save_user_data
         ud = get_user_data(chat_id)
         submitted = ud.get('feedback_submitted_count', 0)
         ud['feedback_submitted_count'] = submitted + 1
