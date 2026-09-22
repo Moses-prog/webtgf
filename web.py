@@ -401,7 +401,7 @@ HTML_TEMPLATE = """
 
 
 <!-- Feedback Modal -->
-<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300" style="display:none;">
     <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
         <div class="p-6">
             <div class="flex justify-between items-center mb-4">
@@ -412,45 +412,36 @@ HTML_TEMPLATE = """
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            
-            <p class="text-gray-300 text-sm mb-6">
-                What feature should we build next? Is there anything you find confusing or wish worked better?
-            </p>
-            
-            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500" placeholder="I would love to have a feature that..."></textarea>
-            
-            <button id="feedbackBtn" onclick="submitFeedback()" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+            <p class="text-gray-300 text-sm mb-6">What feature should we build next?</p>
+            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500"></textarea>
+            <button onclick="submitFeedback(this)" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all flex items-center justify-center gap-2">
                 <span>Send to Developer</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
             </button>
         </div>
     </div>
 </div>
-
-
-<script>
+\n<script>\n
 const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
         setTimeout(() => {
-            const modal = document.getElementById('feedbackModal');
-            if (modal) modal.classList.remove('hidden');
+            const m = document.getElementById('feedbackModal');
+            if(m) { m.classList.remove('hidden'); m.style.display = 'flex'; }
         }, 1500);
     }
 });
 
 function closeFeedbackModal() {
-    const modal = document.getElementById('feedbackModal');
-    if (modal) modal.classList.add('hidden');
+    const m = document.getElementById('feedbackModal');
+    if(m) { m.classList.add('hidden'); m.style.display = 'none'; }
     sessionStorage.setItem('feedbackClosed', 'true');
 }
 
-async function submitFeedback() {
+async function submitFeedback(btn) {
     const text = document.getElementById('feedbackText').value.trim();
     if (!text) return;
     
-    const btn = document.getElementById('feedbackBtn');
     const originalContent = btn.innerHTML;
     btn.innerHTML = 'Sending...';
     
@@ -462,17 +453,13 @@ async function submitFeedback() {
         });
         
         btn.innerHTML = '✅ Sent!';
-        setTimeout(() => {
-            closeFeedbackModal();
-        }, 1000);
+        setTimeout(() => { closeFeedbackModal(); }, 1000);
     } catch(e) {
         btn.innerHTML = originalContent;
-        alert('Failed to send. Please try again.');
+        alert('Failed to send.');
     }
 }
-</script>
-
-</body>
+\n</script>\n</body>
 </html>
 """
 
@@ -1009,7 +996,24 @@ html_content = '''<!DOCTYPE html>
         }
         
         // Fetch Real-time status
-        async function fetchStatus() {
+        async 
+        async function openFeedback() {
+            let feedback = prompt("What feature should we build next? Is there anything you wish worked better?");
+            if (feedback && feedback.trim() !== "") {
+                tg.HapticFeedback.notificationOccurred('success');
+                try {
+                    await fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: userId, text: feedback })
+                    });
+                    tg.showAlert("✅ Thank you! Your idea has been sent directly to the developer.");
+                } catch (err) {
+                    tg.showAlert("Failed to send.");
+                }
+            }
+        }
+\n        function fetchStatus() {
             try {
                 // If opening outside Telegram (for dev), use a dummy user
                 const userId = tg.initDataUnsafe?.user?.id || '123456';
@@ -1261,79 +1265,6 @@ html_content = '''<!DOCTYPE html>
         fetchStatus();
 
     </script>
-
-<!-- Feedback Modal -->
-<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                    <span class="text-2xl">💡</span> Help Us Improve
-                </h3>
-                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <p class="text-gray-300 text-sm mb-6">
-                What feature should we build next? Is there anything you find confusing or wish worked better?
-            </p>
-            
-            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500" placeholder="I would love to have a feature that..."></textarea>
-            
-            <button id="feedbackBtn" onclick="submitFeedback()" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                <span>Send to Developer</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-            </button>
-        </div>
-    </div>
-</div>
-
-
-<script>
-const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
-        setTimeout(() => {
-            const modal = document.getElementById('feedbackModal');
-            if (modal) modal.classList.remove('hidden');
-        }, 1500);
-    }
-});
-
-function closeFeedbackModal() {
-    const modal = document.getElementById('feedbackModal');
-    if (modal) modal.classList.add('hidden');
-    sessionStorage.setItem('feedbackClosed', 'true');
-}
-
-async function submitFeedback() {
-    const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return;
-    
-    const btn = document.getElementById('feedbackBtn');
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = 'Sending...';
-    
-    try {
-        await fetch('/api/feedback', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: text})
-        });
-        
-        btn.innerHTML = '✅ Sent!';
-        setTimeout(() => {
-            closeFeedbackModal();
-        }, 1000);
-    } catch(e) {
-        btn.innerHTML = originalContent;
-        alert('Failed to send. Please try again.');
-    }
-}
-</script>
-
 </body>
 </html>'''
 
@@ -1497,11 +1428,10 @@ def miniapp():
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
-    chat_id = session.get('chat_id')
-    if not chat_id: return jsonify({'success': False, 'error': 'unauth'}), 401
     data = request.json
+    chat_id = session.get('chat_id') or data.get('user_id')
     text = data.get('text', '')
-    if text:
+    if text and chat_id:
         ud = get_user_data(chat_id)
         ud['has_given_feedback'] = True
         save_user_data(chat_id, ud)
@@ -1513,12 +1443,11 @@ def submit_feedback():
             url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
             payload = {
                 'chat_id': admin_id,
-                'text': f'💡 **Mini App Feature Request!**\n\n👤 From: {chat_id}\n\n💬 Message:\n_{text}_',
+                'text': f'💡 **Feature Request!**\n\n👤 From: `{chat_id}`\n\n💬 Message:\n_{text}_',
                 'parse_mode': 'Markdown'
             }
             try: requests.post(url, json=payload, timeout=5)
             except: pass
-            
     return jsonify({'success': True})
 
 if __name__ == '__main__':
