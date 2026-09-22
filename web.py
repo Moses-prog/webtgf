@@ -18,48 +18,7 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot Manager Dashboard</title>
-    <script src="https://cdn.tailwindcss.com">
-const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
-        setTimeout(() => {
-            document.getElementById('feedbackModal').classList.remove('hidden');
-        }, 1500);
-    }
-});
-
-function closeFeedbackModal() {
-    document.getElementById('feedbackModal').classList.add('hidden');
-    sessionStorage.setItem('feedbackClosed', 'true');
-}
-
-async function submitFeedback() {
-    const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return;
-    
-    const btn = document.getElementById('feedbackBtn');
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = 'Sending...';
-    
-    try {
-        await fetch('/api/feedback', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: text})
-        });
-        
-        btn.innerHTML = '✅ Sent!';
-        setTimeout(() => {
-            closeFeedbackModal();
-        }, 1000);
-    } catch(e) {
-        btn.innerHTML = originalContent;
-        alert('Failed to send. Please try again.');
-    }
-}
-</script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { 
@@ -426,48 +385,7 @@ async function submitFeedback() {
                             `;
                             container.appendChild(row);
                         }
-                    
-const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
-        setTimeout(() => {
-            document.getElementById('feedbackModal').classList.remove('hidden');
-        }, 1500);
-    }
-});
-
-function closeFeedbackModal() {
-    document.getElementById('feedbackModal').classList.add('hidden');
-    sessionStorage.setItem('feedbackClosed', 'true');
-}
-
-async function submitFeedback() {
-    const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return;
-    
-    const btn = document.getElementById('feedbackBtn');
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = 'Sending...';
-    
-    try {
-        await fetch('/api/feedback', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: text})
-        });
-        
-        btn.innerHTML = '✅ Sent!';
-        setTimeout(() => {
-            closeFeedbackModal();
-        }, 1000);
-    } catch(e) {
-        btn.innerHTML = originalContent;
-        alert('Failed to send. Please try again.');
-    }
-}
-</script>
-
+                    </script>
                 </div>
 
                 <div class="pt-4 flex justify-end">
@@ -508,6 +426,51 @@ async function submitFeedback() {
         </div>
     </div>
 </div>
+
+
+<script>
+const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
+        setTimeout(() => {
+            const modal = document.getElementById('feedbackModal');
+            if (modal) modal.classList.remove('hidden');
+        }, 1500);
+    }
+});
+
+function closeFeedbackModal() {
+    const modal = document.getElementById('feedbackModal');
+    if (modal) modal.classList.add('hidden');
+    sessionStorage.setItem('feedbackClosed', 'true');
+}
+
+async function submitFeedback() {
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return;
+    
+    const btn = document.getElementById('feedbackBtn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = 'Sending...';
+    
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text})
+        });
+        
+        btn.innerHTML = '✅ Sent!';
+        setTimeout(() => {
+            closeFeedbackModal();
+        }, 1000);
+    } catch(e) {
+        btn.innerHTML = originalContent;
+        alert('Failed to send. Please try again.');
+    }
+}
+</script>
 
 </body>
 </html>
@@ -681,48 +644,7 @@ html_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WebTGF</title>
-    <script src="https://telegram.org/js/telegram-web-app.js">
-const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
-        setTimeout(() => {
-            document.getElementById('feedbackModal').classList.remove('hidden');
-        }, 1500);
-    }
-});
-
-function closeFeedbackModal() {
-    document.getElementById('feedbackModal').classList.add('hidden');
-    sessionStorage.setItem('feedbackClosed', 'true');
-}
-
-async function submitFeedback() {
-    const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return;
-    
-    const btn = document.getElementById('feedbackBtn');
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = 'Sending...';
-    
-    try {
-        await fetch('/api/feedback', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: text})
-        });
-        
-        btn.innerHTML = '✅ Sent!';
-        setTimeout(() => {
-            closeFeedbackModal();
-        }, 1000);
-    } catch(e) {
-        btn.innerHTML = originalContent;
-        alert('Failed to send. Please try again.');
-    }
-}
-</script>
-
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg-color: #f3f4f6;
@@ -1338,19 +1260,51 @@ async function submitFeedback() {
         
         fetchStatus();
 
-    
+    </script>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">💡</span> Help Us Improve
+                </h3>
+                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <p class="text-gray-300 text-sm mb-6">
+                What feature should we build next? Is there anything you find confusing or wish worked better?
+            </p>
+            
+            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500" placeholder="I would love to have a feature that..."></textarea>
+            
+            <button id="feedbackBtn" onclick="submitFeedback()" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                <span>Send to Developer</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
 const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
         setTimeout(() => {
-            document.getElementById('feedbackModal').classList.remove('hidden');
+            const modal = document.getElementById('feedbackModal');
+            if (modal) modal.classList.remove('hidden');
         }, 1500);
     }
 });
 
 function closeFeedbackModal() {
-    document.getElementById('feedbackModal').classList.add('hidden');
+    const modal = document.getElementById('feedbackModal');
+    if (modal) modal.classList.add('hidden');
     sessionStorage.setItem('feedbackClosed', 'true');
 }
 
@@ -1379,34 +1333,6 @@ async function submitFeedback() {
     }
 }
 </script>
-
-
-<!-- Feedback Modal -->
-<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                    <span class="text-2xl">💡</span> Help Us Improve
-                </h3>
-                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <p class="text-gray-300 text-sm mb-6">
-                What feature should we build next? Is there anything you find confusing or wish worked better?
-            </p>
-            
-            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500" placeholder="I would love to have a feature that..."></textarea>
-            
-            <button id="feedbackBtn" onclick="submitFeedback()" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                <span>Send to Developer</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-            </button>
-        </div>
-    </div>
-</div>
 
 </body>
 </html>'''
