@@ -18,7 +18,48 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot Manager Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
+        setTimeout(() => {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+        }, 1500);
+    }
+});
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.add('hidden');
+    sessionStorage.setItem('feedbackClosed', 'true');
+}
+
+async function submitFeedback() {
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return;
+    
+    const btn = document.getElementById('feedbackBtn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = 'Sending...';
+    
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text})
+        });
+        
+        btn.innerHTML = '✅ Sent!';
+        setTimeout(() => {
+            closeFeedbackModal();
+        }, 1000);
+    } catch(e) {
+        btn.innerHTML = originalContent;
+        alert('Failed to send. Please try again.');
+    }
+}
+</script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { 
@@ -385,7 +426,48 @@ HTML_TEMPLATE = """
                             `;
                             container.appendChild(row);
                         }
-                    </script>
+                    
+const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
+        setTimeout(() => {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+        }, 1500);
+    }
+});
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.add('hidden');
+    sessionStorage.setItem('feedbackClosed', 'true');
+}
+
+async function submitFeedback() {
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return;
+    
+    const btn = document.getElementById('feedbackBtn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = 'Sending...';
+    
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text})
+        });
+        
+        btn.innerHTML = '✅ Sent!';
+        setTimeout(() => {
+            closeFeedbackModal();
+        }, 1000);
+    } catch(e) {
+        btn.innerHTML = originalContent;
+        alert('Failed to send. Please try again.');
+    }
+}
+</script>
+
                 </div>
 
                 <div class="pt-4 flex justify-end">
@@ -599,7 +681,48 @@ html_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WebTGF</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js">
+const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
+        setTimeout(() => {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+        }, 1500);
+    }
+});
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.add('hidden');
+    sessionStorage.setItem('feedbackClosed', 'true');
+}
+
+async function submitFeedback() {
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return;
+    
+    const btn = document.getElementById('feedbackBtn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = 'Sending...';
+    
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text})
+        });
+        
+        btn.innerHTML = '✅ Sent!';
+        setTimeout(() => {
+            closeFeedbackModal();
+        }, 1000);
+    } catch(e) {
+        btn.innerHTML = originalContent;
+        alert('Failed to send. Please try again.');
+    }
+}
+</script>
+
     <style>
         :root {
             --bg-color: #f3f4f6;
@@ -1215,7 +1338,48 @@ html_content = '''<!DOCTYPE html>
         
         fetchStatus();
 
-    </script>
+    
+const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
+        setTimeout(() => {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+        }, 1500);
+    }
+});
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.add('hidden');
+    sessionStorage.setItem('feedbackClosed', 'true');
+}
+
+async function submitFeedback() {
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return;
+    
+    const btn = document.getElementById('feedbackBtn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = 'Sending...';
+    
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text})
+        });
+        
+        btn.innerHTML = '✅ Sent!';
+        setTimeout(() => {
+            closeFeedbackModal();
+        }, 1000);
+    } catch(e) {
+        btn.innerHTML = originalContent;
+        alert('Failed to send. Please try again.');
+    }
+}
+</script>
+
 
 <!-- Feedback Modal -->
 <div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
