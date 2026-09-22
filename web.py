@@ -490,12 +490,8 @@ def index():
     user_data = get_user_data(chat_id) if chat_id else {}
     
     if chat_id:
-        has_gf = user_data.get("has_given_feedback", False)
-        nag = user_data.get("feedback_nag_count", 0)
-        if not has_gf and nag < 3:
-            user_data["feedback_nag_count"] = nag + 1
-            save_user_data(chat_id, user_data)
-        user_data["should_popup_feedback"] = (not has_gf and nag < 3)
+        submitted = user_data.get("feedback_submitted_count", 0)
+        user_data["should_popup_feedback"] = (submitted < 3)
     
     env_data = {
         'API_ID': user_data.get('api_id', ''),
@@ -1387,15 +1383,8 @@ def api_user_status():
     if is_admin:
         is_pro = True
         
-    has_given_feedback = user_data.get("has_given_feedback", False)
-    nag_count = user_data.get("feedback_nag_count", 0)
-    should_popup = False
-    
-    if not has_given_feedback and nag_count < 3:
-        should_popup = True
-        user_data["feedback_nag_count"] = nag_count + 1
-        from database_manager import save_user_data
-        save_user_data(user_id, user_data)
+    submitted = user_data.get("feedback_submitted_count", 0)
+    should_popup = (submitted < 3)
         
     return jsonify({
         "is_admin": is_admin,
@@ -1539,7 +1528,8 @@ def submit_feedback():
     text = data.get('text', '')
     if text and chat_id:
         ud = get_user_data(chat_id)
-        ud['has_given_feedback'] = True
+        submitted = ud.get('feedback_submitted_count', 0)
+        ud['feedback_submitted_count'] = submitted + 1
         save_user_data(chat_id, ud)
         
         import requests, os

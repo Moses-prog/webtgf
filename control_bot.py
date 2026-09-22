@@ -1844,7 +1844,8 @@ async def text_handler(event):
                 
         # Mark as given feedback so mini app doesn't pop up again
         ud = get_user_data(chat_id)
-        ud["has_given_feedback"] = True
+        submitted = ud.get("feedback_submitted_count", 0)
+        ud["feedback_submitted_count"] = submitted + 1
         save_user_data(chat_id, ud)
         
         user_states[chat_id] = None
