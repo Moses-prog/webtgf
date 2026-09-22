@@ -19,7 +19,7 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot Manager Dashboard</title>
     <script src="https://cdn.tailwindcss.com">
-const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
@@ -427,7 +427,7 @@ async function submitFeedback() {
                             container.appendChild(row);
                         }
                     
-const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
@@ -682,7 +682,7 @@ html_content = '''<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WebTGF</title>
     <script src="https://telegram.org/js/telegram-web-app.js">
-const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
@@ -1339,7 +1339,7 @@ async function submitFeedback() {
         fetchStatus();
 
     
-const hasGivenFeedback = {{ 'true' if user_data.get('has_given_feedback') else 'false' }};
+const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
