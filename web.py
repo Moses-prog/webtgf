@@ -424,10 +424,10 @@ HTML_TEMPLATE = """
     </div>
 </div>
 \n<script>\n
-const hasGivenFeedback = {{ 'true' if (user_data is defined and user_data.get('has_given_feedback')) else 'false' }};
+const shouldPopupFeedback = {{ 'true' if (json_data is defined and json_data.get('should_popup_feedback')) else 'false' }};
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (!hasGivenFeedback && !sessionStorage.getItem('feedbackClosed')) {
+    if (shouldPopupFeedback && !sessionStorage.getItem('feedbackClosed')) {
         setTimeout(() => {
             const m = document.getElementById('feedbackModal');
             if(m) { m.classList.remove('hidden'); m.style.display = 'flex'; }
@@ -486,8 +486,16 @@ def index():
     if not session.get('logged_in'):
         return render_template_string(HTML_TEMPLATE, env_data={}, json_data={}, tab=tab, is_online=is_online)
         
-    from database_manager import get_user_data, get_tenants, get_stats
+    from database_manager import get_user_data, get_tenants, get_stats, save_user_data
     user_data = get_user_data(chat_id) if chat_id else {}
+    
+    if chat_id:
+        has_gf = user_data.get("has_given_feedback", False)
+        nag = user_data.get("feedback_nag_count", 0)
+        if not has_gf and nag < 3:
+            user_data["feedback_nag_count"] = nag + 1
+            save_user_data(chat_id, user_data)
+        user_data["should_popup_feedback"] = (not has_gf and nag < 3)
     
     env_data = {
         'API_ID': user_data.get('api_id', ''),
@@ -1113,7 +1121,7 @@ html_content = '''<!DOCTYPE html>
 
                 
             
-                if (data.has_given_feedback !== undefined && !data.has_given_feedback && !sessionStorage.getItem('feedbackClosed')) {
+                if (data.should_popup_feedback && !sessionStorage.getItem('feedbackClosed')) {
                     setTimeout(showFeedback, 1500);
                 }
 
@@ -1379,9 +1387,19 @@ def api_user_status():
     if is_admin:
         is_pro = True
         
+    has_given_feedback = user_data.get("has_given_feedback", False)
+    nag_count = user_data.get("feedback_nag_count", 0)
+    should_popup = False
+    
+    if not has_given_feedback and nag_count < 3:
+        should_popup = True
+        user_data["feedback_nag_count"] = nag_count + 1
+        from database_manager import save_user_data
+        save_user_data(user_id, user_data)
+        
     return jsonify({
         "is_admin": is_admin,
-        "has_given_feedback": user_data.get("has_given_feedback", False),
+        "should_popup_feedback": should_popup,
         "is_pro": is_pro,
         "has_session": has_session,
         "sources_count": len(user_data.get('sources', [])),
