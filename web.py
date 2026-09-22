@@ -996,8 +996,6 @@ html_content = '''<!DOCTYPE html>
         }
         
         // Fetch Real-time status
-        async 
-        \n        
         function showFeedback() {
             document.getElementById('feedbackOverlay').classList.add('active');
             document.getElementById('feedbackModal').classList.add('active');
@@ -1111,6 +1109,11 @@ html_content = '''<!DOCTYPE html>
                 
 
                 
+            
+                if (data.has_given_feedback !== undefined && !data.has_given_feedback && !sessionStorage.getItem('feedbackClosed')) {
+                    setTimeout(showFeedback, 1500);
+                }
+
             } catch (err) {
                 console.error("Error fetching status:", err);
                 document.getElementById('tier-badge').classList.remove('skeleton');
