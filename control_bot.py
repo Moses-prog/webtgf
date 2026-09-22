@@ -61,7 +61,8 @@ def get_main_keyboard(chat_id):
             [Button.inline("✨ Modification Rules", b"menu_modifications"), Button.inline("🚀 Auto-Posting Suite [PRO 💎]", b"menu_autoposting")],
             [Button.inline("🗑️ Deletion Suite", b"menu_deletion"), Button.inline("📖 How to Use", b"menu_instructions")],
             [Button.inline("⚙️ Settings [PRO 💎]", b"menu_settings"), Button.inline("🔌 Disconnect", b"disconnect_account")],
-            [Button.inline("💬 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")]
+            [Button.inline("💬 Support", b"menu_support"), Button.inline("ℹ️ About Us", b"menu_about")],
+            [Button.inline("💡 Suggest a Feature", b"suggest_feature")]
         ])
     
     if is_admin(chat_id):
@@ -161,6 +162,16 @@ async def callback(event):
             )
             await event.edit(about_text, buttons=[[Button.inline("🔙 Back", b"back")]])
             return
+            
+        elif data == "suggest_feature":
+            user_states[chat_id] = "waiting_for_feedback"
+            await event.edit(
+                "💡 **What should we build next?**\n\n"
+                "Please type your feature request, idea, or anything you want improved.\n"
+                "I will send it directly to the Developer!\n\n"
+                "*(Send /cancel to abort)*",
+                buttons=[[Button.inline("🔙 Back", b"main_menu")]]
+            )
             
         elif data == "menu_support":
             user_states[chat_id] = None
@@ -1813,6 +1824,31 @@ async def text_handler(event):
         
         user_states[chat_id] = None
         await event.respond(f"✅ Added Button:\n`{btn_text}` -> {btn_url}", buttons=get_main_keyboard(chat_id))
+        return
+
+    elif state == "waiting_for_feedback":
+        if text.startswith("/"):
+            user_states[chat_id] = None
+            await event.respond("Cancelled.", buttons=get_main_keyboard(chat_id))
+            return
+            
+        admin_id = os.getenv("ADMIN_ID")
+        if admin_id:
+            try:
+                await bot.send_message(
+                    int(admin_id),
+                    f"💡 **New Feature Request!**\n\n👤 From: `{chat_id}`\n\n💬 Message:\n_{text}_"
+                )
+            except Exception as e:
+                print(f"Failed to forward feedback to admin: {e}")
+                
+        # Mark as given feedback so mini app doesn't pop up again
+        ud = get_user_data(chat_id)
+        ud["has_given_feedback"] = True
+        save_user_data(chat_id, ud)
+        
+        user_states[chat_id] = None
+        await event.respond("✅ **Thank you!** Your idea has been sent directly to the developer.", buttons=get_main_keyboard(chat_id))
         return
 
     elif state == "waiting_for_pro_id" and is_admin(chat_id):

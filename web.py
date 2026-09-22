@@ -399,6 +399,34 @@ HTML_TEMPLATE = """
     </main>
     {% endif %}
 
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">💡</span> Help Us Improve
+                </h3>
+                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <p class="text-gray-300 text-sm mb-6">
+                What feature should we build next? Is there anything you find confusing or wish worked better?
+            </p>
+            
+            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500" placeholder="I would love to have a feature that..."></textarea>
+            
+            <button id="feedbackBtn" onclick="submitFeedback()" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                <span>Send to Developer</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
 """
@@ -1188,6 +1216,34 @@ html_content = '''<!DOCTYPE html>
         fetchStatus();
 
     </script>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="text-2xl">💡</span> Help Us Improve
+                </h3>
+                <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <p class="text-gray-300 text-sm mb-6">
+                What feature should we build next? Is there anything you find confusing or wish worked better?
+            </p>
+            
+            <textarea id="feedbackText" rows="4" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-gray-500" placeholder="I would love to have a feature that..."></textarea>
+            
+            <button id="feedbackBtn" onclick="submitFeedback()" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:from-blue-500 hover:to-purple-500 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                <span>Send to Developer</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>'''
 
@@ -1347,6 +1403,32 @@ def api_toggle_setting():
 @app.route('/miniapp')
 def miniapp():
     return html_content
+
+
+@app.route('/api/feedback', methods=['POST'])
+@require_auth
+def submit_feedback(chat_id):
+    data = request.json
+    text = data.get('text', '')
+    if text:
+        ud = get_user_data(chat_id)
+        ud['has_given_feedback'] = True
+        save_user_data(chat_id, ud)
+        
+        import requests, os
+        admin_id = os.getenv('ADMIN_ID')
+        bot_token = os.getenv('BOT_TOKEN')
+        if admin_id and bot_token:
+            url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
+            payload = {
+                'chat_id': admin_id,
+                'text': f'💡 **Mini App Feature Request!**\n\n👤 From: {chat_id}\n\n💬 Message:\n_{text}_',
+                'parse_mode': 'Markdown'
+            }
+            try: requests.post(url, json=payload, timeout=5)
+            except: pass
+            
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
