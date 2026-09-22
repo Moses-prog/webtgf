@@ -1406,8 +1406,9 @@ def miniapp():
 
 
 @app.route('/api/feedback', methods=['POST'])
-@require_auth
-def submit_feedback(chat_id):
+def submit_feedback():
+    chat_id = session.get('chat_id')
+    if not chat_id: return jsonify({'success': False, 'error': 'unauth'}), 401
     data = request.json
     text = data.get('text', '')
     if text:
