@@ -934,7 +934,7 @@ async def callback(event):
             elif current_url:
                 status = current_url
                 
-            toggle_btn = " Turn OFF" if is_enabled else " Turn ON"
+            toggle_btn = " \U0001f534 Turn OFF" if is_enabled else " \U0001f7e2 Turn ON"
             
             await event.edit(
                 f"\U0001f3a5 **Video Swapper [PRO]**\n\n"
@@ -947,9 +947,30 @@ async def callback(event):
             )
             
         elif data == "toggle_video_override":
-            user_data["video_override_enabled"] = not user_data.get("video_override_enabled", True)
+            is_enabled = user_data.get("video_override_enabled", True)
+            user_data["video_override_enabled"] = not is_enabled
             save_user_data(chat_id, user_data)
-            await callback(event._set_data(b"menu_video"))
+            
+            new_status = not is_enabled
+            current_url = user_data.get("video_swap_url", "")
+            current_path = user_data.get("video_swap_path", "")
+            status = "None"
+            if current_path:
+                status = "Custom Video Uploaded"
+            elif current_url:
+                status = current_url
+                
+            toggle_btn = " \U0001f534 Turn OFF" if new_status else " \U0001f7e2 Turn ON"
+            
+            await event.edit(
+                f"\U0001f3a5 **Video Swapper [PRO]**\n\n"
+                f"When the bot forwards a message that contains a video, it will replace their video with your custom video.\n\n"
+                f"**Current Override:** {status}\n"
+                f"**Status:** {'Active' if new_status else 'Inactive'}\n\n"
+                f"Send me a **Video File** to use as the override, or send me a direct **Video URL**.\n"
+                f"*(Send /cancel to abort or type CLEAR to remove current)*",
+                buttons=[[Button.inline(toggle_btn, b"toggle_video_override")], [Button.inline(" Back", b"back_modifications")]]
+            )
             return
 
         elif data == "menu_image":
