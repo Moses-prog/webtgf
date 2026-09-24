@@ -341,6 +341,24 @@ HTML_TEMPLATE = """
                         </div>
                         {% endif %}
                     </div>
+                    
+                    <div class="pt-6 border-t border-gray-300/50">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Video Override <span class="text-xs font-normal text-gray-500">(PRO)</span></label>
+                        <p class="text-xs text-gray-500 mb-3">Upload a video or provide a URL to replace any incoming videos.</p>
+                        <div class="flex flex-col md:flex-row gap-4 items-center">
+                            <input type="file" name="video_upload" accept="video/*" class="w-full md:w-1/2 text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white file:text-gray-700 hover:file:bg-gray-100 cursor-pointer neumorphic-inset p-2 rounded-xl">
+                            <span class="text-sm text-gray-500 font-bold hidden md:block">OR</span>
+                            <input type="text" name="video_url" value="{{ json_data.get('video_swap_url', '') }}" placeholder="Paste Video URL here..." class="w-full md:w-1/2 neumorphic-inset px-4 py-3 rounded-xl outline-none text-gray-700 text-sm">
+                        </div>
+                        {% if json_data.get('video_swap_path') or json_data.get('video_swap_url') %}
+                        <div class="bg-indigo-100/50 p-3 rounded-lg border border-indigo-200 mt-4">
+                            <p class="text-xs text-indigo-700 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Custom video is currently active.</p>
+                            <label class="flex items-center mt-2 text-sm text-gray-700">
+                                <input type="checkbox" name="remove_video" class="mr-2 rounded"> Check this box to remove custom video.
+                            </label>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- 3. DICTIONARY -->

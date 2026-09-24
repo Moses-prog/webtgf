@@ -913,6 +913,39 @@ async def callback(event):
             ]
             await event.edit(msg, buttons=buttons)
 
+        elif data == "menu_video":
+            if not is_pro(chat_id):
+                await event.answer("PRO Feature only!", alert=True)
+                return
+            user_states[chat_id] = "waiting_for_video"
+            current_url = user_data.get("video_swap_url", "")
+            current_path = user_data.get("video_swap_path", "")
+            is_enabled = user_data.get("video_override_enabled", True)
+            
+            status = "None"
+            if current_path:
+                status = "Custom Video Uploaded"
+            elif current_url:
+                status = current_url
+                
+            toggle_btn = " Turn OFF" if is_enabled else " Turn ON"
+            
+            await event.edit(
+                f"** Video Swapper [PRO]**\n\n"
+                f"When the bot forwards a message that contains a video, it will replace their video with your custom video.\n\n"
+                f"**Current Override:** {status}\n"
+                f"**Status:** {'Active' if is_enabled else 'Inactive'}\n\n"
+                f"Send me a **Video File** to use as the override, or send me a direct **Video URL**.\n"
+                f"*(Send /cancel to abort or type CLEAR to remove current)*",
+                buttons=[[Button.inline(toggle_btn, b"toggle_video_override")], [Button.inline(" Back", b"menu_modifications")]]
+            )
+            
+        elif data == "toggle_video_override":
+            user_data["video_override_enabled"] = not user_data.get("video_override_enabled", True)
+            save_user_data(chat_id, user_data)
+            await callback(event._set_data(b"menu_video"))
+            return
+
         elif data == "menu_image":
             user_states[chat_id] = "waiting_for_image"
             current_url = user_data.get("image_swap_url", "")

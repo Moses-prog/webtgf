@@ -172,6 +172,7 @@ async def ai_process_image(client, message, chat_id, user_data):
         
         try:
             import json
+media_cache_memory = {}
             raw_text = response.text.strip()
             if raw_text.startswith("```"):
                 # Strip ```json and ```
@@ -305,7 +306,9 @@ async def _do_execute_forward(message, chat_id, user_data):
     if message.media:
         from telethon.tl.types import MessageMediaPhoto
         # Only override or AI-process actual PHOTOS. Videos, GIFs and documents must pass through untouched!
+        from telethon.tl.types import MessageMediaDocument
         is_photo = isinstance(message.media, MessageMediaPhoto)
+        is_video = getattr(message, 'video', None) is not None
 
         if is_photo:
             is_enabled = user_data.get("image_override_enabled", True)
@@ -314,7 +317,12 @@ async def _do_execute_forward(message, chat_id, user_data):
                 image_swap_url = user_data.get("image_swap_url", "").strip()
 
                 if image_swap_path and os.path.exists(image_swap_path):
-                    media_to_send = image_swap_path
+                    # Cache check
+                    cache_key = f"{chat_id}_image_{image_swap_path}"
+                    if cache_key in media_cache_memory:
+                        media_to_send = media_cache_memory[cache_key]
+                    else:
+                        media_to_send = image_swap_path
                 elif image_swap_url:
                     media_to_send = image_swap_url
             else:
@@ -322,6 +330,21 @@ async def _do_execute_forward(message, chat_id, user_data):
                 mode = user_data.get("ai_watermark_mode", "off")
                 if mode != "off":
                     media_to_send = await ai_process_image(client, message, chat_id, user_data)
+                    
+        elif is_video:
+            is_vid_enabled = user_data.get("video_override_enabled", True)
+            if is_vid_enabled and (user_data.get("video_swap_path", "").strip() or user_data.get("video_swap_url", "").strip()):
+                video_swap_path = user_data.get("video_swap_path", "").strip()
+                video_swap_url = user_data.get("video_swap_url", "").strip()
+                
+                if video_swap_path and os.path.exists(video_swap_path):
+                    cache_key = f"{chat_id}_video_{video_swap_path}"
+                    if cache_key in media_cache_memory:
+                        media_to_send = media_cache_memory[cache_key]
+                    else:
+                        media_to_send = video_swap_path
+                elif video_swap_url:
+                    media_to_send = video_swap_url
     
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
@@ -382,6 +405,12 @@ async def _do_execute_forward(message, chat_id, user_data):
                     else:
                         # Sending a local file or URL override
                         sent = await client.send_file(t, media_to_send, caption=modified_text)
+                        # Cache the sent media so we don't upload the file again
+                        if sent and sent.media and isinstance(media_to_send, str) and os.path.exists(media_to_send):
+                            if is_photo:
+                                media_cache_memory[f"{chat_id}_image_{media_to_send}"] = sent.media
+                            elif is_video:
+                                media_cache_memory[f"{chat_id}_video_{media_to_send}"] = sent.media
                 else:
                     if modified_text:
                         sent = await client.send_message(t, modified_text, link_preview=True)
