@@ -74,7 +74,7 @@ def apply_rules(text, user_data):
     link_replacement = user_data.get("replace_all_links_with", "").strip()
     if link_replacement:
         # Match http/https, www, domain.com/path, and common domains without protocol
-        url_pattern = r'(?i)(?:https?://|www\.)(?!(?:t\.me|telegram\.me))[^\s]+|\b(?!(?:t\.me|telegram\.me))[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/[^\s]*|\b(?:youtube\.com|youtu\.be|instagram\.com|twitter\.com|x\.com|facebook\.com|tiktok\.com|bit\.ly)[^\s]*'
+        url_pattern = r'(?i)(?:https?://|www\.)(?!(?:t\.me|telegram\.me))[^\s]+|\b(?!(?:t\.me|telegram\.me))[a-zA-Z0-9.-]+\.(?:com|net|org|io|co|me|gl|ly|tv|ai|app|dev|link|click|site|xyz|bet|casino|game|vip|pro|top|club|online)(?:/[^\s]*)?\b|\b(?:youtube\.com|youtu\.be|instagram\.com|twitter\.com|x\.com|facebook\.com|tiktok\.com|bit\.ly)[^\s]*'
         
         exclude_keywords = [k.strip().lower() for k in user_data.get("exclude_link_keywords", "").split(",") if k.strip()]
         
