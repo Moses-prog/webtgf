@@ -916,6 +916,10 @@ async def callback(event):
             await event.edit(msg, buttons=buttons)
 
         elif data == "menu_video":
+            toggles = get_feature_toggles()
+            if not toggles.get("video_swap_unlocked", True) and not is_admin(chat_id):
+                await event.answer("This feature is currently locked by the Admin.", alert=True)
+                return
             if not is_pro(chat_id):
                 await event.answer("PRO Feature only!", alert=True)
                 return
@@ -933,7 +937,7 @@ async def callback(event):
             toggle_btn = " Turn OFF" if is_enabled else " Turn ON"
             
             await event.edit(
-                f"** Video Swapper [PRO]**\n\n"
+                f"\U0001f3a5 **Video Swapper [PRO]**\n\n"
                 f"When the bot forwards a message that contains a video, it will replace their video with your custom video.\n\n"
                 f"**Current Override:** {status}\n"
                 f"**Status:** {'Active' if is_enabled else 'Inactive'}\n\n"
@@ -1113,7 +1117,9 @@ async def callback(event):
 
         elif data in ("toggle_admin_drip", "toggle_admin_ai", "toggle_admin_sleep", "toggle_admin_del", "toggle_admin_cta") and is_admin(chat_id):
             toggles = get_feature_toggles()
-            if data == "toggle_admin_drip":
+            if data == "toggle_admin_video":
+                toggles["video_swap_unlocked"] = not toggles.get("video_swap_unlocked", True)
+            elif data == "toggle_admin_drip":
                 toggles["drip_posting_unlocked"] = not toggles.get("drip_posting_unlocked", False)
             elif data == "toggle_admin_ai":
                 toggles["ai_watermark_unlocked"] = not toggles.get("ai_watermark_unlocked", False)
