@@ -1,3 +1,4 @@
+media_cache_memory = {}
 import os
 import asyncio
 import sys
@@ -172,7 +173,6 @@ async def ai_process_image(client, message, chat_id, user_data):
         
         try:
             import json
-media_cache_memory = {}
             raw_text = response.text.strip()
             if raw_text.startswith("```"):
                 # Strip ```json and ```
