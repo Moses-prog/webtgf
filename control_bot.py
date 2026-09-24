@@ -196,11 +196,12 @@ async def callback(event):
         # -----------------------------------------------------
         elif data == "back_modifications":
             user_states.pop(chat_id, None)
-            text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
+            text = " ⚙️ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("🧲 CTA Buttons [PRO 💎]", b"menu_cta")],
-                [Button.inline("🔙 Back to Main Menu", b"back")]
+                [Button.inline(" 🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline(" 🎥 Video Swap [PRO 💎]", b"menu_video")],
+                [Button.inline(" 📝 Word Swapper", b"menu_words"), Button.inline(" 🔗 Link & Branding", b"menu_links")],
+                [Button.inline(" 🔘 CTA Buttons [PRO 💎]", b"menu_cta")],
+                [Button.inline(" 🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -219,12 +220,12 @@ async def callback(event):
             return
             
         elif data == "menu_modifications":
-            text = " **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
+            text = " ⚙️ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline(" Image Branding [PRO ]", b"menu_image"), Button.inline(" Video Swap [PRO ]", b"menu_video")],
-                [Button.inline(" Word Swapper", b"menu_words"), Button.inline(" Link & Branding", b"menu_links")],
-                [Button.inline(" CTA Buttons [PRO ]", b"menu_cta")],
-                [Button.inline(" Back to Main Menu", b"back")]
+                [Button.inline(" 🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline(" 🎥 Video Swap [PRO 💎]", b"menu_video")],
+                [Button.inline(" 📝 Word Swapper", b"menu_words"), Button.inline(" 🔗 Link & Branding", b"menu_links")],
+                [Button.inline(" 🔘 CTA Buttons [PRO 💎]", b"menu_cta")],
+                [Button.inline(" 🔙 Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
@@ -938,7 +939,7 @@ async def callback(event):
                 f"**Status:** {'Active' if is_enabled else 'Inactive'}\n\n"
                 f"Send me a **Video File** to use as the override, or send me a direct **Video URL**.\n"
                 f"*(Send /cancel to abort or type CLEAR to remove current)*",
-                buttons=[[Button.inline(toggle_btn, b"toggle_video_override")], [Button.inline(" Back", b"menu_modifications")]]
+                buttons=[[Button.inline(toggle_btn, b"toggle_video_override")], [Button.inline(" Back", b"back_modifications")]]
             )
             
         elif data == "toggle_video_override":
