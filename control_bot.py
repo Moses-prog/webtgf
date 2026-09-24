@@ -219,11 +219,12 @@ async def callback(event):
             return
             
         elif data == "menu_modifications":
-            text = "✨ **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
+            text = " **Modification Rules**\n\nConfigure how your forwarded messages are edited before they reach the target channels."
             buttons = [
-                [Button.inline("🖼 Image Branding [PRO 💎]", b"menu_image"), Button.inline("✏️ Word Swapper", b"menu_words")],
-                [Button.inline("🔗 Link & Branding", b"menu_links"), Button.inline("🧲 CTA Buttons [PRO 💎]", b"menu_cta")],
-                [Button.inline("🔙 Back to Main Menu", b"back")]
+                [Button.inline(" Image Branding [PRO ]", b"menu_image"), Button.inline(" Video Swap [PRO ]", b"menu_video")],
+                [Button.inline(" Word Swapper", b"menu_words"), Button.inline(" Link & Branding", b"menu_links")],
+                [Button.inline(" CTA Buttons [PRO ]", b"menu_cta")],
+                [Button.inline(" Back to Main Menu", b"back")]
             ]
             await event.edit(text, buttons=buttons)
             return
