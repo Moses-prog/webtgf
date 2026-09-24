@@ -1861,6 +1861,28 @@ async def text_handler(event):
             
         save_user_data(chat_id, user_data)
         user_states[chat_id] = None
+        elif state == "waiting_for_video":
+            user_data = get_user_data(chat_id)
+            if text.upper() == "CLEAR":
+                user_data["video_swap_url"] = ""
+                user_data["video_swap_path"] = ""
+                await event.respond(" \U0001f5bc\ufe0f Video override cleared!", buttons=get_main_keyboard(chat_id))
+            elif getattr(message, 'video', None) or getattr(message, 'document', None):
+                m = await event.respond(" \u23f3 Downloading video, please wait...")
+                path = await message.download_media(file=f"database/images/{chat_id}_vid_override")
+                user_data["video_swap_path"] = path
+                user_data["video_swap_url"] = ""
+                await m.edit(" \U0001f3a5 Video override set from your file!", buttons=get_main_keyboard(chat_id))
+            elif text.startswith("http"):
+                user_data["video_swap_url"] = text
+                user_data["video_swap_path"] = ""
+                await event.respond(" \U0001f3a5 Video URL override set!", buttons=get_main_keyboard(chat_id))
+            else:
+                await event.respond(" \u26a0\ufe0f Please send a Video file, a valid URL, or type CLEAR.", buttons=get_main_keyboard(chat_id))
+                return
+                
+            save_user_data(chat_id, user_data)
+            user_states[chat_id] = None
         
     # -----------------------------------------------------
     # ADMIN SYSTEM
