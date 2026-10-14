@@ -594,9 +594,28 @@ async def monitor_users():
                                 
                                 if msg_obj.media:
                                     can_download = True
-                                    if not user_is_pro:
-                                        import datetime
-                                        today_str = datetime.date.today().isoformat()
+                                    is_vid = bool(msg_obj.video or (getattr(msg_obj, 'document', None) and getattr(msg_obj.document, 'mime_type', '').startswith('video/')))
+                                    
+                                    import datetime
+                                    today_str = datetime.date.today().isoformat()
+                                    
+                                    if is_vid:
+                                        # Strict 1 video per day to preserve server bandwidth
+                                        last_vid_date = udata.get("manual_video_date", "")
+                                        vid_count = udata.get("manual_video_count", 0)
+                                        if last_vid_date != today_str:
+                                            vid_count = 0
+                                            udata["manual_video_date"] = today_str
+                                            
+                                        if vid_count >= 1:
+                                            can_download = False
+                                            limit_msg = "\n\n⚠️ **Notice:** Daily bandwidth limit reached (1/1 video per day). Video was not extracted."
+                                        else:
+                                            vid_count += 1
+                                            udata["manual_video_count"] = vid_count
+                                            limit_msg = "\n\n*(Daily server bandwidth: Video 1/1)*"
+                                    elif not user_is_pro:
+                                        # Free tier image/doc limit
                                         last_date = udata.get("manual_extract_date", "")
                                         extract_count = udata.get("manual_extract_count", 0)
                                         if last_date != today_str:
@@ -605,7 +624,7 @@ async def monitor_users():
                                         
                                         if extract_count >= 5:
                                             can_download = False
-                                            limit_msg = "\n\n⚠️ **Notice:** Daily free limit reached (5/5). Upgrade to PRO 💎 for unlimited video, document, and image extractions."
+                                            limit_msg = "\n\n⚠️ **Notice:** Daily free limit reached (5/5). Upgrade to PRO 💎 for unlimited extractions."
                                         else:
                                             extract_count += 1
                                             udata["manual_extract_count"] = extract_count
