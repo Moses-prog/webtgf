@@ -590,27 +590,39 @@ async def monitor_users():
                                 media_path = ""
                                 limit_msg = ""
                                 
-                                if msg_obj.video or msg_obj.gif or msg_obj.document:
-                                    limit_msg = "\n\n⚠️ **Notice:** Due to server bandwidth limits, videos/documents are not extracted."
-                                elif msg_obj.photo:
-                                    import datetime
-                                    today_str = datetime.date.today().isoformat()
-                                    last_date = udata.get("manual_image_date", "")
-                                    img_count = udata.get("manual_image_count", 0)
+                                user_is_pro = is_pro(chat_id) or str(chat_id) == str(os.getenv("ADMIN_ID", "")).strip()
+                                
+                                if msg_obj.media:
+                                    can_download = True
+                                    if not user_is_pro:
+                                        import datetime
+                                        today_str = datetime.date.today().isoformat()
+                                        last_date = udata.get("manual_extract_date", "")
+                                        extract_count = udata.get("manual_extract_count", 0)
+                                        if last_date != today_str:
+                                            extract_count = 0
+                                            udata["manual_extract_date"] = today_str
+                                        
+                                        if extract_count >= 5:
+                                            can_download = False
+                                            limit_msg = "\n\n⚠️ **Notice:** Daily free limit reached (5/5). Upgrade to PRO 💎 for unlimited video, document, and image extractions."
+                                        else:
+                                            extract_count += 1
+                                            udata["manual_extract_count"] = extract_count
+                                            limit_msg = f"\n\n*(Daily free tier: {extract_count}/5)*"
                                     
-                                    if last_date != today_str:
-                                        img_count = 0
-                                        udata["manual_image_date"] = today_str
+                                    if can_download:
+                                        try:
+                                            os.makedirs("temp_extract", exist_ok=True)
+                                            dest_prefix = f"temp_extract/extract_{chat_id}_{msg_id}"
+                                            downloaded = await client.download_media(msg_obj, file=dest_prefix)
+                                            if downloaded and os.path.exists(downloaded):
+                                                media_path = downloaded
+                                        except Exception as down_err:
+                                            print(f"[Tenant {chat_id}] Media download error: {down_err}")
+                                            limit_msg = f"\n\n⚠️ **Notice:** Failed to download media: {str(down_err)}"
                                         
-                                    if img_count < 5:
-                                        media_path = await client.download_media(msg_obj, file=f"temp_extract_{chat_id}.jpg")
-                                        img_count += 1
-                                        udata["manual_image_count"] = img_count
-                                        limit_msg = f"\n\n*(Daily bandwidth: Image {img_count}/5)*"
-                                    else:
-                                        limit_msg = "\n\n⚠️ **Notice:** Daily bandwidth limit reached (5/5 images). Image was not extracted."
-                                        
-                                udata["manual_extract_result"] = f"**Raw Extracted Output:**\n\n{text}{limit_msg}"
+                                udata["manual_extract_result"] = f"**Raw Extracted Output:**\n\n{text}{limit_msg}".strip()
                                 udata["manual_extract_media"] = media_path or ""
                             else:
                                 udata["manual_extract_result"] = "❌ Could not find that message."

@@ -1377,7 +1377,7 @@ async def text_handler(event):
             import asyncio
             msg = await event.reply("⏳ Fetching post and media using your connected account...")
             
-            for _ in range(15):
+            for _ in range(60):
                 await asyncio.sleep(2)
                 ud = get_user_data(chat_id)
                 res = ud.get("manual_extract_result")
@@ -1390,14 +1390,19 @@ async def text_handler(event):
                     try: await msg.delete()
                     except: pass
                     
-                    if media_path:
-
+                    if media_path and os.path.exists(media_path):
                         try:
-                            await event.reply(res, file=media_path)
-                            if os.path.exists(media_path):
-                                os.remove(media_path)
+                            if len(res) > 1024:
+                                await event.reply(file=media_path, supports_streaming=True)
+                                await event.reply(res)
+                            else:
+                                await event.reply(res, file=media_path, supports_streaming=True)
                         except Exception as e:
-                            await event.reply(f"Fetched text, but failed to upload media: {e}\\n\\n{res}")
+                            await event.reply(f"Fetched text, but failed to upload media: {e}\n\n{res}")
+                        finally:
+                            if os.path.exists(media_path):
+                                try: os.remove(media_path)
+                                except: pass
                     else:
                         await event.reply(res)
                     return
