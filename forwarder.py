@@ -594,7 +594,7 @@ async def monitor_users():
                                 
                                 if msg_obj.media:
                                     can_download = True
-                                    is_vid = bool(msg_obj.video or (getattr(msg_obj, 'document', None) and getattr(msg_obj.document, 'mime_type', '').startswith('video/')))
+                                    is_vid = bool(msg_obj.video or getattr(msg_obj, 'video_note', None) or (getattr(msg_obj, 'document', None) and getattr(msg_obj.document, 'mime_type', '').startswith('video/')))
                                     
                                     import datetime
                                     today_str = datetime.date.today().isoformat()
@@ -639,6 +639,8 @@ async def monitor_users():
                                                 media_path = downloaded
                                         except Exception as down_err:
                                             print(f"[Tenant {chat_id}] Media download error: {down_err}")
+                                            if is_vid:
+                                                udata["manual_video_count"] = max(0, vid_count - 1)
                                             limit_msg = f"\n\n⚠️ **Notice:** Failed to download media: {str(down_err)}"
                                         
                                 udata["manual_extract_result"] = f"**Raw Extracted Output:**\n\n{text}{limit_msg}".strip()

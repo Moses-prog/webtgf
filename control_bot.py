@@ -1394,7 +1394,11 @@ async def text_handler(event):
                         try:
                             if len(res) > 1024:
                                 await event.reply(file=media_path, supports_streaming=True)
-                                await event.reply(res)
+                                if len(res) > 4000:
+                                    for chunk in [res[i:i+4000] for i in range(0, len(res), 4000)]:
+                                        await event.reply(chunk)
+                                else:
+                                    await event.reply(res)
                             else:
                                 await event.reply(res, file=media_path, supports_streaming=True)
                         except Exception as e:
@@ -1404,7 +1408,11 @@ async def text_handler(event):
                                 try: os.remove(media_path)
                                 except: pass
                     else:
-                        await event.reply(res)
+                        if len(res) > 4000:
+                            for chunk in [res[i:i+4000] for i in range(0, len(res), 4000)]:
+                                await event.reply(chunk)
+                        else:
+                            await event.reply(res)
                     return
             
             await msg.edit("❌ Timeout fetching link. Is your background forwarding engine running?")
