@@ -112,7 +112,7 @@ async def start(event):
     
     if not is_tenant(chat_id):
         welcome_msg = (
-            "👋 **Welcome to Webtgf Manager!**\n\n"
+            "👋 **Welcome to WP Relay!**\n\n"
             "You currently do not have an active subscription or your ID has not been registered.\n\n"
             f"Your Chat ID is: `{chat_id}`\n\n"
             "Please contact the administrator **@apklord55** to get access or activate your account."
@@ -129,9 +129,9 @@ async def start(event):
     name = sender.first_name if sender.first_name else (sender.username if sender.username else "User")
     
     if not user_data.get('session_string'):
-        msg = f"👋 Hi, **{name}**! Welcome to the **Webtgf Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
+        msg = f"👋 Hi, **{name}**! Welcome to the **WP Relay Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
     else:
-        msg = f"👋 Hi, **{name}**! Welcome to the **Webtgf Dashboard**!{badge}\n\nManage your forwarding rules, channels, and replacements directly from this menu."
+        msg = f"👋 Hi, **{name}**! Welcome to the **WP Relay Dashboard**!{badge}\n\nManage your forwarding rules, channels, and replacements directly from this menu."
         
     await event.respond(msg, buttons=get_main_keyboard(chat_id))
 
@@ -154,7 +154,7 @@ async def callback(event):
         elif data == "menu_about":
             user_states[chat_id] = None
             about_text = (
-                "ℹ️ **About Webtgf Manager**\n\n"
+                "ℹ️ **About WP Relay**\n\n"
                 "**Version:** 2.0.0 (Multi-Tenant Pro)\n"
                 "**Developed by:** @apklord55\n\n"
                 "This engine was custom-built to provide the fastest, most reliable, and secure automated forwarding experience on Telegram. "
@@ -188,7 +188,7 @@ async def callback(event):
             badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
             sender = await event.get_sender()
             name = sender.first_name if sender.first_name else (sender.username if sender.username else "User")
-            await event.edit(f"👋 Hi, **{name}**! Welcome to the **Webtgf Dashboard**!{badge}", buttons=get_main_keyboard(chat_id))
+            await event.edit(f"👋 Hi, **{name}**! Welcome to the **WP Relay Dashboard**!{badge}", buttons=get_main_keyboard(chat_id))
             return
 
         # -----------------------------------------------------
@@ -1027,7 +1027,7 @@ async def callback(event):
                 "The AI will scan incoming images, find a competitor's text, and overwrite it with YOUR text!\n\n"
                 "**Reply in this format:**\n"
                 "`OldText | NewText`\n\n"
-                "*(e.g., `Earn with Nazzy | Earn with Webtgf`)*\n\n"
+                "*(e.g., `Earn with Nazzy | Earn with WP Relay`)*\n\n"
                 "Reply with the text, or type `CLEAR` to disable.",
                 buttons=[[Button.inline("🔙 Cancel", b"menu_image")]]
             )
@@ -1101,7 +1101,7 @@ async def callback(event):
             free_count = len(tenants) - pro_count
             
             msg = (
-                "📊 **Webtgf Analytics Dashboard**\n\n"
+                "📊 **WP Relay Analytics Dashboard**\n\n"
                 f"👥 **Total Tenants:** `{len(tenants)}`\n"
                 f"💎 **Total PRO Users:** `{pro_count}`\n"
                 f"🟢 **Total FREE Users:** `{free_count}`\n\n"
@@ -2128,7 +2128,7 @@ async def handle_inline_resume(event):
     await event.edit("✅ **Forwarding Engine Resumed.**")
 
 
-print("Starting Webtgf Control Bot with OTP capabilities...")
+print("Starting WP Relay Control Bot with OTP capabilities...")
 bot.start(bot_token=BOT_TOKEN)
 @bot.on(events.NewMessage(pattern='/admin_logs'))
 async def admin_logs_handler(event):

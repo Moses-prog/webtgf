@@ -83,7 +83,7 @@ HTML_TEMPLATE = """
     <div class="md:hidden flex items-center justify-between p-4 neumorphic mb-4 shadow-sm z-20">
         <div class="flex items-center space-x-2">
             <i class="fa-solid fa-robot text-blue-500 text-xl"></i>
-            <span class="font-bold text-gray-800">Webtgf Manager</span>
+            <span class="font-bold text-gray-800">WP Relay</span>
         </div>
         <div class="flex space-x-4">
             <a href="/?tab=dashboard" class="{% if tab == 'dashboard' %}text-blue-600{% else %}text-gray-500{% endif %}"><i class="fa-solid fa-wand-magic-sparkles text-xl"></i></a>
@@ -210,7 +210,7 @@ HTML_TEMPLATE = """
         {% elif tab == 'admin' %}
         <!-- ADMIN SETTINGS -->
         <div class="max-w-4xl mx-auto md:mx-0 space-y-8">
-            <h1 class="text-2xl md:text-3xl font-light text-gray-800 mb-2">Webtgf Control Center</h1>
+            <h1 class="text-2xl md:text-3xl font-light text-gray-800 mb-2">WP Relay Control Center</h1>
             <p class="text-gray-500 mb-8 text-sm md:text-base">Admin only. Manage your platform, tenants, and view analytics.</p>
             
             <!-- Analytics -->
@@ -655,7 +655,7 @@ html_content = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebTGF</title>
+    <title>WP Relay</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -873,7 +873,7 @@ html_content = '''<!DOCTYPE html>
             </div>
         </div>
         <div class="bot-name" id="user-greeting">Hi, User!</div>
-        <div class="bot-username">WebTGF Dashboard</div>
+        <div class="bot-username">WP Relay Dashboard</div>
         
         <div class="status-badges">
             <div id="tier-badge" class="badge free skeleton">Tier</div>
@@ -950,7 +950,7 @@ html_content = '''<!DOCTYPE html>
         <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         Close Dashboard
     </button>
-    <div class="footer">WebTGF Dashboard &bull; Version 2.0</div>
+    <div class="footer">WP Relay Dashboard &bull; Version 2.0</div>
 
 
     <!-- MODAL POPUP -->
