@@ -3,7 +3,7 @@ import json
 import time
 import asyncio
 from telethon import TelegramClient, events, Button
-from telethon.sessions import StringSession
+from telethon.sessions import StringSession, MemorySession
 from telethon.errors import MessageNotModifiedError, SessionPasswordNeededError
 from dotenv import load_dotenv, set_key
 
@@ -17,7 +17,7 @@ API_ID = int(os.getenv('API_ID', '0'))
 API_HASH = os.getenv('API_HASH', '')
 BOT_TOKEN = os.getenv('BOT_TOKEN', '')
 
-bot = TelegramClient('control_bot_session', API_ID, API_HASH)
+bot = TelegramClient(MemorySession(), API_ID, API_HASH)
 
 user_states = {}
 login_sessions = {}  # Temporary storage for OTP login clients
