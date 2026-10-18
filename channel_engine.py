@@ -2,101 +2,74 @@ import os
 import json
 import time
 import requests
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
 
 load_dotenv()
 
 DEFAULT_CHANNEL = "@webtgfv1"
 DEFAULT_BOT_USERNAME = "wprelaybot"
+AUTOPILOT_FILE = "channel_autopilot.json"
+LOCK_FILE = "autopilot.lock"
 
-# Knowledge Base & System Manifesto for WP Relay
+# Concise System Knowledge Base for WP Relay
 WP_RELAY_KNOWLEDGE = """
-You are the Official Lead Engineer and Growth Strategist for WP Relay (@wprelaybot), the enterprise Telegram channel forwarding, rewriting, and automation bot.
+You are the Growth & Engineering Lead for WP Relay (@wprelaybot), the enterprise Telegram channel forwarding, rewriting, and automation bot.
 Official Channel: @webtgfv1
-Bot: @wprelaybot
+Bot Handle: @wprelaybot
 
-WP RELAY CAPABILITIES & CORE FEATURES:
-1. Anti-Ban Human Simulation & Jitter Delay:
-   - Configurable randomized delay (e.g. 5s - 45s) between source capture and target delivery.
-   - Prevents Telegram FloodWait errors, spam detection, and channel bans.
-
-2. Global Link & Username Rewriting (Global Swaps):
-   - Automatically detects ANY competitor t.me link or website link and swaps it to the tenant's own channel or affiliate URL.
-   - Automatically finds competitor @mentions and swaps them to the tenant's own handle.
-   - Custom regex word replacements and keyword filtering.
-
-3. Dynamic Image Watermarking Engine:
-   - Stretches or stamps custom text/logo watermarks on forwarded media.
-   - Complete brand protection: removes competitor branding by overriding with custom watermark.
-
-4. Media & Video Swap:
-   - Replaces source channel video clips or banners with custom high-converting promo videos or pictures.
-
-5. Interactive Call-To-Action (CTA) Inline Buttons:
-   - Appends native Telegram inline buttons (e.g. [ ⚡ Join VIP ], [ 💎 Claim Bonus ], [ 🚀 Start Trading ]) directly below forwarded posts.
-
-6. Drip Posting Pacer:
-   - When a source channel posts 15 messages in 2 minutes, WP Relay queues and drips them smoothly (e.g. 1 post every 3 minutes) so followers don't mute or leave.
-
-7. Smart Sleep Schedule:
-   - Automatically pauses forwarding during night hours (e.g. 11 PM to 7 AM) and resumes in the morning to protect subscriber sleep cycles.
-
-8. Auto-Delete & Ephemeral Drops (Rolling Message Limits):
-   - Auto-deletes forwarded posts after X hours (ideal for timed signals, flash deals, VIP previews).
-   - Rolling limits keep channel history clean and exclusive.
-
-9. Mirror Deletion & Synchronized Editing:
-   - If a source admin edits a typo or deletes a post, WP Relay instantly mirrors the edit/delete in target channels.
-
-10. Coming Soon:
-   - WP Studio: Automated AI creative banner generator and video styler.
-   - WP Assistant: Autonomous AI Telegram community moderator and conversational admin.
+WP RELAY CORE FEATURES:
+1. Anti-Ban Human Jitter Delay: Randomized delivery pause (8s-35s) mimicking natural human posting, dodging Telegram spam filters and FloodWait locks.
+2. Global Link & Username Rewriter: Auto-swaps any competitor t.me link, website link, or @mention with the tenant's own handle and affiliate URL.
+3. Dynamic Watermark Engine: Auto-stamps custom brand text or logos directly onto forwarded photos.
+4. Interactive CTA Buttons: Appends clickable Telegram inline buttons ([ ⚡ Launch WP Relay Bot ], [ 💎 Upgrade to PRO ]) below forwarded messages.
+5. Drip Posting Pacer: Queues and spaces out high-burst source drops so subscribers are never spammed.
+6. Auto-Delete & Ephemeral Drops: Automatically wipes posts after X hours, creating VIP FOMO and keeping channels clutter-free.
+7. Mirror Deletion & Live Sync: Instantly mirrors edits or message deletions made in source channels.
+8. PRO Suite: Unlimited routing, custom video replacements, and dedicated high-speed forwarder workers.
 """
 
 TOPIC_CATEGORIES = [
     {
         "id": "anti_ban",
-        "title": "Anti-Ban & Human Simulation",
-        "prompt": "Write a high-impact channel tip on how Telegram channel owners can avoid spam flags and account bans by using WP Relay's intelligent Human Simulation Jitter Delay. Explain why instant zero-second forwarding triggers Telegram flood limits and how human jitter protects the channel."
+        "title": "Anti-Ban Human Jitter",
+        "topic": "Why instant 0-second forwarding triggers Telegram spam locks and how WP Relay's 8-30s Human Jitter Delay makes your forwarding 100% ban-proof."
     },
     {
         "id": "link_rewriting",
-        "title": "Automated Link & Mention Monetization",
-        "prompt": "Write an actionable guide on how to automatically monetize forwarded content using WP Relay's Global Link & Username Rewriting engine. Explain how to instantly hijack competitor traffic by replacing all incoming links and @mentions with your own affiliate links and channel handles."
+        "title": "Global Link Rewriter",
+        "topic": "How to instantly monetize incoming content by automatically replacing competitor links and @mentions with your own handles and affiliate URLs."
     },
     {
         "id": "watermarking",
-        "title": "Dynamic Watermarking & Brand Defense",
-        "prompt": "Write an engaging post on brand protection using WP Relay's Dynamic Watermark Engine. Explain how channel admins can prevent content theft and establish authority by auto-stamping their custom watermark on every forwarded photo."
+        "title": "Dynamic Watermarking",
+        "topic": "How to protect brand ownership by auto-stamping your custom watermark onto every forwarded image."
     },
     {
         "id": "cta_buttons",
-        "title": "High-Converting CTA Inline Buttons",
-        "prompt": "Write a growth hack tip on boosting channel conversions by 300% using WP Relay's Native Telegram Inline CTA Buttons. Explain how adding clickable buttons below every forwarded message drives immediate traffic to VIP bots or affiliate signups."
+        "title": "Interactive CTA Buttons",
+        "topic": "How adding clickable native inline buttons below every post skyrockets click-through rates to your VIP bots and affiliate links."
     },
     {
         "id": "drip_pacer",
-        "title": "Drip Posting Pacer vs Audience Churn",
-        "prompt": "Write a masterclass tip on channel retention: Why spamming 20 posts at once kills follower retention, and how WP Relay's Drip Posting Pacer queues and spaces posts evenly throughout the day to keep subscribers active without muting."
+        "title": "Drip Posting Pacer",
+        "topic": "Why forwarding 15 posts at once causes subscribers to mute, and how WP Relay's Drip Pacer spaces them smoothly."
     },
     {
         "id": "auto_delete",
-        "title": "Ephemeral Content & Auto-Delete Cleanups",
-        "prompt": "Write a post on how premium signal channels and VIP clubs use WP Relay's Auto-Delete rolling timers to create FOMO, protect proprietary content, and keep target channels clean and clutter-free."
+        "title": "Ephemeral Auto-Delete",
+        "topic": "How VIP and signal channels use WP Relay's rolling auto-delete timers to create exclusivity, protect content, and eliminate clutter."
     },
     {
         "id": "pro_features",
-        "title": "WP Relay PRO Power Suite",
-        "prompt": "Write an exciting spotlight on why serious channel owners upgrade to WP Relay PRO: unlimited channel routes, custom video overrides, priority high-speed worker threads, and dynamic watermarks."
+        "title": "WP Relay PRO Power",
+        "topic": "Why high-scale Telegram operators upgrade to PRO for custom video overrides, unlimited channels, and priority worker threads."
     },
     {
         "id": "telegram_growth",
-        "title": "Multi-Channel Growth Strategy",
-        "prompt": "Write an insider strategy guide on scaling a Telegram network across 10+ niche channels simultaneously using WP Relay's multi-source to multi-target routing matrix with zero manual forwarding."
+        "title": "Multi-Channel Scaling",
+        "topic": "How to syndicate content across multiple niche channels simultaneously with zero manual work."
     }
 ]
-
-AUTOPILOT_FILE = "channel_autopilot.json"
 
 def get_autopilot_config():
     if os.path.exists(AUTOPILOT_FILE):
@@ -162,31 +135,38 @@ def generate_channel_post(category_id=None, custom_prompt=None):
                 break
 
     if custom_prompt:
-        instruction = f"Topic to write about: {custom_prompt}"
+        subject = custom_prompt
     elif chosen_category:
-        instruction = chosen_category["prompt"]
+        subject = chosen_category["topic"]
     else:
-        # Fallback to random or first
         import random
-        cat = random.choice(TOPIC_CATEGORIES)
-        instruction = cat["prompt"]
+        chosen_category = random.choice(TOPIC_CATEGORIES)
+        subject = chosen_category["topic"]
 
     system_prompt = f"""
 {WP_RELAY_KNOWLEDGE}
 
 TASK:
-Write an extremely smart, polished, and compelling Telegram channel broadcast post for our official channel: @webtgfv1.
-Instructions:
-- Topic: {instruction}
-- Visual Style: Use rich, classy emojis (⚡, 🛡️, 💎, 📌, 🚀, 💡, ⚙️, 🎯).
-- Format: Telegram HTML (use <b>bold</b>, <i>italic</i>, <code>code</code>, bullet points).
-- Structure:
-  1. Catchy headline with emojis (e.g. ⚡ <b>WP RELAY PRO TIP: ...</b>)
-  2. The Challenge/Insight: Why this matters to channel growth, security, or monetization.
-  3. The Actionable Technique / Solution: Clear step-by-step or breakdown.
-  4. Quick Takeaway: 1-2 punchy summary lines.
-  5. Call to Action: Invite the reader to tap the buttons below to launch or upgrade @wprelaybot.
-- Output ONLY the post text itself. Do not include introductory notes or markdown codeblocks (no ```html).
+Write an ULTRA-CONCISE, visually captivating Telegram channel tip for @webtgfv1 about:
+{subject}
+
+STRICT FORMATTING & LENGTH CONSTRAINTS:
+1. MAXIMUM 80-90 WORDS TOTAL. A subscriber must be able to scan and read the entire post in 10 seconds.
+2. ABSOLUTELY NO LONG ESSAYS OR WALLS OF TEXT.
+3. Clean, scannable formatting using Telegram HTML: <b>bold</b>, <i>italic</i>, <code>code</code>.
+4. Exact layout to follow:
+
+⚡ <b>WP RELAY TIP: [Punchy 3-5 Word Title]</b>
+
+<i>[One sharp sentence on the mistake or challenge]</i>
+
+• 🚨 <b>The Problem:</b> [1 punchy line]
+• 🛡️ <b>The Solution:</b> [1 punchy line explaining the WP Relay feature]
+• 💎 <b>The Win:</b> [1 punchy line on the benefit]
+
+👉 <i>Configure in 30 seconds inside @wprelaybot:</i>
+
+Output ONLY the formatted post. Do not include introductory notes or markdown codeblocks (no ```html).
 """
 
     models_to_try = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"]
@@ -200,7 +180,6 @@ Instructions:
             )
             if resp and resp.text:
                 text = resp.text.strip()
-                # Clean any markdown code ticks if wrapped
                 if text.startswith("```html"):
                     text = text[7:]
                 if text.startswith("```"):
@@ -231,7 +210,6 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
     if not target_channel:
         target_channel = DEFAULT_CHANNEL
 
-    # Clean channel format
     target_channel = target_channel.strip()
     if not target_channel.startswith("@") and not target_channel.startswith("-100") and not target_channel.isdigit():
         target_channel = "@" + target_channel
@@ -270,7 +248,7 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
         desc = res_data.get("description", "Unknown Telegram error")
         code = res_data.get("error_code")
         if code == 401:
-            raise RuntimeError(f"Telegram Bot Token is unauthorized. Please verify the BOT_TOKEN in Admin Settings.")
+            raise RuntimeError("Telegram Bot Token is unauthorized. Please verify the BOT_TOKEN in Admin Settings.")
         elif "chat not found" in desc.lower():
             raise RuntimeError(f"Target channel {target_channel} not found. Ensure the channel is public or the bot is added to it.")
         elif "not enough rights" in desc.lower() or "administrator" in desc.lower() or "can't post" in desc.lower():
@@ -296,11 +274,11 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
         except Exception as e:
             print(f"[PIN ERROR] Failed to pin message {msg_id}: {e}")
 
-    # Record history in autopilot
+    # Record history
     try:
         cfg = get_autopilot_config()
         cfg["last_posted_at"] = int(time.time())
-        snippet = text[:120].replace("\n", " ") + "..."
+        snippet = text[:100].replace("\n", " ") + "..."
         cfg["history"] = cfg.get("history", [])[-19:] + [{
             "timestamp": int(time.time()),
             "channel": target_channel,
@@ -319,29 +297,67 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
         "pinned": pinned
     }
 
+def delete_channel_message(message_id, target_channel=DEFAULT_CHANNEL):
+    token = os.getenv("BOT_TOKEN", "").strip()
+    if not token:
+        raise ValueError("BOT_TOKEN is not configured in .env.")
+
+    if not target_channel:
+        target_channel = DEFAULT_CHANNEL
+
+    r = requests.post(
+        f"https://api.telegram.org/bot{token}/deleteMessage",
+        json={"chat_id": target_channel, "message_id": int(message_id)},
+        timeout=8
+    )
+    res = r.json()
+    if not res.get("ok"):
+        raise RuntimeError(res.get("description", "Failed to delete message"))
+    return {"success": True, "deleted_id": message_id}
+
 def run_autopilot_tick():
+    now = int(time.time())
+
+    # 1. Multi-process lock check (prevents two processes from running at the same second)
+    if os.path.exists(LOCK_FILE):
+        try:
+            mtime = os.path.getmtime(LOCK_FILE)
+            if now - mtime < 120:  # Lock held within 2 minutes
+                return None
+        except Exception:
+            pass
+
     cfg = get_autopilot_config()
     if not cfg.get("enabled", False):
         return None
 
     freq_hours = max(1, int(cfg.get("frequency_hours", 12)))
     interval_sec = freq_hours * 3600
-    now = int(time.time())
     last_run = int(cfg.get("last_posted_at", 0))
 
     if now - last_run < interval_sec:
         # Not time yet
         return None
 
-    # Time to post!
+    # 2. Acquire lock and pre-commit timestamp IMMEDIATELY to prevent simultaneous double-runs
+    try:
+        with open(LOCK_FILE, "w") as f:
+            f.write(str(now))
+    except Exception:
+        pass
+
     idx = cfg.get("topic_index", 0) % len(TOPIC_CATEGORIES)
     category = TOPIC_CATEGORIES[idx]
+
+    # Pre-commit timestamp so no other thread/process can enter this block
+    cfg["last_posted_at"] = now
+    cfg["topic_index"] = (idx + 1) % len(TOPIC_CATEGORIES)
+    save_autopilot_config(cfg)
 
     try:
         print(f"[AUTOPILOT] Generating scheduled post for category '{category['id']}'...")
         post_data = generate_channel_post(category_id=category["id"])
         
-        # Determine if this tip should be pinned (e.g. anti-ban or pro guide)
         should_pin = category["id"] in ["anti_ban", "pro_features"]
 
         result = publish_to_channel(
@@ -351,12 +367,14 @@ def run_autopilot_tick():
             target_channel=DEFAULT_CHANNEL
         )
         print(f"[AUTOPILOT] Successfully published scheduled post: {result}")
-
-        # Advance topic index
-        cfg["topic_index"] = (idx + 1) % len(TOPIC_CATEGORIES)
-        cfg["last_posted_at"] = now
-        save_autopilot_config(cfg)
         return result
     except Exception as e:
         print(f"[AUTOPILOT] Scheduled post error: {e}")
         return None
+    finally:
+        # Release lock file
+        try:
+            if os.path.exists(LOCK_FILE):
+                os.remove(LOCK_FILE)
+        except Exception:
+            pass

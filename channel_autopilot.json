@@ -1,7 +1,7 @@
 {
-  "enabled": true,
-  "frequency_hours": 6,
-  "last_posted_at": 0,
+  "enabled": false,
+  "frequency_hours": 12,
+  "last_posted_at": 1792348800,
   "topic_index": 0,
   "history": []
 }

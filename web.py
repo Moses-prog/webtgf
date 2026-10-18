@@ -1225,6 +1225,26 @@ def api_admin_channel_autopilot_trigger():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/admin_channel_delete_post', methods=['POST'])
+def api_admin_channel_delete_post():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    message_id = data.get('message_id')
+    channel = data.get('channel', '@webtgfv1')
+    if not message_id:
+        return jsonify({"error": "Missing message_id"}), 400
+
+    try:
+        import channel_engine
+        res = channel_engine.delete_channel_message(message_id, target_channel=channel)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/admin_logs', methods=['GET'])
 def api_admin_logs():
     auth_user = get_authenticated_user()
@@ -1633,9 +1653,13 @@ def submit_feedback():
     return jsonify({'success': True})
 
 def start_autopilot_worker():
+    # If running under Werkzeug reloader, only run in the main child process
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "false":
+        return
+
     def loop():
         import time
-        time.sleep(15)  # initial delay
+        time.sleep(30)  # initial delay after startup to let server settle
         while True:
             try:
                 import channel_engine

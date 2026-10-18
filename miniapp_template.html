@@ -1255,6 +1255,16 @@
 
                         <button class="btn-sm-action" style="width:100%; padding:8px; text-align:center;" onclick="adminTriggerAutopilotNow()">Trigger Autopilot Run Now</button>
                     </div>
+
+                    <!-- MESSAGE CLEANUP -->
+                    <div class="form-card">
+                        <div class="form-label">Delete Channel Post by ID</div>
+                        <div class="form-hint">Quickly remove any accidental or test post from @webtgfv1.</div>
+                        <div style="display:flex; gap:6px; margin-top:6px;">
+                            <input type="number" id="inp-channel-del-id" class="form-input" placeholder="Message ID (e.g. 142)" style="flex:1;">
+                            <button class="btn-sm-action" style="color:var(--danger, #ff4d4f);" onclick="adminDeleteChannelPost()">Delete</button>
+                        </div>
+                    </div>
                 `;
             } else if (currentAdminTab === 'system') {
                 tabHtml = `
@@ -1699,6 +1709,35 @@
                 }
             } catch(e) {
                 tg.showAlert('Network error triggering autopilot');
+            }
+        }
+
+        async function adminDeleteChannelPost() {
+            const inp = document.getElementById('inp-channel-del-id');
+            const msgId = inp ? inp.value.trim() : '';
+            const channel = document.getElementById('inp-channel-target')?.value.trim() || '@webtgfv1';
+            if (!msgId) return tg.showAlert("Please enter the Message ID to delete.");
+
+            if (!confirm(`Permanently delete message ${msgId} from ${channel}?`)) return;
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_channel_delete_post', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ message_id: msgId, channel: channel })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    tg.showAlert(`Message ${msgId} deleted from channel.`);
+                    if (inp) inp.value = '';
+                    adminLoadChannelData();
+                } else {
+                    tg.showAlert(d.error || "Failed to delete message");
+                }
+            } catch(e) {
+                tg.showAlert("Network error deleting post");
             }
         }
 
