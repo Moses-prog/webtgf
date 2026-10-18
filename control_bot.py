@@ -1216,10 +1216,14 @@ async def callback(event):
             elif data == "pro_lifetime":
                 t_data["is_pro"] = True
                 t_data["pro_expiry"] = None
+                if not t_data.get("pro_since"):
+                    t_data["pro_since"] = now.isoformat()
                 action = "Granted Lifetime"
                 
             else:
                 t_data["is_pro"] = True
+                if not t_data.get("pro_since"):
+                    t_data["pro_since"] = now.isoformat()
                 months = 1
                 if data == "pro_3_months": months = 3
                 if data == "pro_6_months": months = 6
@@ -1264,10 +1268,14 @@ async def callback(event):
             elif data == "pro_lifetime":
                 t_data["is_pro"] = True
                 t_data["pro_expiry"] = None
+                if not t_data.get("pro_since"):
+                    t_data["pro_since"] = now.isoformat()
                 action = "Granted Lifetime"
                 
             else:
                 t_data["is_pro"] = True
+                if not t_data.get("pro_since"):
+                    t_data["pro_since"] = now.isoformat()
                 months = 1
                 if data == "pro_3_months": months = 3
                 if data == "pro_6_months": months = 6

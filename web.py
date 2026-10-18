@@ -2,6 +2,7 @@ import os
 import json
 import time
 import datetime
+import requests
 from flask import Flask, request, render_template_string, redirect, session, url_for, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv, set_key
@@ -850,6 +851,8 @@ def api_admin_overview():
         tenant_details.append({
             "tenant_id": str(t),
             "is_pro": is_p,
+            "pro_since": ud.get('pro_since'),
+            "pro_expiry": ud.get('pro_expiry'),
             "sources_count": len(ud.get('sources', [])),
             "targets_count": len(ud.get('targets', [])),
             "swaps_count": len(ud.get('text_swaps', {})),
@@ -916,10 +919,341 @@ def api_admin_manage_tenant():
         ud = get_user_data(tenant_id)
         current_pro = ud.get('is_pro', False)
         ud['is_pro'] = not current_pro
+        if ud['is_pro'] and not ud.get('pro_since'):
+            ud['pro_since'] = datetime.datetime.now().isoformat()
         save_user_data(tenant_id, ud)
         return jsonify({"success": True, "tenant_id": tenant_id, "is_pro": ud['is_pro']})
 
     return jsonify({"success": True, "tenants": tenants})
+
+@app.route('/api/admin_pro_tenants', methods=['GET'])
+def api_admin_pro_tenants():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    from database_manager import get_tenants, get_user_data
+    tenants = get_tenants()
+    now = datetime.datetime.now()
+    pro_list = []
+    
+    total_pro = 0
+    active_count = 0
+    expiring_soon_count = 0
+    expired_count = 0
+    lifetime_count = 0
+
+    for t in tenants:
+        ud = get_user_data(t)
+        is_p = ud.get('is_pro', False) or (str(t) == admin_id)
+        pro_since = ud.get('pro_since')
+        pro_expiry = ud.get('pro_expiry')
+        pro_expired_at = ud.get('pro_expired_at')
+
+        # We show tenants who are PRO, or who were previously PRO and have an expiration timestamp
+        if not is_p and not pro_expired_at:
+            continue
+
+        status = "active"
+        days_left = None
+        hours_left = None
+        expires_display = "Lifetime Access"
+        time_left_str = "Permanent VIP"
+
+        if is_p:
+            total_pro += 1
+            if (str(t) == admin_id and not pro_expiry) or not pro_expiry:
+                status = "lifetime"
+                lifetime_count += 1
+                expires_display = "Lifetime Access"
+                time_left_str = "Permanent VIP"
+            else:
+                try:
+                    exp_dt = datetime.datetime.fromisoformat(pro_expiry)
+                    delta = exp_dt - now
+                    total_seconds = delta.total_seconds()
+                    days_left = int(total_seconds // 86400)
+                    hours_left = int((total_seconds % 86400) // 3600)
+                    expires_display = exp_dt.strftime("%b %d, %Y %H:%M")
+
+                    if total_seconds <= 0:
+                        status = "expired"
+                        expired_count += 1
+                        time_left_str = f"Expired {abs(days_left)}d ago"
+                    elif total_seconds <= (3 * 86400):  # <= 3 days
+                        status = "expiring_soon"
+                        expiring_soon_count += 1
+                        if days_left == 0:
+                            time_left_str = f"{max(1, hours_left)} hours left"
+                        else:
+                            time_left_str = f"{days_left}d {hours_left}h left"
+                    else:
+                        status = "active"
+                        active_count += 1
+                        time_left_str = f"{days_left} days left"
+                except Exception:
+                    status = "active"
+                    active_count += 1
+                    time_left_str = "Active"
+        else:
+            status = "expired"
+            expired_count += 1
+            if pro_expired_at:
+                try:
+                    exp_dt = datetime.datetime.fromisoformat(pro_expired_at)
+                    expires_display = f"Expired on {exp_dt.strftime('%b %d, %Y')}"
+                    time_left_str = f"Expired ({exp_dt.strftime('%b %d')})"
+                except:
+                    expires_display = "Expired"
+                    time_left_str = "Expired"
+
+        since_display = "Active"
+        if pro_since:
+            try:
+                s_dt = datetime.datetime.fromisoformat(pro_since)
+                since_display = s_dt.strftime("%b %d, %Y")
+            except:
+                since_display = str(pro_since)[:10]
+
+        pro_list.append({
+            "tenant_id": str(t),
+            "is_pro": is_p,
+            "is_admin": (str(t) == admin_id),
+            "pro_since": pro_since,
+            "since_display": since_display,
+            "pro_expiry": pro_expiry,
+            "expires_display": expires_display,
+            "time_left_str": time_left_str,
+            "status": status,
+            "days_left": days_left,
+            "hours_left": hours_left,
+            "sources_count": len(ud.get('sources', [])),
+            "targets_count": len(ud.get('targets', [])),
+            "swaps_count": len(ud.get('text_swaps', {})),
+            "is_active": ud.get('is_active', False)
+        })
+
+    order = {"expiring_soon": 0, "active": 1, "lifetime": 2, "expired": 3}
+    pro_list.sort(key=lambda x: (order.get(x["status"], 4), x["days_left"] if x["days_left"] is not None else 9999))
+
+    return jsonify({
+        "success": True,
+        "pro_tenants": pro_list,
+        "summary": {
+            "total_pro": total_pro,
+            "active": active_count,
+            "expiring_soon": expiring_soon_count,
+            "expired": expired_count,
+            "lifetime": lifetime_count
+        }
+    })
+
+@app.route('/api/admin_send_tenant_notice', methods=['POST'])
+def api_admin_send_tenant_notice():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    tenant_id = str(data.get('tenant_id', '')).strip()
+    notice_type = str(data.get('notice_type', 'expiration')).strip()
+    custom_msg = str(data.get('custom_message', '')).strip()
+
+    if not tenant_id:
+        return jsonify({"error": "Missing tenant_id"}), 400
+
+    bot_token = os.getenv("BOT_TOKEN")
+    if not bot_token:
+        return jsonify({"error": "BOT_TOKEN not configured"}), 500
+
+    from database_manager import get_user_data
+    ud = get_user_data(tenant_id)
+    pro_expiry = ud.get('pro_expiry')
+    
+    expires_str = "Soon"
+    time_str = "Action Required"
+    if pro_expiry:
+        try:
+            exp_dt = datetime.datetime.fromisoformat(pro_expiry)
+            expires_str = exp_dt.strftime("%B %d, %Y at %H:%M UTC")
+            delta = exp_dt - datetime.datetime.now()
+            days = int(delta.total_seconds() // 86400)
+            hours = int((delta.total_seconds() % 86400) // 3600)
+            if delta.total_seconds() <= 0:
+                time_str = f"Expired {abs(days)} days ago"
+            elif days == 0:
+                time_str = f"{max(1, hours)} hours remaining"
+            else:
+                time_str = f"{days} days remaining"
+        except:
+            expires_str = str(pro_expiry)[:16]
+
+    if notice_type == "expiration":
+        text = (
+            "⚠️ <b>WP Relay PRO — Expiration Notice</b>\n\n"
+            "Dear Subscriber,\n"
+            f"Your WP Relay PRO plan is scheduled to expire:\n"
+            f"📅 <b>Expiration Date:</b> <code>{expires_str}</code>\n"
+            f"⏳ <b>Time Remaining:</b> <b>{time_str}</b>\n\n"
+            "<b>What happens upon expiration?</b>\n"
+            "• Premium Anti-Ban Human Jitter Delay pauses\n"
+            "• Dynamic Image Watermarking locks\n"
+            "• High-Converting CTA Inline Buttons detach\n"
+            "• Multi-Channel Drip Posting Pacer deactivates\n\n"
+            "To maintain uninterrupted 24/7 routing, contact Administrator @apklord55 to renew your PRO tier."
+        )
+        button_text = "💎 RENEW PRO ACCESS ↗"
+        button_url = "https://t.me/apklord55"
+
+    elif notice_type == "warning":
+        text = (
+            "🚨 <b>CRITICAL WARNING: PRO Access Terminating Soon</b>\n\n"
+            f"Your WP Relay PRO status for account <code>{tenant_id}</code> will terminate on <b>{expires_str}</b> ({time_str}).\n\n"
+            "⚠️ <b>All active auto-swapping rules, forwarders, and spam protections will be frozen upon plan expiration.</b>\n\n"
+            "Please contact Administrator @apklord55 immediately to avoid service interruption."
+        )
+        button_text = "⚡ CONTACT ADMIN @apklord55 ↗"
+        button_url = "https://t.me/apklord55"
+
+    elif notice_type == "custom":
+        if not custom_msg:
+            return jsonify({"error": "Custom message text cannot be empty"}), 400
+        text = (
+            "📢 <b>Official Notice from WP Relay Management</b>\n\n"
+            f"{custom_msg}\n\n"
+            "— <i>WP Relay Official Administration (@apklord55)</i>"
+        )
+        button_text = str(data.get('button_text', '')).strip() or "Open WP Relay Bot"
+        button_url = str(data.get('button_url', '')).strip() or "https://t.me/wprelaybot"
+    else:
+        return jsonify({"error": f"Unknown notice_type: {notice_type}"}), 400
+
+    payload = {
+        "chat_id": tenant_id,
+        "text": text,
+        "parse_mode": "HTML",
+        "reply_markup": {
+            "inline_keyboard": [
+                [{"text": button_text, "url": button_url}]
+            ]
+        }
+    }
+
+    try:
+        r = requests.post(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            json=payload,
+            timeout=10
+        )
+        res_data = r.json()
+        if res_data.get("ok"):
+            return jsonify({
+                "success": True,
+                "message_id": res_data["result"]["message_id"],
+                "tenant_id": tenant_id,
+                "notice_type": notice_type
+            })
+        else:
+            return jsonify({"success": False, "error": res_data.get("description", "Failed to send message")}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin_update_pro_subscription', methods=['POST'])
+def api_admin_update_pro_subscription():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    tenant_id = str(data.get('tenant_id', '')).strip()
+    action = str(data.get('action', '')).strip()
+    days = int(data.get('days', 30))
+    notify = bool(data.get('notify_user', True))
+
+    if not tenant_id or action not in ['add_days', 'set_lifetime', 'revoke']:
+        return jsonify({"error": "Invalid action or tenant_id"}), 400
+
+    from database_manager import get_user_data, save_user_data
+    ud = get_user_data(tenant_id)
+    now = datetime.datetime.now()
+
+    if not ud.get('pro_since'):
+        ud['pro_since'] = now.isoformat()
+
+    msg_to_send = None
+
+    if action == 'add_days':
+        ud['is_pro'] = True
+        curr_expiry = ud.get('pro_expiry')
+        base_time = now
+        if curr_expiry:
+            try:
+                dt = datetime.datetime.fromisoformat(curr_expiry)
+                if dt > now:
+                    base_time = dt
+            except:
+                pass
+        new_expiry = base_time + datetime.timedelta(days=days)
+        ud['pro_expiry'] = new_expiry.isoformat()
+        ud.pop('pro_expired_at', None)
+        msg_to_send = (
+            f"🎉 <b>WP Relay PRO Subscription Extended!</b>\n\n"
+            f"The Administrator has added <b>+{days} days</b> of PRO access to your account.\n"
+            f"📅 <b>New Expiry Date:</b> <code>{new_expiry.strftime('%B %d, %Y')}</code>\n\n"
+            f"Thank you for powering your channels with WP Relay!"
+        )
+
+    elif action == 'set_lifetime':
+        ud['is_pro'] = True
+        ud['pro_expiry'] = None
+        ud.pop('pro_expired_at', None)
+        msg_to_send = (
+            "🌟 <b>Lifetime VIP PRO Granted!</b>\n\n"
+            "Congratulations! The Administrator has upgraded your account to permanent Lifetime PRO with unrestricted access to all current and future features."
+        )
+
+    elif action == 'revoke':
+        ud['is_pro'] = False
+        ud['pro_expired_at'] = now.isoformat()
+        ud['pro_expiry'] = None
+        msg_to_send = (
+            "⚠️ <b>WP Relay PRO Access Revoked</b>\n\n"
+            "Your PRO tier has been revoked by the Administrator. Contact @apklord55 for renewal inquiries."
+        )
+
+    save_user_data(tenant_id, ud)
+
+    if notify and msg_to_send:
+        bot_token = os.getenv("BOT_TOKEN")
+        if bot_token:
+            try:
+                requests.post(
+                    f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                    json={
+                        "chat_id": tenant_id,
+                        "text": msg_to_send,
+                        "parse_mode": "HTML",
+                        "reply_markup": {
+                            "inline_keyboard": [
+                                [{"text": "🚀 Open WP Relay Bot", "url": "https://t.me/wprelaybot"}]
+                            ]
+                        }
+                    },
+                    timeout=6
+                )
+            except:
+                pass
+
+    return jsonify({
+        "success": True,
+        "tenant_id": tenant_id,
+        "is_pro": ud.get('is_pro'),
+        "pro_expiry": ud.get('pro_expiry'),
+        "pro_since": ud.get('pro_since')
+    })
 
 @app.route('/api/admin_toggle_feature', methods=['POST'])
 def api_admin_toggle_feature():

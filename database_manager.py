@@ -44,7 +44,7 @@ def get_user_data(chat_id):
                     expiry = datetime.datetime.fromisoformat(data['pro_expiry'])
                     if datetime.datetime.now() > expiry:
                         data['is_pro'] = False
-                        data['pro_expiry'] = None
+                        data['pro_expired_at'] = data.get('pro_expiry')
                         save_user_data(chat_id, data)
                 except: pass
                 

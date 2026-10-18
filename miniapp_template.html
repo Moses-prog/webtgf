@@ -303,15 +303,22 @@
             padding: 3px;
             margin-bottom: 14px;
             gap: 2px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .segmented-control::-webkit-scrollbar {
+            display: none;
         }
         .seg-btn {
             flex: 1;
+            white-space: nowrap;
             background: transparent;
             border: none;
             color: var(--text-muted);
             font-size: 12px;
             font-weight: 600;
-            padding: 8px 4px;
+            padding: 8px 8px;
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
@@ -987,19 +994,35 @@
                     return;
                 }
                 adminCachedData = d;
+                adminLoadProData();
                 renderAdminModalContent();
             } catch(e) {
                 body.innerHTML = `<div class="empty-state"><div class="empty-title">Network Error</div><div>Unable to reach admin API.</div></div>`;
             }
         }
 
-        function switchAdminTab(tabName) {
+        let adminProData = null;
+        let proFilter = 'all';
+
+        async function adminLoadProData() {
+            try {
+                const res = await fetch('/api/admin_pro_tenants', { headers: getAuthHeaders() });
+                const d = await res.json();
+                if (d.success) {
+                    adminProData = d;
+                }
+            } catch(e) {}
+        }
+
+        async function switchAdminTab(tabName) {
             currentAdminTab = tabName;
             try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
-            renderAdminModalContent();
-            if (tabName === 'channel') {
+            if (tabName === 'subscriptions') {
+                if (!adminProData) await adminLoadProData();
+            } else if (tabName === 'channel') {
                 adminLoadChannelData();
             }
+            renderAdminModalContent();
         }
 
         function renderAdminModalContent() {
@@ -1098,6 +1121,121 @@
                         </div>
                     </div>
                 `;
+            } else if (currentAdminTab === 'subscriptions') {
+                const proD = adminProData || { pro_tenants: [], summary: { total_pro: 0, active: 0, expiring_soon: 0, expired: 0, lifetime: 0 } };
+                const summary = proD.summary;
+                const allTenants = proD.pro_tenants || [];
+
+                const filteredTenants = allTenants.filter(t => {
+                    if (proFilter === 'expiring_soon') return t.status === 'expiring_soon';
+                    if (proFilter === 'active') return t.status === 'active';
+                    if (proFilter === 'lifetime') return t.status === 'lifetime';
+                    if (proFilter === 'expired') return t.status === 'expired';
+                    return true;
+                });
+
+                let listHtml = '';
+                if (filteredTenants.length === 0) {
+                    listHtml = '<div style="text-align:center; color:var(--text-muted); padding:24px 16px;">No PRO tenants match this filter.</div>';
+                } else {
+                    listHtml = filteredTenants.map(p => {
+                        let statusColor = '#30d158';
+                        let statusBg = 'rgba(48, 209, 88, 0.12)';
+                        let statusBorder = 'rgba(48, 209, 88, 0.25)';
+                        let statusLabel = p.time_left_str;
+
+                        if (p.status === 'expiring_soon') {
+                            statusColor = '#ff9f0a';
+                            statusBg = 'rgba(255, 159, 10, 0.12)';
+                            statusBorder = 'rgba(255, 159, 10, 0.25)';
+                        } else if (p.status === 'expired') {
+                            statusColor = '#ff453a';
+                            statusBg = 'rgba(255, 69, 58, 0.12)';
+                            statusBorder = 'rgba(255, 69, 58, 0.25)';
+                        } else if (p.status === 'lifetime') {
+                            statusColor = '#0a84ff';
+                            statusBg = 'rgba(10, 132, 255, 0.12)';
+                            statusBorder = 'rgba(10, 132, 255, 0.25)';
+                        }
+
+                        return `
+                            <div class="form-card" style="margin-bottom:10px; padding:12px; border:1px solid var(--border-color);">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                    <div>
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="font-weight:700; font-size:13px; font-family:monospace;">${p.tenant_id}</span>
+                                            ${p.is_admin ? '<span class="chip" style="font-size:9px;">ADMIN</span>' : ''}
+                                        </div>
+                                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                                            ${p.sources_count} sources &bull; ${p.targets_count} targets &bull; ${p.swaps_count} swaps
+                                        </div>
+                                    </div>
+                                    <div style="display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:700; text-transform:uppercase; color:${statusColor}; background:${statusBg}; border:1px solid ${statusBorder};">
+                                        ${statusLabel}
+                                    </div>
+                                </div>
+
+                                <!-- TIMELINE DATES -->
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
+                                    <div>
+                                        <div style="font-size:9px; text-transform:uppercase; color:var(--text-muted); font-weight:600; letter-spacing:0.4px;">Entered PRO</div>
+                                        <div style="font-weight:600; color:var(--text-main); margin-top:1px;">${p.since_display}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:9px; text-transform:uppercase; color:var(--text-muted); font-weight:600; letter-spacing:0.4px;">Expires</div>
+                                        <div style="font-weight:600; color:var(--text-main); margin-top:1px;">${p.expires_display}</div>
+                                    </div>
+                                </div>
+
+                                <!-- ACTION BUTTONS -->
+                                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600;" onclick="adminSendNotice('${p.tenant_id}', 'expiration')" title="Send official expiration notice">Notice</button>
+                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; color:#ff9f0a;" onclick="adminSendNotice('${p.tenant_id}', 'warning')" title="Send urgent termination warning">Warning</button>
+                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600;" onclick="adminPromptCustomNotice('${p.tenant_id}')">Custom</button>
+                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600;" onclick="adminPromptExtendPro('${p.tenant_id}')">Extend</button>
+                                    <button class="btn-sm-action" style="padding:7px 8px; font-size:11px;" onclick="inspectTenant('${p.tenant_id}')">Inspect</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                tabHtml = `
+                    <!-- PRO SUMMARY METRICS -->
+                    <div class="stats-grid" style="margin: 0 0 12px;">
+                        <div class="stat-card" style="cursor:pointer;" onclick="adminSetProFilter('all')">
+                            <div class="stat-value">${summary.total_pro}</div>
+                            <div class="stat-label">Total PRO</div>
+                        </div>
+                        <div class="stat-card" style="cursor:pointer;" onclick="adminSetProFilter('expiring_soon')">
+                            <div class="stat-value" style="color:#ff9f0a;">${summary.expiring_soon}</div>
+                            <div class="stat-label">Expiring Soon</div>
+                        </div>
+                        <div class="stat-card" style="cursor:pointer;" onclick="adminSetProFilter('active')">
+                            <div class="stat-value" style="color:#30d158;">${summary.active}</div>
+                            <div class="stat-label">Active</div>
+                        </div>
+                        <div class="stat-card" style="cursor:pointer;" onclick="adminSetProFilter('lifetime')">
+                            <div class="stat-value" style="color:#0a84ff;">${summary.lifetime}</div>
+                            <div class="stat-label">Lifetime</div>
+                        </div>
+                    </div>
+
+                    <!-- PRO FILTER CHIPS -->
+                    <div style="display:flex; gap:4px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;">
+                        <button class="btn-sm-action" style="${proFilter==='all'?'background:var(--text-main); color:var(--bg-main);':''}" onclick="adminSetProFilter('all')">All (${allTenants.length})</button>
+                        <button class="btn-sm-action" style="${proFilter==='expiring_soon'?'background:var(--text-main); color:var(--bg-main);':''}" onclick="adminSetProFilter('expiring_soon')">Expiring (${summary.expiring_soon})</button>
+                        <button class="btn-sm-action" style="${proFilter==='active'?'background:var(--text-main); color:var(--bg-main);':''}" onclick="adminSetProFilter('active')">Active (${summary.active})</button>
+                        <button class="btn-sm-action" style="${proFilter==='lifetime'?'background:var(--text-main); color:var(--bg-main);':''}" onclick="adminSetProFilter('lifetime')">Lifetime (${summary.lifetime})</button>
+                    </div>
+
+                    <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span class="form-label" style="margin:0;">PRO Subscriptions</span>
+                        <button class="btn-sm-action" onclick="adminLoadProData().then(renderAdminModalContent)">Refresh</button>
+                    </div>
+
+                    ${listHtml}
+                `;
             } else if (currentAdminTab === 'tenants') {
                 let tenantsHtml = '';
                 if (tenants.length === 0) {
@@ -1112,10 +1250,12 @@
                                 </div>
                                 <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
                                     ${t.sources_count} sources &bull; ${t.targets_count} targets &bull; ${t.swaps_count} swaps
+                                    ${t.is_pro ? (t.pro_expiry ? ` &bull; <span style="color:var(--text-main); font-weight:600;">Exp: ${t.pro_expiry.slice(0, 10)}</span>` : ` &bull; <span style="color:#0a84ff; font-weight:600;">Lifetime VIP</span>`) : ''}
                                 </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <button class="btn-sm-action" onclick="adminTogglePro('${t.tenant_id}')">${t.is_pro ? 'Set Free' : 'Give Pro'}</button>
+                                ${t.is_pro ? `<button class="btn-sm-action" onclick="adminPromptExtendPro('${t.tenant_id}')">Extend</button>` : ''}
                                 <button class="btn-sm-action" onclick="inspectTenant('${t.tenant_id}')">Inspect</button>
                                 <button class="btn-del" onclick="adminRemoveTenant('${t.tenant_id}')" title="Remove"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                             </div>
@@ -1334,6 +1474,7 @@
             body.innerHTML = `
                 <div class="segmented-control">
                     <button class="seg-btn ${currentAdminTab==='overview'?'active':''}" onclick="switchAdminTab('overview')">Overview</button>
+                    <button class="seg-btn ${currentAdminTab==='subscriptions'?'active':''}" onclick="switchAdminTab('subscriptions')">PRO Hub</button>
                     <button class="seg-btn ${currentAdminTab==='tenants'?'active':''}" onclick="switchAdminTab('tenants')">Tenants</button>
                     <button class="seg-btn ${currentAdminTab==='channel'?'active':''}" onclick="switchAdminTab('channel')">Channel</button>
                     <button class="seg-btn ${currentAdminTab==='broadcast'?'active':''}" onclick="switchAdminTab('broadcast')">Broadcast</button>
@@ -1415,6 +1556,114 @@
                 }
             } catch(e) {
                 tg.showAlert("Network error");
+            }
+        }
+
+        function adminSetProFilter(filter) {
+            proFilter = filter;
+            try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
+            renderAdminModalContent();
+        }
+
+        async function adminSendNotice(tenantId, type) {
+            const label = type === 'warning' ? 'CRITICAL WARNING alert' : 'Expiration Notice';
+            if (!confirm(`Send official ${label} to tenant ${tenantId} via Telegram?`)) return;
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_send_tenant_notice', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ tenant_id: tenantId, notice_type: type })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    tg.showAlert(`Successfully sent ${label} to ${tenantId}!`);
+                } else {
+                    tg.showAlert(d.error || 'Failed to deliver notice');
+                }
+            } catch(e) {
+                tg.showAlert('Network error sending notice');
+            }
+        }
+
+        async function adminPromptCustomNotice(tenantId) {
+            const msg = prompt(`Enter custom message to send directly to tenant ${tenantId}:`);
+            if (!msg || !msg.trim()) return;
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_send_tenant_notice', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        tenant_id: tenantId,
+                        notice_type: 'custom',
+                        custom_message: msg.trim()
+                    })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    tg.showAlert(`Custom message delivered to ${tenantId}!`);
+                } else {
+                    tg.showAlert(d.error || 'Failed to deliver custom message');
+                }
+            } catch(e) {
+                tg.showAlert('Network error sending message');
+            }
+        }
+
+        async function adminPromptExtendPro(tenantId) {
+            const choice = prompt(
+                `Manage PRO Subscription for ${tenantId}:\n\n` +
+                `Type one of the options below:\n` +
+                `• '7'   -> Add +7 Days Trial\n` +
+                `• '30'  -> Add +30 Days (1 Month)\n` +
+                `• '90'  -> Add +90 Days (3 Months)\n` +
+                `• 'vip' -> Set to Lifetime VIP\n` +
+                `• 'del' -> Revoke PRO Status`,
+                '30'
+            );
+            if (!choice) return;
+
+            const c = choice.trim().toLowerCase();
+            let action = 'add_days';
+            let days = 30;
+
+            if (c === 'vip' || c === 'lifetime') {
+                action = 'set_lifetime';
+            } else if (c === 'del' || c === 'revoke' || c === '0') {
+                action = 'revoke';
+            } else {
+                days = parseInt(c) || 30;
+                action = 'add_days';
+            }
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_update_pro_subscription', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        tenant_id: tenantId,
+                        action: action,
+                        days: days,
+                        notify_user: true
+                    })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    tg.showAlert(`Updated subscription for ${tenantId}!`);
+                    await adminLoadProData();
+                    openAdminModal();
+                } else {
+                    tg.showAlert(d.error || 'Failed to update subscription');
+                }
+            } catch(e) {
+                tg.showAlert('Network error updating subscription');
             }
         }
 
