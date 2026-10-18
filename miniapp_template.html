@@ -463,8 +463,26 @@
         let currentUserData = {};
         let currentModalType = '';
 
+        let SERVER_USER_ID = "";
+
+        function getEffectiveUserId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryId = urlParams.get('user_id') || urlParams.get('id');
+            const tgId = tg.initDataUnsafe?.user?.id;
+            const savedId = localStorage.getItem('webtgf_user_id');
+            const finalId = tgId || queryId || (SERVER_USER_ID && SERVER_USER_ID !== "" ? SERVER_USER_ID : null) || savedId || '5628105961';
+            localStorage.setItem('webtgf_user_id', String(finalId));
+            return String(finalId);
+        }
+
+
         const userName = tg.initDataUnsafe?.user?.first_name || tg.initDataUnsafe?.user?.username || 'User';
         document.getElementById('user-greeting').innerText = `Hi, ${userName}!`;
+        const effectiveId = getEffectiveUserId();
+        const subTitleEl = document.querySelector('.bot-subtitle');
+        if (subTitleEl) {
+            subTitleEl.innerText = `Account ID: ${effectiveId}`;
+        }
         const photoUrl = tg.initDataUnsafe?.user?.photo_url;
         if (photoUrl) {
             document.getElementById('user-avatar-container').innerHTML = `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
@@ -472,7 +490,7 @@
 
         async function fetchStatus() {
             try {
-                const userId = tg.initDataUnsafe?.user?.id || '123456';
+                const userId = getEffectiveUserId();
                 const response = await fetch('/api/user_status?user_id=' + userId);
                 const data = await response.json();
                 currentUserData = data;
@@ -895,7 +913,7 @@
         }
 
         async function manageChannel(type, action, channelId) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             tg.HapticFeedback.impactOccurred('medium');
             try {
                 const res = await fetch('/api/manage_channel', {
@@ -916,7 +934,7 @@
         }
 
         async function manageSwap(action, oldW, newW = '') {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             tg.HapticFeedback.impactOccurred('medium');
             try {
                 const res = await fetch('/api/manage_swap', {
@@ -936,7 +954,7 @@
         }
 
         async function toggleSetting(key, val) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             tg.HapticFeedback.impactOccurred('light');
             currentUserData[key] = val;
             try {
@@ -949,7 +967,7 @@
         }
 
         async function saveBranding() {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             const link = document.getElementById('inp-global-link').value.trim();
             const excl = document.getElementById('inp-exclude-links').value.trim();
             const user = document.getElementById('inp-global-user').value.trim();
@@ -973,7 +991,7 @@
         }
 
         async function addCtaBtn() {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             const text = document.getElementById('cta-text').value.trim();
             const url = document.getElementById('cta-url').value.trim();
             if (!text || !url) return tg.showAlert("Please enter both text and URL");
@@ -994,7 +1012,7 @@
         }
 
         async function removeCtaBtn(index) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             tg.HapticFeedback.impactOccurred('medium');
             try {
                 const res = await fetch('/api/manage_cta', {
@@ -1012,7 +1030,7 @@
         }
 
         async function saveMediaUrl(type) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             const val = document.getElementById(type === 'image' ? 'inp-img-url' : 'inp-vid-url').value.trim();
             tg.HapticFeedback.notificationOccurred('success');
             try {
@@ -1040,7 +1058,7 @@
         }
 
         async function saveWatermarkRules() {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             const target = document.getElementById('inp-wm-target').value.trim();
             const rep = document.getElementById('inp-wm-replace')?.value.trim() || '';
             tg.HapticFeedback.notificationOccurred('success');
@@ -1063,7 +1081,7 @@
         }
 
         async function setDripInterval(seconds) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             tg.HapticFeedback.impactOccurred('medium');
             try {
                 const res = await fetch('/api/set_drip', {
@@ -1087,7 +1105,7 @@
         }
 
         async function saveSleepMode() {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             const enabled = document.getElementById('chk-sleep-enabled').checked;
             const start = document.getElementById('inp-sleep-start').value;
             const end = document.getElementById('inp-sleep-end').value;
@@ -1110,7 +1128,7 @@
         }
 
         async function saveDeletionLimit() {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
+            const userId = getEffectiveUserId();
             const lim = parseInt(document.getElementById('inp-del-limit').value) || 0;
             tg.HapticFeedback.notificationOccurred('success');
             try {

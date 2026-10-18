@@ -919,7 +919,11 @@ def api_save_auto_delete():
 
 @app.route('/miniapp')
 def miniapp():
-    return get_miniapp_html()
+    ADMIN_ID = os.getenv("ADMIN_ID", "5628105961")
+    resolved_id = session.get('chat_id') or request.args.get('user_id') or request.args.get('id') or ADMIN_ID
+    html = get_miniapp_html()
+    html = html.replace('let SERVER_USER_ID = "";', f'let SERVER_USER_ID = "{resolved_id}";')
+    return html
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
