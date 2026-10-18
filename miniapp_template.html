@@ -229,6 +229,7 @@
         .chip.active { background: rgba(37, 99, 235, 0.12); color: var(--accent); }
         .chip.off { background: var(--border-color); color: var(--text-muted); }
         .chip.pro { background: rgba(10, 132, 255, 0.12); color: var(--accent); }
+        .chip.locked { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
 
         /* iOS Switch */
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
@@ -294,6 +295,34 @@
             fill: none;
         }
 
+        /* Segmented Control for Tabs */
+        .segmented-control {
+            display: flex;
+            background: var(--border-color);
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 14px;
+            gap: 2px;
+        }
+        .seg-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            text-align: center;
+        }
+        .seg-btn.active {
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
         /* Modals */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -312,7 +341,7 @@
         .modal-overlay.active { display: block; opacity: 1; }
         
         .modal-drag { width: 36px; height: 4px; background: var(--border-color); border-radius: 2px; margin: 10px auto; }
-        .modal-header { padding: 4px 18px 16px; border-bottom: 1px solid var(--border-color); }
+        .modal-header { padding: 4px 18px 14px; border-bottom: 1px solid var(--border-color); }
         .modal-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .modal-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
         .modal-subtitle { font-size: 13px; color: var(--text-muted); }
@@ -402,7 +431,6 @@
         }
         .btn-del svg { width: 16px; height: 16px; }
 
-        /* Admin Action Buttons */
         .btn-sm-action {
             background: var(--border-color);
             color: var(--text-main);
@@ -415,7 +443,6 @@
         }
         .btn-sm-action:active { opacity: 0.8; }
 
-        /* Empty state */
         .empty-state {
             padding: 32px 16px;
             text-align: center;
@@ -571,7 +598,7 @@
                 <div class="item-subtitle" id="sub-video">Replace incoming videos with custom clip</div>
             </div>
             <div class="item-right">
-                <span class="chip pro">PRO</span>
+                <span class="chip" id="badge-video">PRO</span>
                 <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
         </div>
@@ -583,7 +610,7 @@
                 <div class="item-subtitle" id="sub-watermark">Detect and replace competitor logos</div>
             </div>
             <div class="item-right">
-                <span class="chip pro">PRO</span>
+                <span class="chip" id="badge-watermark">PRO</span>
                 <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
         </div>
@@ -595,7 +622,7 @@
                 <div class="item-subtitle" id="sub-cta">Inline URL buttons attached to posts</div>
             </div>
             <div class="item-right">
-                <span class="chip pro">PRO</span>
+                <span class="chip" id="badge-cta">PRO</span>
                 <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
         </div>
@@ -611,7 +638,7 @@
                 <div class="item-subtitle" id="sub-drip">Release posts on a controlled delay</div>
             </div>
             <div class="item-right">
-                <span class="chip pro">PRO</span>
+                <span class="chip" id="badge-drip">PRO</span>
                 <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
         </div>
@@ -623,7 +650,7 @@
                 <div class="item-subtitle" id="sub-sleep">Quiet night hours auto-pause</div>
             </div>
             <div class="item-right">
-                <span class="chip pro">PRO</span>
+                <span class="chip" id="badge-sleep">PRO</span>
                 <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
         </div>
@@ -635,7 +662,7 @@
                 <div class="item-subtitle" id="sub-limit">Keep only the last N posts in target</div>
             </div>
             <div class="item-right">
-                <span class="chip pro">PRO</span>
+                <span class="chip" id="badge-limit">PRO</span>
                 <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
         </div>
@@ -656,14 +683,14 @@
             </label>
         </div>
 
-        <div class="list-item" onclick="document.getElementById('toggle-mirror-delete').click()">
+        <div class="list-item" onclick="handleMirrorClick()">
             <div class="icon-box"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></div>
             <div class="item-text">
-                <div class="item-title">Mirror Deletion <span class="chip pro" style="font-size:8px; padding:1px 4px;">PRO</span></div>
+                <div class="item-title">Mirror Deletion <span class="chip" id="badge-mirror" style="font-size:8px; padding:1px 4px;">PRO</span></div>
                 <div class="item-subtitle">Delete forwarded posts if deleted in source</div>
             </div>
             <label class="switch" onclick="event.stopPropagation()">
-                <input type="checkbox" id="toggle-mirror-delete" onchange="toggleSetting('mirror_delete', this.checked)">
+                <input type="checkbox" id="toggle-mirror-delete" onchange="handleMirrorChange(this)">
                 <span class="slider"></span>
             </label>
         </div>
@@ -714,7 +741,7 @@
         <div class="modal-header">
             <div class="modal-header-top">
                 <div class="modal-title">
-                    <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
                     Admin Control Center
                 </div>
                 <button class="modal-close" onclick="closeAdminModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
@@ -722,7 +749,7 @@
             <div class="modal-subtitle">Platform overview, tenants, toggles, broadcast, and logs</div>
         </div>
         <div class="modal-body" id="admin-modal-body">
-            <!-- Dynamically populated in openAdminModal() -->
+            <!-- Dynamically populated in openAdminModal() with segmented tabs -->
         </div>
     </div>
 
@@ -779,6 +806,8 @@
         let currentModalType = '';
         let SERVER_USER_ID = "";
         let inspectedTenantId = null;
+        let adminCachedData = null;
+        let currentAdminTab = 'overview';
 
         function getEffectiveUserId() {
             if (inspectedTenantId) return String(inspectedTenantId);
@@ -881,7 +910,65 @@
             fetchStatus();
         }
 
-        // --- ADMIN MODAL CONTROLLER ---
+        // --- FEATURE ACCESS ENFORCEMENT ---
+        function canAccessFeature(type) {
+            if (currentUserData.is_admin) return { ok: true };
+            const toggles = currentUserData.feature_toggles || {};
+
+            // 1. Check Admin Locks
+            if (type === 'drip' && !toggles.drip_posting_unlocked) {
+                return { ok: false, msg: "This feature is currently locked by the Admin." };
+            }
+            if (type === 'watermark' && !toggles.ai_watermark_unlocked) {
+                return { ok: false, msg: "This feature is currently locked by the Admin." };
+            }
+            if (type === 'sleep' && !toggles.sleep_mode_unlocked) {
+                return { ok: false, msg: "This feature is currently locked by the Admin." };
+            }
+            if ((type === 'deletion' || type === 'mirror_delete') && !toggles.deletion_unlocked) {
+                return { ok: false, msg: "This feature is currently locked by the Admin." };
+            }
+            if (type === 'cta' && toggles.cta_buttons_unlocked === false) {
+                return { ok: false, msg: "This feature is currently locked by the Admin." };
+            }
+            if (type === 'video' && toggles.video_swap_unlocked === false) {
+                return { ok: false, msg: "This feature is currently locked by the Admin." };
+            }
+
+            // 2. Check PRO requirement
+            const proFeatures = ['video', 'watermark', 'cta', 'drip', 'sleep', 'deletion', 'mirror_delete'];
+            if (proFeatures.includes(type) && !currentUserData.is_pro) {
+                return { ok: false, msg: "This is a PRO feature. Contact administrator @apklord55 to upgrade." };
+            }
+
+            return { ok: true };
+        }
+
+        function handleMirrorClick() {
+            const chk = document.getElementById('toggle-mirror-delete');
+            if (!chk) return;
+            const access = canAccessFeature('mirror_delete');
+            if (!access.ok) {
+                try { tg.HapticFeedback?.notificationOccurred('warning'); } catch(e){}
+                tg.showAlert(access.msg);
+                return;
+            }
+            chk.checked = !chk.checked;
+            toggleSetting('mirror_delete', chk.checked);
+        }
+
+        function handleMirrorChange(chk) {
+            const access = canAccessFeature('mirror_delete');
+            if (!access.ok) {
+                chk.checked = false;
+                try { tg.HapticFeedback?.notificationOccurred('warning'); } catch(e){}
+                tg.showAlert(access.msg);
+                return;
+            }
+            toggleSetting('mirror_delete', chk.checked);
+        }
+
+        // --- ORGANIZED ADMIN MODAL WITH TABS ---
         async function openAdminModal() {
             try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
             const modal = document.getElementById('admin-modal');
@@ -899,11 +986,116 @@
                     body.innerHTML = `<div class="empty-state"><div class="empty-title">Access Denied</div><div>${d.error || 'Admin privileges required.'}</div></div>`;
                     return;
                 }
+                adminCachedData = d;
+                renderAdminModalContent();
+            } catch(e) {
+                body.innerHTML = `<div class="empty-state"><div class="empty-title">Network Error</div><div>Unable to reach admin API.</div></div>`;
+            }
+        }
 
-                const stats = d.stats || { total: 0, today: 0 };
-                const tenants = d.tenants || [];
-                const toggles = d.toggles || {};
+        function switchAdminTab(tabName) {
+            currentAdminTab = tabName;
+            try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
+            renderAdminModalContent();
+        }
 
+        function renderAdminModalContent() {
+            const body = document.getElementById('admin-modal-body');
+            const d = adminCachedData;
+            if (!d) return;
+
+            const stats = d.stats || { total: 0, today: 0 };
+            const tenants = d.tenants || [];
+            const toggles = d.toggles || {};
+
+            let tabHtml = '';
+
+            if (currentAdminTab === 'overview') {
+                tabHtml = `
+                    <div class="stats-grid" style="margin: 0 0 14px;">
+                        <div class="stat-card">
+                            <div class="stat-value">${d.total_tenants || tenants.length}</div>
+                            <div class="stat-label">Total Tenants</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${d.pro_count || 0}</div>
+                            <div class="stat-label">Pro Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.total || 0}</div>
+                            <div class="stat-label">Total Forwards</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.today || 0}</div>
+                            <div class="stat-label">Today's Activity</div>
+                        </div>
+                    </div>
+
+                    <div class="section-label" style="padding: 10px 0 6px;">Global Feature Toggles</div>
+                    <div class="list-group" style="margin: 0;">
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">Drip Posting</div>
+                                <div class="item-subtitle">Enable scheduled pacer for tenants</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.drip_posting_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('drip_posting_unlocked', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">AI Watermark Engine</div>
+                                <div class="item-subtitle">Enable watermark logo hunter for tenants</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.ai_watermark_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('ai_watermark_unlocked', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">Sleep Mode</div>
+                                <div class="item-subtitle">Enable quiet night hours for tenants</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.sleep_mode_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('sleep_mode_unlocked', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">Deletion Suite</div>
+                                <div class="item-subtitle">Enable mirror delete and rolling limit</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.deletion_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('deletion_unlocked', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">CTA Buttons</div>
+                                <div class="item-subtitle">Enable inline action buttons</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.cta_buttons_unlocked !== false ? 'checked' : ''} onchange="adminToggleGlobalFeature('cta_buttons_unlocked', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">Video Swap Override</div>
+                                <div class="item-subtitle">Enable video replacement feature</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.video_swap_unlocked !== false ? 'checked' : ''} onchange="adminToggleGlobalFeature('video_swap_unlocked', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            } else if (currentAdminTab === 'tenants') {
                 let tenantsHtml = '';
                 if (tenants.length === 0) {
                     tenantsHtml = '<div style="text-align:center; color:var(--text-muted); padding:16px;">No registered tenants found.</div>';
@@ -928,30 +1120,7 @@
                     `).join('');
                 }
 
-                body.innerHTML = `
-                    <!-- 1. Platform Analytics -->
-                    <div class="section-label" style="padding-top:0;">Platform Analytics</div>
-                    <div class="stats-grid" style="margin: 0 0 14px;">
-                        <div class="stat-card">
-                            <div class="stat-value">${d.total_tenants || tenants.length}</div>
-                            <div class="stat-label">Total Tenants</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">${d.pro_count || 0}</div>
-                            <div class="stat-label">Pro Users</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">${stats.total || 0}</div>
-                            <div class="stat-label">Total Forwards</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">${stats.today || 0}</div>
-                            <div class="stat-label">Today's Activity</div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Tenant Management -->
-                    <div class="section-label" style="padding-top:0;">Tenant Management</div>
+                tabHtml = `
                     <div class="form-card">
                         <div class="form-label">Add New Tenant ID</div>
                         <div style="display:flex; gap:8px;">
@@ -964,83 +1133,33 @@
                         <div class="form-label" style="margin-bottom:8px;">Active Tenants (${tenants.length})</div>
                         ${tenantsHtml}
                     </div>
-
-                    <!-- 3. Global Feature Toggles -->
-                    <div class="section-label" style="padding-top:0;">Global Feature Toggles</div>
-                    <div class="list-group" style="margin: 0 0 14px;">
-                        <div class="list-item">
-                            <div class="item-text">
-                                <div class="item-title">Drip Posting</div>
-                                <div class="item-subtitle">Enable scheduled pacer for all users</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" ${toggles.drip_posting_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('drip_posting_unlocked', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="list-item">
-                            <div class="item-text">
-                                <div class="item-title">AI Watermark Engine</div>
-                                <div class="item-subtitle">Enable AI watermark hunter for all users</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" ${toggles.ai_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('ai_unlocked', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="list-item">
-                            <div class="item-text">
-                                <div class="item-title">Sleep Mode</div>
-                                <div class="item-subtitle">Enable night quiet hours for all users</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" ${toggles.sleep_mode_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('sleep_mode_unlocked', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="list-item">
-                            <div class="item-text">
-                                <div class="item-title">Deletion Suite</div>
-                                <div class="item-subtitle">Enable mirror delete and rolling limit</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" ${toggles.deletion_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('deletion_unlocked', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="list-item">
-                            <div class="item-text">
-                                <div class="item-title">CTA Buttons</div>
-                                <div class="item-subtitle">Enable inline action buttons</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" ${toggles.cta_unlocked ? 'checked' : ''} onchange="adminToggleGlobalFeature('cta_unlocked', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="list-item">
-                            <div class="item-text">
-                                <div class="item-title">Video Swap Override</div>
-                                <div class="item-subtitle">Enable video replacement feature</div>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" ${toggles.video_swap_unlocked !== false ? 'checked' : ''} onchange="adminToggleGlobalFeature('video_swap_unlocked', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 4. Tenant Broadcast -->
-                    <div class="section-label" style="padding-top:0;">Tenant Broadcast</div>
+                `;
+            } else if (currentAdminTab === 'broadcast') {
+                tabHtml = `
+                    <!-- AI Broadcast Generator -->
                     <div class="form-card">
-                        <div class="form-label">Broadcast Announcement</div>
-                        <div class="form-hint">Message sent directly via bot to all active tenants.</div>
-                        <textarea id="inp-admin-broadcast-msg" class="form-input" style="height:70px; resize:none; margin-bottom:8px;" placeholder="Write message to broadcast to all tenants..."></textarea>
-                        <button class="btn-submit" onclick="adminSendBroadcast()">Send Broadcast</button>
+                        <div class="form-label">AI Announcement Generator</div>
+                        <div class="form-hint">Tell AI what you want to announce (e.g. 'tell tenants our server is upgraded with zero latency').</div>
+                        <input type="text" id="inp-admin-ai-prompt" class="form-input" placeholder="Enter topic or announcement goal..." style="margin-bottom:8px;">
+                        <button class="btn-submit" id="btn-admin-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateAiBroadcast()">Generate with AI</button>
                     </div>
 
-                    <!-- 5. Admin API Configuration -->
-                    <div class="section-label" style="padding-top:0;">Core Telegram API Config</div>
+                    <!-- Broadcast Message -->
+                    <div class="form-card">
+                        <div class="form-label">Broadcast Message</div>
+                        <textarea id="inp-admin-broadcast-msg" class="form-input" style="height:80px; resize:none; margin-bottom:12px;" placeholder="Message to deliver to all tenants..."></textarea>
+
+                        <!-- Native Bot Inline Button -->
+                        <div class="form-label">Attach Native Telegram Button (Optional)</div>
+                        <div class="form-hint">Adds an interactive clickable button with a link below the message.</div>
+                        <input type="text" id="inp-admin-btn-text" class="form-input" placeholder="Button Label (e.g. Open Channel)" style="margin-bottom:8px;">
+                        <input type="text" id="inp-admin-btn-url" class="form-input" placeholder="Button URL (e.g. https://t.me/mychannel)" style="margin-bottom:12px;">
+
+                        <button class="btn-submit" onclick="adminSendBroadcast()">Send Broadcast to All Tenants</button>
+                    </div>
+                `;
+            } else if (currentAdminTab === 'system') {
+                tabHtml = `
                     <div class="form-card">
                         <div class="form-label">Telegram API ID</div>
                         <input type="text" id="inp-admin-api-id" class="form-input" value="${d.api_id || ''}" style="margin-bottom:8px;">
@@ -1051,8 +1170,6 @@
                         <button class="btn-submit" onclick="adminSaveApiConfig()">Save API Config</button>
                     </div>
 
-                    <!-- 6. System Logs -->
-                    <div class="section-label" style="padding-top:0;">System Logs</div>
                     <div class="form-card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <span class="form-label" style="margin-bottom:0;">Forwarder Log (Last 60 lines)</span>
@@ -1061,9 +1178,17 @@
                         <pre id="admin-logs-viewer" style="background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:10px; font-size:11px; font-family:monospace; max-height:180px; overflow-y:auto; white-space:pre-wrap; color:var(--text-main);">Tap 'Refresh' to inspect live forwarder logs.</pre>
                     </div>
                 `;
-            } catch(e) {
-                body.innerHTML = `<div class="empty-state"><div class="empty-title">Network Error</div><div>Unable to reach admin API.</div></div>`;
             }
+
+            body.innerHTML = `
+                <div class="segmented-control">
+                    <button class="seg-btn ${currentAdminTab==='overview'?'active':''}" onclick="switchAdminTab('overview')">Overview</button>
+                    <button class="seg-btn ${currentAdminTab==='tenants'?'active':''}" onclick="switchAdminTab('tenants')">Tenants</button>
+                    <button class="seg-btn ${currentAdminTab==='broadcast'?'active':''}" onclick="switchAdminTab('broadcast')">Broadcast</button>
+                    <button class="seg-btn ${currentAdminTab==='system'?'active':''}" onclick="switchAdminTab('system')">System</button>
+                </div>
+                ${tabHtml}
+            `;
         }
 
         function closeAdminModal() {
@@ -1149,14 +1274,57 @@
                     headers: getAuthHeaders(),
                     body: JSON.stringify({ feature: feature, value: val })
                 });
+                if (adminCachedData && adminCachedData.toggles) {
+                    adminCachedData.toggles[feature] = val;
+                }
             } catch(e) {
                 tg.showAlert("Failed to toggle feature");
             }
         }
 
+        async function adminGenerateAiBroadcast() {
+            const promptInput = document.getElementById('inp-admin-ai-prompt');
+            const prompt = promptInput ? promptInput.value.trim() : '';
+            if (!prompt) return tg.showAlert("Please describe what to announce.");
+
+            const btn = document.getElementById('btn-admin-ai-gen');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Generating announcement with Gemini...";
+            }
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_ai_generate_broadcast', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const d = await res.json();
+                if (d.success && d.generated_message) {
+                    const msgArea = document.getElementById('inp-admin-broadcast-msg');
+                    if (msgArea) msgArea.value = d.generated_message;
+                    tg.showAlert("AI announcement generated!");
+                } else {
+                    tg.showAlert(d.error || "Failed to generate announcement");
+                }
+            } catch(e) {
+                tg.showAlert("Network error during AI generation");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Generate with AI";
+                }
+            }
+        }
+
         async function adminSendBroadcast() {
             const txt = document.getElementById('inp-admin-broadcast-msg').value.trim();
+            const btnText = document.getElementById('inp-admin-btn-text').value.trim();
+            const btnUrl = document.getElementById('inp-admin-btn-url').value.trim();
+
             if (!txt) return tg.showAlert("Please enter a message to broadcast.");
+            if (btnText && !btnUrl) return tg.showAlert("Please provide a URL for the button.");
             if (!confirm("Send broadcast announcement to all active tenants?")) return;
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
@@ -1164,12 +1332,14 @@
                 const res = await fetch('/api/admin_broadcast', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ message: txt })
+                    body: JSON.stringify({ message: txt, button_text: btnText, button_url: btnUrl })
                 });
                 const d = await res.json();
                 if (d.success) {
-                    tg.showAlert(`Broadcast sent to ${d.sent}/${d.total} tenants.`);
+                    tg.showAlert(`Broadcast delivered to ${d.sent}/${d.total} tenants.`);
                     document.getElementById('inp-admin-broadcast-msg').value = '';
+                    document.getElementById('inp-admin-btn-text').value = '';
+                    document.getElementById('inp-admin-btn-url').value = '';
                 } else {
                     tg.showAlert(d.error || "Failed to broadcast");
                 }
@@ -1251,6 +1421,7 @@
                 }
                 
                 currentUserData = data;
+                const toggles = data.feature_toggles || {};
 
                 // Show Round Floating Admin FAB if Admin
                 const fab = document.getElementById('admin-fab');
@@ -1331,39 +1502,122 @@
                     document.getElementById('chip-img').className = 'chip off';
                 }
 
-                // Video Override
-                document.getElementById('sub-video').innerText = data.video_swap_url ? 'Custom override video active' : 'Replace incoming videos with custom clip';
-
-                // AI Watermark
-                if (data.ai_watermark_mode && data.ai_watermark_mode !== 'off') {
-                    document.getElementById('sub-watermark').innerText = `Active mode: ${data.ai_watermark_mode.toUpperCase()}`;
+                // Video Badge & Subtitle
+                const videoBadge = document.getElementById('badge-video');
+                if (toggles.video_swap_unlocked === false && !data.is_admin) {
+                    videoBadge.innerText = 'LOCKED';
+                    videoBadge.className = 'chip locked';
+                    document.getElementById('sub-video').innerText = 'Locked by Administrator';
+                } else if (!data.is_pro) {
+                    videoBadge.innerText = 'PRO';
+                    videoBadge.className = 'chip pro';
+                    document.getElementById('sub-video').innerText = 'Upgrade to PRO to unlock video swapper';
                 } else {
-                    document.getElementById('sub-watermark').innerText = 'Detect and replace competitor logos';
+                    videoBadge.innerText = data.video_swap_url ? 'CUSTOM' : 'ACTIVE';
+                    videoBadge.className = data.video_swap_url ? 'chip active' : 'chip off';
+                    document.getElementById('sub-video').innerText = data.video_swap_url ? 'Custom override video active' : 'Replace incoming videos with custom clip';
                 }
 
-                // CTA
-                document.getElementById('sub-cta').innerText = ctaCount > 0 ? `${ctaCount} active buttons` : 'Inline URL buttons attached to posts';
-
-                // Drip
-                if (data.drip_interval > 0) {
-                    const sec = data.drip_interval;
-                    document.getElementById('sub-drip').innerText = sec < 60 ? `Every ${sec} seconds` : `Every ${Math.round(sec/60)} minutes`;
+                // AI Watermark Badge & Subtitle
+                const wmBadge = document.getElementById('badge-watermark');
+                if (!toggles.ai_watermark_unlocked && !data.is_admin) {
+                    wmBadge.innerText = 'LOCKED';
+                    wmBadge.className = 'chip locked';
+                    document.getElementById('sub-watermark').innerText = 'Locked by Administrator';
+                } else if (!data.is_pro) {
+                    wmBadge.innerText = 'PRO';
+                    wmBadge.className = 'chip pro';
+                    document.getElementById('sub-watermark').innerText = 'Upgrade to PRO to unlock watermark engine';
                 } else {
-                    document.getElementById('sub-drip').innerText = 'Release posts on a controlled delay';
+                    const isActive = data.ai_watermark_mode && data.ai_watermark_mode !== 'off';
+                    wmBadge.innerText = isActive ? data.ai_watermark_mode.toUpperCase() : 'OFF';
+                    wmBadge.className = isActive ? 'chip active' : 'chip off';
+                    document.getElementById('sub-watermark').innerText = isActive ? `Active mode: ${data.ai_watermark_mode.toUpperCase()}` : 'Detect and replace competitor logos';
                 }
 
-                // Sleep
-                if (data.sleep_mode && data.sleep_mode.enabled) {
-                    document.getElementById('sub-sleep').innerText = `Active: ${data.sleep_mode.start_time} - ${data.sleep_mode.end_time}`;
+                // CTA Badge & Subtitle
+                const ctaBadge = document.getElementById('badge-cta');
+                if (toggles.cta_buttons_unlocked === false && !data.is_admin) {
+                    ctaBadge.innerText = 'LOCKED';
+                    ctaBadge.className = 'chip locked';
+                    document.getElementById('sub-cta').innerText = 'Locked by Administrator';
+                } else if (!data.is_pro) {
+                    ctaBadge.innerText = 'PRO';
+                    ctaBadge.className = 'chip pro';
+                    document.getElementById('sub-cta').innerText = 'Upgrade to PRO to attach CTA buttons';
                 } else {
-                    document.getElementById('sub-sleep').innerText = 'Quiet night hours auto-pause';
+                    ctaBadge.innerText = ctaCount > 0 ? `${ctaCount}` : 'ACTIVE';
+                    ctaBadge.className = ctaCount > 0 ? 'chip active' : 'chip off';
+                    document.getElementById('sub-cta').innerText = ctaCount > 0 ? `${ctaCount} active buttons` : 'Inline URL buttons attached to posts';
                 }
 
-                // Limit
-                if (data.auto_delete_limit > 0) {
-                    document.getElementById('sub-limit').innerText = `Keep last ${data.auto_delete_limit} messages in target`;
+                // Drip Badge & Subtitle
+                const dripBadge = document.getElementById('badge-drip');
+                if (!toggles.drip_posting_unlocked && !data.is_admin) {
+                    dripBadge.innerText = 'LOCKED';
+                    dripBadge.className = 'chip locked';
+                    document.getElementById('sub-drip').innerText = 'Locked by Administrator';
+                } else if (!data.is_pro) {
+                    dripBadge.innerText = 'PRO';
+                    dripBadge.className = 'chip pro';
+                    document.getElementById('sub-drip').innerText = 'Upgrade to PRO to unlock drip posting';
                 } else {
-                    document.getElementById('sub-limit').innerText = 'Keep only the last N posts in target';
+                    const isDrip = data.drip_interval > 0;
+                    dripBadge.innerText = isDrip ? `${data.drip_interval}s` : 'OFF';
+                    dripBadge.className = isDrip ? 'chip active' : 'chip off';
+                    if (isDrip) {
+                        const sec = data.drip_interval;
+                        document.getElementById('sub-drip').innerText = sec < 60 ? `Every ${sec} seconds` : `Every ${Math.round(sec/60)} minutes`;
+                    } else {
+                        document.getElementById('sub-drip').innerText = 'Release posts on a controlled delay';
+                    }
+                }
+
+                // Sleep Badge & Subtitle
+                const sleepBadge = document.getElementById('badge-sleep');
+                if (!toggles.sleep_mode_unlocked && !data.is_admin) {
+                    sleepBadge.innerText = 'LOCKED';
+                    sleepBadge.className = 'chip locked';
+                    document.getElementById('sub-sleep').innerText = 'Locked by Administrator';
+                } else if (!data.is_pro) {
+                    sleepBadge.innerText = 'PRO';
+                    sleepBadge.className = 'chip pro';
+                    document.getElementById('sub-sleep').innerText = 'Upgrade to PRO to unlock quiet hours';
+                } else {
+                    const isSleep = data.sleep_mode && data.sleep_mode.enabled;
+                    sleepBadge.innerText = isSleep ? 'ACTIVE' : 'OFF';
+                    sleepBadge.className = isSleep ? 'chip active' : 'chip off';
+                    document.getElementById('sub-sleep').innerText = isSleep ? `Active: ${data.sleep_mode.start_time} - ${data.sleep_mode.end_time}` : 'Quiet night hours auto-pause';
+                }
+
+                // Limit Badge & Subtitle
+                const limitBadge = document.getElementById('badge-limit');
+                if (!toggles.deletion_unlocked && !data.is_admin) {
+                    limitBadge.innerText = 'LOCKED';
+                    limitBadge.className = 'chip locked';
+                    document.getElementById('sub-limit').innerText = 'Locked by Administrator';
+                } else if (!data.is_pro) {
+                    limitBadge.innerText = 'PRO';
+                    limitBadge.className = 'chip pro';
+                    document.getElementById('sub-limit').innerText = 'Upgrade to PRO to unlock message limits';
+                } else {
+                    const isLimit = data.auto_delete_limit > 0;
+                    limitBadge.innerText = isLimit ? `${data.auto_delete_limit}` : 'OFF';
+                    limitBadge.className = isLimit ? 'chip active' : 'chip off';
+                    document.getElementById('sub-limit').innerText = isLimit ? `Keep last ${data.auto_delete_limit} messages in target` : 'Keep only the last N posts in target';
+                }
+
+                // Mirror Delete Badge
+                const mirrorBadge = document.getElementById('badge-mirror');
+                if (!toggles.deletion_unlocked && !data.is_admin) {
+                    mirrorBadge.innerText = 'LOCKED';
+                    mirrorBadge.className = 'chip locked';
+                } else if (!data.is_pro) {
+                    mirrorBadge.innerText = 'PRO';
+                    mirrorBadge.className = 'chip pro';
+                } else {
+                    mirrorBadge.innerText = data.mirror_delete ? 'ACTIVE' : 'PRO';
+                    mirrorBadge.className = data.mirror_delete ? 'chip active' : 'chip pro';
                 }
 
                 // Switches
@@ -1381,6 +1635,14 @@
 
         // --- UNIVERSAL MODAL POPUPS ---
         function openModal(type) {
+            // Check feature lock and pro permissions
+            const access = canAccessFeature(type);
+            if (!access.ok) {
+                try { tg.HapticFeedback?.notificationOccurred('warning'); } catch(e){}
+                tg.showAlert(access.msg);
+                return;
+            }
+
             currentModalType = type;
             const titleEl = document.getElementById('modal-title');
             const subEl = document.getElementById('modal-subtitle');
@@ -1608,11 +1870,17 @@
         async function toggleSetting(key, val) {
             const userId = getEffectiveUserId();
             try {
-                await fetch('/api/toggle_setting', {
+                const res = await fetch('/api/toggle_setting', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, key: key, val: val })
                 });
+                const d = await res.json();
+                if (!d.success) {
+                    tg.showAlert(d.error || "Failed to update setting");
+                    fetchStatus();
+                    return;
+                }
                 currentUserData[key] = val;
             } catch(e) { tg.showAlert("Network error"); }
         }
@@ -1715,6 +1983,8 @@
                     renderCtaCustomModal();
                     document.getElementById('stat-cta').innerText = d.cta_buttons.length;
                     document.getElementById('sub-cta').innerText = `${d.cta_buttons.length} active buttons`;
+                } else {
+                    tg.showAlert(d.error || "Failed to add button");
                 }
             } catch(e) { tg.showAlert("Network error"); }
         }
@@ -1775,6 +2045,8 @@
                     }
                     tg.showAlert("Media override updated");
                     closeModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to save media override");
                 }
             } catch(e) { tg.showAlert("Network error"); }
         }
@@ -1827,6 +2099,8 @@
                     document.getElementById('sub-watermark').innerText = m !== 'off' ? `Active mode: ${m.toUpperCase()}` : 'Detect and replace competitor logos';
                     tg.showAlert("Watermark configuration saved");
                     closeModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to save watermark");
                 }
             } catch(e) { tg.showAlert("Network error"); }
         }
@@ -1866,6 +2140,8 @@
                         tg.showAlert("Drip pacing disabled");
                     }
                     closeModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to set drip");
                 }
             } catch(e) { tg.showAlert("Network error"); }
         }
@@ -1910,6 +2186,8 @@
                     document.getElementById('sub-sleep').innerText = en ? `Active: ${st} - ${et}` : 'Quiet night hours auto-pause';
                     tg.showAlert(en ? `Sleep mode active between ${st} and ${et}` : "Sleep mode disabled");
                     closeModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to save sleep mode");
                 }
             } catch(e) { tg.showAlert("Network error"); }
         }
@@ -1944,6 +2222,8 @@
                     document.getElementById('sub-limit').innerText = lim > 0 ? `Keep last ${lim} messages in target` : 'Keep only the last N posts in target';
                     tg.showAlert(lim > 0 ? `Auto-delete limit set to ${lim} posts` : "Auto-delete limit disabled");
                     closeModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to set auto-delete limit");
                 }
             } catch(e) { tg.showAlert("Network error"); }
         }

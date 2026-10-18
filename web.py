@@ -945,6 +945,9 @@ def api_admin_broadcast():
 
     data = request.json or {}
     msg_text = str(data.get('message', '')).strip()
+    btn_text = str(data.get('button_text', '')).strip()
+    btn_url = str(data.get('button_url', '')).strip()
+
     if not msg_text:
         return jsonify({"error": "Message cannot be empty"}), 400
 
@@ -956,12 +959,27 @@ def api_admin_broadcast():
     tenants = get_tenants()
     import requests, time
 
+    payload_base = {
+        "text": msg_text,
+        "parse_mode": "HTML"
+    }
+
+    if btn_text and btn_url:
+        if not btn_url.startswith(('http://', 'https://', 't.me/')):
+            btn_url = 'https://' + btn_url
+        payload_base["reply_markup"] = {
+            "inline_keyboard": [
+                [{"text": btn_text, "url": btn_url}]
+            ]
+        }
+
     sent = 0
     for t in tenants:
         try:
+            p = {**payload_base, "chat_id": t}
             r = requests.post(
                 f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                json={"chat_id": t, "text": msg_text, "parse_mode": "HTML"},
+                json=p,
                 timeout=8
             )
             if r.status_code == 200:
@@ -971,6 +989,55 @@ def api_admin_broadcast():
             pass
 
     return jsonify({"success": True, "sent": sent, "total": len(tenants)})
+
+@app.route('/api/admin_ai_generate_broadcast', methods=['POST'])
+def api_admin_ai_generate_broadcast():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    user_prompt = str(data.get('prompt', '')).strip()
+    if not user_prompt:
+        return jsonify({"error": "Prompt cannot be empty"}), 400
+
+    gemini_key = os.getenv('GEMINI_API_KEY')
+    if not gemini_key:
+        return jsonify({"error": "GEMINI_API_KEY not found in environment"}), 500
+
+    try:
+        from google import genai
+        client = genai.Client(api_key=gemini_key)
+        prompt = (
+            f"You are an expert community manager for a Telegram channel forwarder bot. "
+            f"Write an engaging, professional broadcast announcement based on these instructions: {user_prompt}. "
+            f"Format with clean paragraphs and bullet points. Output ONLY the announcement text itself. "
+            f"Do not include intro or outro commentary."
+        )
+
+        models_to_try = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-1.5-flash']
+        generated_text = None
+        last_err = None
+
+        for m in models_to_try:
+            try:
+                resp = client.models.generate_content(
+                    model=m,
+                    contents=prompt
+                )
+                if resp and resp.text:
+                    generated_text = resp.text.strip()
+                    break
+            except Exception as e:
+                last_err = e
+
+        if not generated_text:
+            return jsonify({"error": f"AI generation failed: {last_err}"}), 500
+
+        return jsonify({"success": True, "generated_message": generated_text})
+    except Exception as e:
+        return jsonify({"error": f"AI generator error: {e}"}), 500
 
 @app.route('/api/admin_update_api_config', methods=['POST'])
 def api_admin_update_api_config():
@@ -1017,6 +1084,30 @@ def api_admin_logs():
 
     return jsonify({"success": True, "logs": logs})
 
+def check_feature_access(user_id, feature_key=None, requires_pro=True):
+    ADMIN_ID = str(os.getenv("ADMIN_ID", "5628105961"))
+    if str(user_id) == ADMIN_ID:
+        return None
+    from database_manager import get_user_data, get_feature_toggles
+    user_data = get_user_data(user_id)
+    is_pro = user_data.get('is_pro', False)
+    toggles = get_feature_toggles() or {}
+
+    # 1. Check Admin Lock Toggle
+    if feature_key:
+        if feature_key in ['cta_buttons_unlocked', 'video_swap_unlocked']:
+            is_unlocked = toggles.get(feature_key, True)
+        else:
+            is_unlocked = toggles.get(feature_key, False)
+        if not is_unlocked:
+            return jsonify({"error": "This feature is currently locked by the Admin."}), 403
+
+    # 2. Check PRO requirement
+    if requires_pro and not is_pro:
+        return jsonify({"error": "This is a PRO feature. Contact administrator @apklord55 to upgrade."}), 403
+
+    return None
+
 # --- SYNCHRONIZED NATIVE BOT BACKEND API ROUTES ---
 
 @app.route('/api/user_status', methods=['GET'])
@@ -1033,8 +1124,9 @@ def api_user_status():
         
     ADMIN_ID = os.getenv("ADMIN_ID", "")
     is_admin = (str(user_id) == str(ADMIN_ID))
-    from database_manager import get_user_data
+    from database_manager import get_user_data, get_feature_toggles
     user_data = get_user_data(user_id)
+    toggles = get_feature_toggles() or {}
     
     has_session = bool(user_data.get('session_string'))
     is_pro = user_data.get('is_pro', False)
@@ -1049,6 +1141,7 @@ def api_user_status():
         "should_popup_feedback": should_popup,
         "is_pro": is_pro,
         "has_session": has_session,
+        "feature_toggles": toggles,
         "sources_count": len(user_data.get('sources', [])),
         "targets_count": len(user_data.get('targets', [])),
         "sources": user_data.get('sources', []),
@@ -1164,6 +1257,12 @@ def api_toggle_setting():
     val = data.get('val')
     if not key:
         return jsonify({"error": "Missing key"}), 400
+
+    if key == 'mirror_delete' and val:
+        lock_err = check_feature_access(user_id, 'deletion_unlocked', requires_pro=True)
+        if lock_err:
+            return lock_err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data[key] = bool(val)
@@ -1193,6 +1292,10 @@ def api_manage_cta():
     user_id, err = check_permission(requested_user)
     if err:
         return err
+
+    lock_err = check_feature_access(user_id, 'cta_buttons_unlocked', requires_pro=True)
+    if lock_err:
+        return lock_err
 
     action = data.get('action')
     if not action:
@@ -1230,6 +1333,12 @@ def api_save_media_url():
     url = data.get('url', '').strip()
     if not m_type:
         return jsonify({"error": "Missing type"}), 400
+
+    if m_type == 'video':
+        lock_err = check_feature_access(user_id, 'video_swap_unlocked', requires_pro=True)
+        if lock_err:
+            return lock_err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     if m_type == 'image':
@@ -1249,6 +1358,11 @@ def api_save_watermark():
     if err:
         return err
 
+    if data.get('mode') and data.get('mode') != 'off':
+        lock_err = check_feature_access(user_id, 'ai_watermark_unlocked', requires_pro=True)
+        if lock_err:
+            return lock_err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['ai_watermark_mode'] = data.get('mode', 'off')
@@ -1266,6 +1380,11 @@ def api_set_drip():
         return err
 
     interval = data.get('interval', 0)
+    if int(interval) > 0:
+        lock_err = check_feature_access(user_id, 'drip_posting_unlocked', requires_pro=True)
+        if lock_err:
+            return lock_err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['drip_interval'] = int(interval)
@@ -1281,6 +1400,11 @@ def api_save_sleep_mode():
     user_id, err = check_permission(requested_user)
     if err:
         return err
+
+    if data.get('enabled'):
+        lock_err = check_feature_access(user_id, 'sleep_mode_unlocked', requires_pro=True)
+        if lock_err:
+            return lock_err
 
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
@@ -1302,6 +1426,11 @@ def api_save_auto_delete():
         return err
 
     limit = data.get('limit', 0)
+    if int(limit) > 0:
+        lock_err = check_feature_access(user_id, 'deletion_unlocked', requires_pro=True)
+        if lock_err:
+            return lock_err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['auto_delete_limit'] = int(limit)
