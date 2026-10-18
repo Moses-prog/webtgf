@@ -1196,6 +1196,16 @@
                     <div class="form-card">
                         <div class="form-label">Channel Message (HTML Formatted)</div>
                         <div class="form-hint">You can edit the generated message before posting.</div>
+                        
+                        <!-- AI VISUAL CARD PREVIEW (WP Studio Engine) -->
+                        <div id="channel-card-preview-box" style="display:none; margin-bottom:12px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color); background:var(--bg-card);">
+                            <div style="padding:6px 10px; background:var(--bg-main); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                                <span>AI Visual Card Banner</span>
+                                <span style="font-size:9px; opacity:0.6;">WP Studio 1200x630</span>
+                            </div>
+                            <img id="channel-card-preview-img" style="width:100%; height:auto; display:block;" alt="AI Visual Card">
+                        </div>
+
                         <textarea id="inp-channel-msg-text" class="form-input" style="height:140px; resize:vertical; font-size:11px; font-family:monospace; margin-bottom:12px;" placeholder="Message to publish to @webtgfv1..."></textarea>
 
                         <!-- INTERACTIVE NATIVE BUTTONS -->
@@ -1228,7 +1238,15 @@
                             <input type="text" id="inp-channel-btn2-url" class="form-input" value="https://t.me/wprelaybot?start=pro_upgrade" placeholder="Button 2 URL" style="margin-top:4px; margin-bottom:8px;">
                         </div>
 
-                        <!-- PINNING & SILENT OPTIONS -->
+                        <!-- ATTACH VISUAL CARD, PINNING & SILENT OPTIONS -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:6px 0; border-top:1px solid var(--border-color);">
+                            <div>
+                                <div class="form-label" style="margin-bottom:2px;">Attach AI Visual Card</div>
+                                <div class="form-hint">Sends banner card (sendPhoto) above tip for 2x engagement</div>
+                            </div>
+                            <input type="checkbox" id="chk-channel-attach-card" checked style="width:18px; height:18px; accent-color:var(--text-main);">
+                        </div>
+
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:6px 0; border-top:1px solid var(--border-color);">
                             <div>
                                 <div class="form-label" style="margin-bottom:2px;">Auto-Pin to Channel Top</div>
@@ -1563,6 +1581,14 @@
                             badge.innerText = `Token Missing / Unauthorized`;
                         }
                     }
+                    if (d.has_card) {
+                        const cardBox = document.getElementById('channel-card-preview-box');
+                        const cardImg = document.getElementById('channel-card-preview-img');
+                        if (cardBox && cardImg) {
+                            cardImg.src = `/api/channel_card_preview?t=${Date.now()}`;
+                            cardBox.style.display = 'block';
+                        }
+                    }
                     const autoChk = document.getElementById('chk-autopilot-enabled');
                     if (autoChk && d.autopilot) {
                         autoChk.checked = Boolean(d.autopilot.enabled);
@@ -1606,6 +1632,16 @@
                 if (d.success && d.text) {
                     const area = document.getElementById('inp-channel-msg-text');
                     if (area) area.value = d.text;
+
+                    const cardBox = document.getElementById('channel-card-preview-box');
+                    const cardImg = document.getElementById('channel-card-preview-img');
+                    if (cardBox && cardImg) {
+                        if (d.has_image && d.image_url) {
+                            cardImg.src = d.image_url;
+                            cardBox.style.display = 'block';
+                        }
+                    }
+
                     if (d.buttons && d.buttons.length >= 2) {
                         const b1t = document.getElementById('inp-channel-btn1-text');
                         const b1u = document.getElementById('inp-channel-btn1-url');
@@ -1653,6 +1689,7 @@
 
             const pin = Boolean(document.getElementById('chk-channel-pin')?.checked);
             const silent = Boolean(document.getElementById('chk-channel-silent')?.checked);
+            const attachCard = Boolean(document.getElementById('chk-channel-attach-card')?.checked);
 
             if (!confirm(`Publish this post to ${channel}${pin ? ' and pin to top' : ''}?`)) return;
 
@@ -1673,7 +1710,8 @@
                         message: msg,
                         buttons: buttons,
                         pin: pin,
-                        disable_notification: silent
+                        disable_notification: silent,
+                        attach_card: attachCard
                     })
                 });
                 const d = await res.json();

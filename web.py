@@ -1119,7 +1119,8 @@ def api_admin_channel_info():
         "autopilot": auto_cfg,
         "categories": channel_engine.TOPIC_CATEGORIES,
         "default_channel": channel_engine.DEFAULT_CHANNEL,
-        "bot_username": channel_engine.DEFAULT_BOT_USERNAME
+        "bot_username": channel_engine.DEFAULT_BOT_USERNAME,
+        "has_card": os.path.exists("visual_card.png")
     })
 
 @app.route('/api/admin_channel_generate', methods=['POST'])
@@ -1140,10 +1141,20 @@ def api_admin_channel_generate():
             "success": True,
             "text": res["text"],
             "buttons": res["buttons"],
-            "model_used": res["model_used"]
+            "model_used": res["model_used"],
+            "has_image": bool(res.get("image_path") and os.path.exists(res.get("image_path"))),
+            "image_url": f"/api/channel_card_preview?t={int(time.time())}"
         })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/channel_card_preview', methods=['GET'])
+def api_channel_card_preview():
+    card_path = 'visual_card.png'
+    if os.path.exists(card_path):
+        from flask import send_file
+        return send_file(card_path, mimetype='image/png')
+    return jsonify({"error": "Card not generated yet"}), 404
 
 @app.route('/api/admin_channel_post', methods=['POST'])
 def api_admin_channel_post():
@@ -1161,6 +1172,8 @@ def api_admin_channel_post():
     buttons = data.get('buttons', [])
     pin = bool(data.get('pin', False))
     silent = bool(data.get('disable_notification', False))
+    attach_card = bool(data.get('attach_card', True))
+    image_path = "visual_card.png" if attach_card and os.path.exists("visual_card.png") else None
 
     try:
         import channel_engine
@@ -1169,7 +1182,8 @@ def api_admin_channel_post():
             buttons=buttons,
             pin=pin,
             target_channel=target_channel,
-            disable_notification=silent
+            disable_notification=silent,
+            image_path=image_path
         )
         return jsonify(res)
     except Exception as e:
@@ -1216,7 +1230,8 @@ def api_admin_channel_autopilot_trigger():
             text=post_data["text"],
             buttons=post_data["buttons"],
             pin=should_pin,
-            target_channel=channel_engine.DEFAULT_CHANNEL
+            target_channel=channel_engine.DEFAULT_CHANNEL,
+            image_path=post_data.get("image_path")
         )
         cfg["topic_index"] = (idx + 1) % len(channel_engine.TOPIC_CATEGORIES)
         cfg["last_posted_at"] = int(time.time())

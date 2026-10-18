@@ -192,17 +192,46 @@ Output ONLY the formatted post. Do not include introductory notes or markdown co
                     {"text": "⭐ LAUNCH WP RELAY BOT ⚡", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"},
                     {"text": "💎 UPGRADE TO PRO (VIP) ✅", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
                 ]
+
+                # Generate AI Visual Card for the post
+                image_path = "visual_card.png"
+                try:
+                    import card_designer
+                    card_title = chosen_category["title"] if chosen_category else "PRO TIP"
+                    card_sub = chosen_category["topic"] if chosen_category else "SMART HUMAN PACER FOR TELEGRAM"
+
+                    clean_lines = [l.strip() for l in text.splitlines() if l.strip()]
+                    if len(clean_lines) >= 1:
+                        c0 = clean_lines[0].replace("<b>", "").replace("</b>", "").replace("⚡", "").replace("WP RELAY TIP:", "").replace("WP RELAY HACK:", "").strip()
+                        if c0:
+                            card_title = c0[:35]
+                    if len(clean_lines) >= 2:
+                        c1 = clean_lines[1].replace("<i>", "").replace("</i>", "").replace("<b>", "").replace("</b>", "").strip()
+                        if c1:
+                            card_sub = c1[:70]
+
+                    card_designer.create_visual_card(
+                        title=card_title,
+                        subtitle=card_sub,
+                        category="PRO TIP",
+                        output_path=image_path
+                    )
+                except Exception as card_err:
+                    print(f"[CARD GENERATION ERROR] {card_err}")
+                    image_path = None
+
                 return {
                     "text": text,
                     "buttons": recommended_buttons,
-                    "model_used": m
+                    "model_used": m,
+                    "image_path": image_path
                 }
         except Exception as e:
             last_err = e
 
     raise RuntimeError(f"All Gemini models failed: {last_err}")
 
-def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHANNEL, disable_notification=False):
+def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHANNEL, disable_notification=False, image_path=None):
     token = os.getenv("BOT_TOKEN", "").strip()
     if not token:
         raise ValueError("BOT_TOKEN is not configured in .env.")
@@ -214,13 +243,7 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
     if not target_channel.startswith("@") and not target_channel.startswith("-100") and not target_channel.isdigit():
         target_channel = "@" + target_channel
 
-    payload = {
-        "chat_id": target_channel,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_notification": bool(disable_notification)
-    }
-
+    reply_markup = None
     if buttons and isinstance(buttons, list) and len(buttons) > 0:
         inline_keyboard = []
         for btn in buttons:
@@ -233,15 +256,47 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
                 btn_dict = {"text": txt, "url": url}
                 if style in ["primary", "success", "danger"]:
                     btn_dict["style"] = style
-                # Each button in its own row for full-width high-impact display
                 inline_keyboard.append([btn_dict])
         
         if inline_keyboard:
-            payload["reply_markup"] = {"inline_keyboard": inline_keyboard}
+            reply_markup = {"inline_keyboard": inline_keyboard}
 
-    # Send Message
-    r = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json=payload, timeout=12)
-    res_data = r.json()
+    # Decide whether to send Photo or Text
+    use_photo = bool(image_path and os.path.exists(image_path))
+    res_data = None
+
+    if use_photo:
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendPhoto"
+            data = {
+                "chat_id": target_channel,
+                "caption": text,
+                "parse_mode": "HTML",
+                "disable_notification": str(bool(disable_notification)).lower()
+            }
+            if reply_markup:
+                data["reply_markup"] = json.dumps(reply_markup)
+
+            with open(image_path, "rb") as f:
+                files = {"photo": f}
+                r = requests.post(url, data=data, files=files, timeout=20)
+                res_data = r.json()
+        except Exception as photo_err:
+            print(f"[PHOTO SEND ERROR] {photo_err}. Falling back to sendMessage.")
+            use_photo = False
+
+    if not use_photo or not (res_data and res_data.get("ok")):
+        # Fallback to standard sendMessage
+        payload = {
+            "chat_id": target_channel,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_notification": bool(disable_notification)
+        }
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        r = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json=payload, timeout=12)
+        res_data = r.json()
 
     if not res_data.get("ok"):
         desc = res_data.get("description", "Unknown Telegram error")
@@ -269,9 +324,20 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
             }
             pr = requests.post(f"https://api.telegram.org/bot{token}/pinChatMessage", json=pin_payload, timeout=8)
             pin_data = pr.json()
-            pinned = pin_data.get("ok", False)
         except Exception as e:
             print(f"[PIN ERROR] Failed to pin message {msg_id}: {e}")
+
+    # Seed Reaction 🔥 (Social Proof Booster)
+    try:
+        rx_payload = {
+            "chat_id": target_channel,
+            "message_id": msg_id,
+            "reaction": [{"type": "emoji", "emoji": "🔥"}],
+            "is_big": False
+        }
+        requests.post(f"https://api.telegram.org/bot{token}/setMessageReaction", json=rx_payload, timeout=6)
+    except Exception as rx_err:
+        pass
 
     # Record history
     try:
@@ -363,7 +429,8 @@ def run_autopilot_tick():
             text=post_data["text"],
             buttons=post_data["buttons"],
             pin=should_pin,
-            target_channel=DEFAULT_CHANNEL
+            target_channel=DEFAULT_CHANNEL,
+            image_path=post_data.get("image_path")
         )
         print(f"[AUTOPILOT] Successfully published scheduled post: {result}")
         return result
