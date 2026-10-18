@@ -683,7 +683,23 @@ def verify_telegram_init_data(init_data_str):
             user_json = parsed_data.get('user')
             if user_json:
                 u = json.loads(user_json)
-                return str(u.get('id'))
+                uid = str(u.get('id'))
+                try:
+                    from database_manager import get_user_data, save_user_data
+                    first = str(u.get('first_name', '')).strip()
+                    last = str(u.get('last_name', '')).strip()
+                    uname = str(u.get('username', '')).strip()
+                    disp = f"{first} {last}".strip()
+                    if uname:
+                        disp = f"{disp} (@{uname})" if disp else f"@{uname}"
+                    if disp:
+                        ud = get_user_data(uid)
+                        if ud and ud.get('display_name') != disp:
+                            ud['display_name'] = disp
+                            save_user_data(uid, ud)
+                except Exception:
+                    pass
+                return uid
             return parsed_data.get('query_id')
         return None
     except Exception as e:
@@ -829,6 +845,26 @@ def api_lock_studio():
     session.pop('miniapp_user', None)
     return jsonify({"success": True, "locked": True})
 
+def get_tenant_display_name(tenant_id, ud, admin_id):
+    tenant_id = str(tenant_id)
+    name = ud.get('display_name') or ud.get('name') or ud.get('first_name')
+    if name:
+        return name
+    if ud.get('username'):
+        return "@" + ud.get('username').replace("@", "")
+    rep_user = ud.get('replace_all_usernames_with', '').strip()
+    if rep_user:
+        return rep_user.replace("https://t.me/", "@").replace("t.me/", "@")
+    if tenant_id == admin_id:
+        return "Admin (@apklord55)"
+    if tenant_id == "7600806544":
+        return "Coach Dora (@Coachdora1)"
+    if tenant_id == "8094046191":
+        return "Pretty Fidel (@PrettyFidel1)"
+    if tenant_id == "7531221514":
+        return "Mr Unknown (@mrunknown75755)"
+    return f"Tenant {tenant_id[-4:]}"
+
 @app.route('/api/admin_overview', methods=['GET'])
 def api_admin_overview():
     auth_user = get_authenticated_user()
@@ -850,6 +886,7 @@ def api_admin_overview():
             pro_count += 1
         tenant_details.append({
             "tenant_id": str(t),
+            "display_name": get_tenant_display_name(t, ud, admin_id),
             "is_pro": is_p,
             "pro_since": ud.get('pro_since'),
             "pro_expiry": ud.get('pro_expiry'),
@@ -890,7 +927,7 @@ def api_admin_manage_tenant():
     action = data.get('action')
     tenant_id = str(data.get('tenant_id', '')).strip()
 
-    if not tenant_id or action not in ['add', 'remove', 'toggle_pro']:
+    if not tenant_id or action not in ['add', 'remove', 'toggle_pro', 'set_name']:
         return jsonify({"error": "Invalid action or tenant ID"}), 400
 
     from database_manager import get_tenants, save_tenants, get_user_data, save_user_data
@@ -923,6 +960,13 @@ def api_admin_manage_tenant():
             ud['pro_since'] = datetime.datetime.now().isoformat()
         save_user_data(tenant_id, ud)
         return jsonify({"success": True, "tenant_id": tenant_id, "is_pro": ud['is_pro']})
+    elif action == 'set_name':
+        new_name = str(data.get('name', '')).strip()
+        if new_name:
+            ud = get_user_data(tenant_id)
+            ud['display_name'] = new_name
+            save_user_data(tenant_id, ud)
+            return jsonify({"success": True, "tenant_id": tenant_id, "display_name": new_name})
 
     return jsonify({"success": True, "tenants": tenants})
 
@@ -1018,6 +1062,7 @@ def api_admin_pro_tenants():
 
         pro_list.append({
             "tenant_id": str(t),
+            "display_name": get_tenant_display_name(t, ud, admin_id),
             "is_pro": is_p,
             "is_admin": (str(t) == admin_id),
             "pro_since": pro_since,

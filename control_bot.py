@@ -126,7 +126,16 @@ async def start(event):
     badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
     
     sender = await event.get_sender()
-    name = sender.first_name if sender.first_name else (sender.username if sender.username else "User")
+    first = getattr(sender, 'first_name', '') or ''
+    last = getattr(sender, 'last_name', '') or ''
+    uname = getattr(sender, 'username', '') or ''
+    disp = f"{first} {last}".strip()
+    if uname:
+        disp = f"{disp} (@{uname})" if disp else f"@{uname}"
+    if disp and user_data.get('display_name') != disp:
+        user_data['display_name'] = disp
+        save_user_data(chat_id, user_data)
+    name = first or uname or "User"
     
     if not user_data.get('session_string'):
         msg = f"👋 Hi, **{name}**! Welcome to the **WP Relay Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
