@@ -449,10 +449,10 @@
         }
         .item-name {
             font-size: 14px;
-            font-family: monospace;
             font-weight: 600;
             color: var(--text-main);
-            word-break: break-all;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         .btn-del {
             background: transparent;
@@ -1187,18 +1187,20 @@
 
                         return `
                             <div class="form-card" style="margin-bottom:10px; padding:12px; border:1px solid var(--border-color);">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                                    <div>
+                                <!-- TOP ROW: NAME, STATUS BADGE, RENAME -->
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px;">
+                                    <div style="flex:1; min-width:0;">
                                         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                            <span style="font-weight:700; font-size:14px; color:var(--text-main);">${p.display_name || p.tenant_id}</span>
+                                            <span style="font-weight:700; font-size:14px; color:var(--text-main); word-break:break-word;">${p.display_name || p.tenant_id}</span>
                                             ${p.is_admin ? '<span class="chip" style="font-size:9px;">ADMIN</span>' : ''}
-                                            <button class="btn-sm-action" style="padding:2px 6px; font-size:10px; opacity:0.8;" onclick="adminPromptRenameTenant('${p.tenant_id}', '${(p.display_name || '').replace(/'/g, "\\'")}')">Rename</button>
+                                            <button class="btn-sm-action" style="padding:2px 7px; font-size:10px; opacity:0.8;" onclick="adminPromptRenameTenant('${p.tenant_id}', '${(p.display_name || '').replace(/'/g, "\\'")}')">Rename</button>
                                         </div>
-                                        <div style="font-size:11px; font-family:monospace; color:var(--text-muted); margin-top:2px;">
-                                            ID: ${p.tenant_id} &bull; ${p.sources_count} sources &bull; ${p.targets_count} targets &bull; ${p.swaps_count} swaps
+                                        <div style="font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.4;">
+                                            <span style="font-family:monospace; background:rgba(125,125,125,0.08); padding:1px 4px; border-radius:4px;">ID: ${p.tenant_id}</span>
+                                            &bull; ${p.sources_count} src &bull; ${p.targets_count} tgt &bull; ${p.swaps_count} swaps
                                         </div>
                                     </div>
-                                    <div style="display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:700; text-transform:uppercase; color:${statusColor}; background:${statusBg}; border:1px solid ${statusBorder};">
+                                    <div style="flex-shrink:0; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; color:${statusColor}; background:${statusBg}; border:1px solid ${statusBorder};">
                                         ${statusLabel}
                                     </div>
                                 </div>
@@ -1215,13 +1217,15 @@
                                     </div>
                                 </div>
 
-                                <!-- ACTION BUTTONS -->
-                                <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color);" onclick="adminSendNotice('${p.tenant_id}', 'expiration')" title="Send official expiration notice">Notice</button>
-                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; background:rgba(255, 159, 10, 0.12); color:#ff9f0a; border:1px solid rgba(255, 159, 10, 0.3);" onclick="adminSendNotice('${p.tenant_id}', 'warning')" title="Send urgent termination warning">Warning</button>
-                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color);" onclick="adminPromptCustomNotice('${p.tenant_id}')">Custom</button>
-                                    <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; background:rgba(10, 132, 255, 0.12); color:#0a84ff; border:1px solid rgba(10, 132, 255, 0.3);" onclick="adminPromptExtendPro('${p.tenant_id}')">Extend</button>
-                                    <button class="btn-sm-action" style="padding:7px 8px; font-size:11px; background:var(--card-bg); color:var(--text-muted); border:1px solid var(--border-color);" onclick="inspectTenant('${p.tenant_id}')">Inspect</button>
+                                <!-- ACTION BUTTONS: 2 CLEAN ROWS FOR MOBILE -->
+                                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:6px;">
+                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); text-align:center;" onclick="adminSendNotice('${p.tenant_id}', 'expiration')" title="Send official expiration notice">Notice</button>
+                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:rgba(255, 159, 10, 0.12); color:#ff9f0a; border:1px solid rgba(255, 159, 10, 0.3); text-align:center;" onclick="adminSendNotice('${p.tenant_id}', 'warning')" title="Send urgent termination warning">Warning</button>
+                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); text-align:center;" onclick="adminPromptCustomNotice('${p.tenant_id}')">Custom</button>
+                                </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:rgba(10, 132, 255, 0.12); color:#0a84ff; border:1px solid rgba(10, 132, 255, 0.3); text-align:center;" onclick="adminPromptExtendPro('${p.tenant_id}')">Extend +30d</button>
+                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-muted); border:1px solid var(--border-color); text-align:center;" onclick="inspectTenant('${p.tenant_id}')">Inspect Studio</button>
                                 </div>
                             </div>
                         `;
@@ -1270,23 +1274,29 @@
                     tenantsHtml = '<div style="text-align:center; color:var(--text-muted); padding:16px;">No registered tenants found.</div>';
                 } else {
                     tenantsHtml = tenants.map(t => `
-                        <div class="item-row">
-                            <div style="flex:1; min-width:0;">
-                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span class="item-name" style="font-weight:700; font-size:13px;">${t.display_name || t.tenant_id}</span>
-                                    <span class="chip ${t.is_pro ? 'pro' : ''}">${t.is_pro ? 'PRO' : 'FREE'}</span>
-                                    <button class="btn-sm-action" style="padding:2px 6px; font-size:9px; opacity:0.7;" onclick="adminPromptRenameTenant('${t.tenant_id}', '${(t.display_name || '').replace(/'/g, "\\'")}')">Rename</button>
+                        <div class="form-card" style="margin-bottom:10px; padding:12px; border:1px solid var(--border-color);">
+                            <!-- TOP ROW: NAME, STATUS CHIP, RENAME & DELETE -->
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+                                <div style="flex:1; min-width:0;">
+                                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                        <span style="font-weight:700; font-size:14px; color:var(--text-main); word-break:break-word;">${t.display_name || t.tenant_id}</span>
+                                        <span class="chip ${t.is_pro ? 'pro' : ''}">${t.is_pro ? 'PRO' : 'FREE'}</span>
+                                        <button class="btn-sm-action" style="padding:2px 7px; font-size:10px; opacity:0.8;" onclick="adminPromptRenameTenant('${t.tenant_id}', '${(t.display_name || '').replace(/'/g, "\\'")}')">Rename</button>
+                                    </div>
+                                    <div style="font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.4;">
+                                        <span style="font-family:monospace; background:rgba(125,125,125,0.08); padding:1px 4px; border-radius:4px;">ID: ${t.tenant_id}</span>
+                                        &bull; ${t.sources_count} src &bull; ${t.targets_count} tgt &bull; ${t.swaps_count} swaps
+                                        ${t.is_pro ? (t.pro_expiry ? ` &bull; <span style="color:var(--text-main); font-weight:600;">Exp: ${t.pro_expiry.slice(0, 10)}</span>` : ` &bull; <span style="color:#0a84ff; font-weight:600;">Lifetime VIP</span>`) : ''}
+                                    </div>
                                 </div>
-                                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
-                                    <span style="font-family:monospace;">ID: ${t.tenant_id}</span> &bull; ${t.sources_count} sources &bull; ${t.targets_count} targets &bull; ${t.swaps_count} swaps
-                                    ${t.is_pro ? (t.pro_expiry ? ` &bull; <span style="color:var(--text-main); font-weight:600;">Exp: ${t.pro_expiry.slice(0, 10)}</span>` : ` &bull; <span style="color:#0a84ff; font-weight:600;">Lifetime VIP</span>`) : ''}
-                                </div>
+                                <button class="btn-del" onclick="adminRemoveTenant('${t.tenant_id}')" title="Remove" style="padding:4px; margin-top:-2px;"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                             </div>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <button class="btn-sm-action" onclick="adminTogglePro('${t.tenant_id}')">${t.is_pro ? 'Set Free' : 'Give Pro'}</button>
-                                ${t.is_pro ? `<button class="btn-sm-action" style="color:#0a84ff;" onclick="adminPromptExtendPro('${t.tenant_id}')">Extend</button>` : ''}
-                                <button class="btn-sm-action" onclick="inspectTenant('${t.tenant_id}')">Inspect</button>
-                                <button class="btn-del" onclick="adminRemoveTenant('${t.tenant_id}')" title="Remove"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+
+                            <!-- BOTTOM ROW: FULL WIDTH ACTION BUTTONS -->
+                            <div style="display:flex; gap:6px; margin-top:10px; padding-top:8px; border-top:1px solid var(--border-color);">
+                                <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; text-align:center;" onclick="adminTogglePro('${t.tenant_id}')">${t.is_pro ? 'Set Free' : 'Give Pro'}</button>
+                                ${t.is_pro ? `<button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; color:#0a84ff; background:rgba(10, 132, 255, 0.1); border:1px solid rgba(10, 132, 255, 0.25); text-align:center;" onclick="adminPromptExtendPro('${t.tenant_id}')">Extend +30d</button>` : ''}
+                                <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; text-align:center;" onclick="inspectTenant('${t.tenant_id}')">Inspect</button>
                             </div>
                         </div>
                     `).join('');
