@@ -189,8 +189,8 @@ Output ONLY the formatted post. Do not include introductory notes or markdown co
                 text = text.strip()
 
                 recommended_buttons = [
-                    {"text": "🟢 [ ⚡ Launch WP Relay Bot ]", "url": "https://t.me/wprelaybot?start=channel_tip"},
-                    {"text": "🔵 [ 💎 Upgrade to PRO ]", "url": "https://t.me/wprelaybot?start=pro_upgrade"}
+                    {"text": "⭐ LAUNCH WP RELAY BOT ⚡", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"},
+                    {"text": "💎 UPGRADE TO PRO (VIP) ✅", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
                 ]
                 return {
                     "text": text,
@@ -223,19 +223,18 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
 
     if buttons and isinstance(buttons, list) and len(buttons) > 0:
         inline_keyboard = []
-        row = []
         for btn in buttons:
             txt = btn.get("text", "").strip()
             url = btn.get("url", "").strip()
+            style = btn.get("style", "").strip()
             if txt and url:
                 if not url.startswith(("http://", "https://", "t.me/")):
                     url = "https://" + url
-                row.append({"text": txt, "url": url})
-                if len(row) >= 2:
-                    inline_keyboard.append(row)
-                    row = []
-        if row:
-            inline_keyboard.append(row)
+                btn_dict = {"text": txt, "url": url}
+                if style in ["primary", "success", "danger"]:
+                    btn_dict["style"] = style
+                # Each button in its own row for full-width high-impact display
+                inline_keyboard.append([btn_dict])
         
         if inline_keyboard:
             payload["reply_markup"] = {"inline_keyboard": inline_keyboard}

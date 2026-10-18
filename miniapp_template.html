@@ -1203,13 +1203,29 @@
                         <div class="form-hint">Clickable inline buttons attached below the channel post leading to @wprelaybot.</div>
                         
                         <div style="margin-bottom:8px;">
-                            <input type="text" id="inp-channel-btn1-text" class="form-input" value="🟢 [ ⚡ Launch WP Relay Bot ]" placeholder="Button 1 Label" style="margin-bottom:4px;">
-                            <input type="text" id="inp-channel-btn1-url" class="form-input" value="https://t.me/wprelaybot?start=channel_tip" placeholder="Button 1 URL" style="margin-bottom:8px;">
+                            <div style="display:flex; gap:6px;">
+                                <input type="text" id="inp-channel-btn1-text" class="form-input" value="⭐ LAUNCH WP RELAY BOT ⚡" placeholder="Button 1 Label" style="flex:2;">
+                                <select id="sel-channel-btn1-style" class="form-input" style="flex:1;">
+                                    <option value="primary" selected>Solid Blue</option>
+                                    <option value="success">Solid Green</option>
+                                    <option value="danger">Solid Red</option>
+                                    <option value="">Default Grey</option>
+                                </select>
+                            </div>
+                            <input type="text" id="inp-channel-btn1-url" class="form-input" value="https://t.me/wprelaybot?start=channel_tip" placeholder="Button 1 URL" style="margin-top:4px; margin-bottom:8px;">
                         </div>
 
                         <div style="margin-bottom:12px;">
-                            <input type="text" id="inp-channel-btn2-text" class="form-input" value="🔵 [ 💎 Upgrade to PRO ]" placeholder="Button 2 Label" style="margin-bottom:4px;">
-                            <input type="text" id="inp-channel-btn2-url" class="form-input" value="https://t.me/wprelaybot?start=pro_upgrade" placeholder="Button 2 URL" style="margin-bottom:8px;">
+                            <div style="display:flex; gap:6px;">
+                                <input type="text" id="inp-channel-btn2-text" class="form-input" value="💎 UPGRADE TO PRO (VIP) ✅" placeholder="Button 2 Label" style="flex:2;">
+                                <select id="sel-channel-btn2-style" class="form-input" style="flex:1;">
+                                    <option value="success" selected>Solid Green</option>
+                                    <option value="primary">Solid Blue</option>
+                                    <option value="danger">Solid Red</option>
+                                    <option value="">Default Grey</option>
+                                </select>
+                            </div>
+                            <input type="text" id="inp-channel-btn2-url" class="form-input" value="https://t.me/wprelaybot?start=pro_upgrade" placeholder="Button 2 URL" style="margin-top:4px; margin-bottom:8px;">
                         </div>
 
                         <!-- PINNING & SILENT OPTIONS -->
@@ -1593,12 +1609,16 @@
                     if (d.buttons && d.buttons.length >= 2) {
                         const b1t = document.getElementById('inp-channel-btn1-text');
                         const b1u = document.getElementById('inp-channel-btn1-url');
+                        const b1s = document.getElementById('sel-channel-btn1-style');
                         const b2t = document.getElementById('inp-channel-btn2-text');
                         const b2u = document.getElementById('inp-channel-btn2-url');
+                        const b2s = document.getElementById('sel-channel-btn2-style');
                         if (b1t) b1t.value = d.buttons[0].text;
                         if (b1u) b1u.value = d.buttons[0].url;
+                        if (b1s && d.buttons[0].style) b1s.value = d.buttons[0].style;
                         if (b2t) b2t.value = d.buttons[1].text;
                         if (b2u) b2u.value = d.buttons[1].url;
+                        if (b2s && d.buttons[1].style) b2s.value = d.buttons[1].style;
                     }
                     tg.showAlert('Smart channel tip generated!');
                 } else {
@@ -1621,12 +1641,15 @@
 
             const btn1Text = document.getElementById('inp-channel-btn1-text')?.value.trim();
             const btn1Url = document.getElementById('inp-channel-btn1-url')?.value.trim();
+            const btn1Style = document.getElementById('sel-channel-btn1-style')?.value || 'primary';
+
             const btn2Text = document.getElementById('inp-channel-btn2-text')?.value.trim();
             const btn2Url = document.getElementById('inp-channel-btn2-url')?.value.trim();
+            const btn2Style = document.getElementById('sel-channel-btn2-style')?.value || 'success';
 
             const buttons = [];
-            if (btn1Text && btn1Url) buttons.push({ text: btn1Text, url: btn1Url });
-            if (btn2Text && btn2Url) buttons.push({ text: btn2Text, url: btn2Url });
+            if (btn1Text && btn1Url) buttons.push({ text: btn1Text, url: btn1Url, style: btn1Style });
+            if (btn2Text && btn2Url) buttons.push({ text: btn2Text, url: btn2Url, style: btn2Style });
 
             const pin = Boolean(document.getElementById('chk-channel-pin')?.checked);
             const silent = Boolean(document.getElementById('chk-channel-silent')?.checked);
