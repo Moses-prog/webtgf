@@ -650,754 +650,33 @@ def update_tenant():
         
     return redirect(url_for('index', tab='dashboard'))
 
-html_content = '''<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WP Relay</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --border-color: #e5e7eb;
-            --accent: #2563eb;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
+MINIAPP_HTML_PATH = os.path.join(os.path.dirname(__file__), 'miniapp_template.html')
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #000000;
-                --card-bg: #1c1c1e;
-                --text-main: #ffffff;
-                --text-muted: #8e8e93;
-                --border-color: #2c2c2e;
-                --accent: #0a84ff;
-                --success: #30d158;
-                --warning: #ffd60a;
-            }
-        }
+def get_miniapp_html():
+    if os.path.exists(MINIAPP_HTML_PATH):
+        with open(MINIAPP_HTML_PATH, 'r', encoding='utf-8') as f:
+            return f.read()
+    return "<h1>Mini App Template Missing</h1>"
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            min-height: 100vh;
-            padding-bottom: 40px;
-        }
-        
-        /* Icons */
-        svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
-        
-        /* Header */
-        .header { display: flex; flex-direction: column; align-items: center; padding: 32px 20px 24px; }
-        .avatar-frame {
-            position: relative;
-            width: 86px; height: 86px;
-            border-radius: 50%;
-            background: var(--text-muted); /* Grey for FREE */
-            padding: 3px; 
-            margin-bottom: 16px;
-            display: flex;
-            transition: all 0.3s ease;
-        }
-        
-        .avatar-frame.pro {
-            background: linear-gradient(135deg, #ff4500, #ff8c00, #ff003c, #ff4500);
-            background-size: 300% 300%;
-            animation: proGlow 3s ease infinite;
-        }
-        
-        @keyframes proGlow {
-            0% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); }
-            50% { background-position: 100% 50%; box-shadow: 0 0 25px rgba(255, 0, 60, 0.7); }
-            100% { background-position: 0% 50%; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); }
-        }
-        .avatar-inner {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background: var(--bg-color);
-            padding: 3px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .avatar-image {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            background: var(--border-color);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .avatar-image svg { width: 36px; height: 36px; color: var(--text-muted); }
-        .tier-diamond {
-            position: absolute;
-            top: -6px; right: -6px;
-            background: var(--bg-color);
-            border-radius: 50%; padding: 4px;
-            display: none; /* Shown via JS if PRO */
-        }
-        .tier-diamond svg { width: 16px; height: 16px; color: #ff4500; fill: #ff4500; }
-        
-        .bot-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-        .bot-username { font-size: 15px; color: var(--text-muted); margin-bottom: 16px; }
-        
-        .status-badges { display: flex; gap: 8px; }
-        .badge {
-            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
-            display: flex; align-items: center; gap: 4px;
-        }
-        .badge svg { width: 14px; height: 14px; }
-        
-        .badge.pro { background: rgba(10, 132, 255, 0.15); color: var(--accent); }
-        .badge.free { background: rgba(142, 142, 147, 0.15); color: var(--text-muted); }
-        .badge.connected { background: rgba(48, 209, 88, 0.15); color: var(--success); }
-        .badge.disconnected { background: rgba(255, 69, 58, 0.15); color: #ff453a; }
-
-        /* Sections */
-        .section-label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 18px 16px 8px; }
-        
-        /* Lists */
-        .list-group { background: var(--card-bg); margin: 0 16px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
-        .list-item { 
-            display: flex; align-items: center; padding: 16px; 
-            border-bottom: 1px solid var(--border-color); 
-            gap: 16px; 
-        }
-        .list-item:last-child { border-bottom: none; }
-        
-        .icon-box { 
-            width: 32px; height: 32px; border-radius: 8px; 
-            display: flex; align-items: center; justify-content: center; 
-            flex-shrink: 0; color: var(--text-main);
-        }
-        
-        .item-text { flex: 1; }
-        .item-title { font-size: 16px; font-weight: 500; margin-bottom: 2px; }
-        .item-subtitle { font-size: 13px; color: var(--text-muted); }
-        
-        .item-right { color: var(--text-muted); font-size: 14px; display: flex; align-items: center; }
-        .item-right svg { width: 18px; height: 18px; color: var(--border-color); }
-
-        .chip { background: var(--border-color); color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
-
-        /* Buttons */
-        .primary-btn { 
-            margin: 24px 16px 10px; background: var(--accent); color: white; border: none; 
-            padding: 16px; font-size: 16px; font-weight: 600; border-radius: 12px; 
-            cursor: pointer; width: calc(100% - 32px); transition: opacity 0.2s; 
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .primary-btn:active { opacity: 0.8; }
-        .footer { text-align: center; font-size: 13px; color: var(--text-muted); padding: 20px; }
-        
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 8px; }
-        .stat-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
-        .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
-
-        /* Loading state */
-        .skeleton { background: var(--border-color); border-radius: 4px; animation: pulse 1.5s infinite; color: transparent !important; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        
-        /* Modal Popup */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 100;
-            display: none; opacity: 0; transition: opacity 0.3s;
-            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-        }
-        .modal {
-            position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 85vh;
-            background: var(--bg-color); border-radius: 24px 24px 0 0;
-            z-index: 101; transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex; flex-direction: column;
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
-        }
-        .modal.active { bottom: 0; }
-        .modal-overlay.active { display: block; opacity: 1; }
-        
-        .modal-drag { width: 40px; height: 5px; background: var(--border-color); border-radius: 3px; margin: 12px auto; }
-        .modal-header { padding: 8px 20px 20px; border-bottom: 1px solid var(--border-color); }
-        .modal-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .modal-title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-        .modal-subtitle { font-size: 14px; color: var(--text-muted); }
-
-        .modal-close { background: none; border: none; color: var(--text-muted); padding: 4px; cursor: pointer; }
-        .modal-close svg { width: 24px; height: 24px; }
-        
-        .modal-body { overflow-y: auto; padding: 16px; flex: 1; }
-        
-        .channel-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--card-bg); margin-bottom: 12px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .channel-name { font-size: 15px; font-family: monospace; font-weight: 600; color: var(--text-main); word-break: break-all; }
-        .btn-remove { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: none; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .btn-remove:active { background: #ff453a; color: white; }
-        .btn-remove svg { width: 16px; height: 16px; }
-        
-        .add-channel-row { display: flex; flex-direction: column; padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 16px)) 20px; gap: 12px; background: var(--card-bg); border-top: 1px solid var(--border-color); }
-        .add-input { flex: 1; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); padding: 14px 16px; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; }
-        .add-input:focus { border-color: var(--accent); }
-        .btn-add { background: var(--accent); color: white; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); width: 100%; }\n        .btn-add:active { transform: scale(0.98); opacity: 0.9; }
-        .btn-add:active { opacity: 0.8; }
-        
-        .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 15px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .empty-icon { width: 64px; height: 64px; color: var(--border-color); background: var(--card-bg); border-radius: 50%; padding: 16px; margin-bottom: 8px; }
-        .empty-title { font-weight: 600; color: var(--text-main); font-size: 18px; }
-        
-        /* iOS Switch */
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .3s; border-radius: 30px; }
-        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        input:checked + .slider { background-color: #34c759; }
-        input:checked + .slider:before { transform: translateX(22px); }
-        
-        .stat-card { cursor: pointer; transition: transform 0.1s; }
-        .stat-card:active { transform: scale(0.98); }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="avatar-frame" id="avatar-frame">
-            <div class="avatar-inner">
-                <div class="avatar-image" id="user-avatar-container">
-                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </div>
-            </div>
-            <div class="tier-diamond" id="tier-diamond">
-                <svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"></path><path d="M11 3l-4 6 5 13"></path><path d="M13 3l4 6-5 13"></path><path d="M2 9h20"></path></svg>
-            </div>
-        </div>
-        <div class="bot-name" id="user-greeting">Hi, User!</div>
-        <div class="bot-username">WP Relay Dashboard</div>
-        
-        <div class="status-badges">
-            <div id="tier-badge" class="badge free skeleton">Tier</div>
-            <div id="conn-badge" class="badge disconnected skeleton">Status</div>
-        </div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card" onclick="openModal('sources')">
-            <div id="stat-sources" class="stat-value skeleton">0</div>
-            <div class="stat-label">Active Sources &rarr;</div>
-        </div>
-        <div class="stat-card" onclick="openModal('targets')">
-            <div id="stat-targets" class="stat-value skeleton">0</div>
-            <div class="stat-label">Active Targets &rarr;</div>
-        </div>
-                <div class="stat-card" style="grid-column: span 2;" onclick="openModal('replacements')">
-            <div id="stat-replacements" class="stat-value skeleton">0</div>
-            <div class="stat-label">Word Replacements &rarr;</div>
-        </div>
-    </div>
-
-    
-    
-    <div class="section-label">Core Features</div>
-    <div class="list-group">
-        <div class="list-item" onclick="openModal('settings')">
-            <div class="icon-box"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Filters & Settings</div>
-                <div class="item-subtitle">Configure anti-payment & audio/voice block</div>
-            </div>
-            <span class="chip">PRO</span>
-        </div>
-        <div class="list-item">
-            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Auto Forwarding</div>
-                <div class="item-subtitle">Copy messages across channels</div>
-            </div>
-            <span class="chip">Active</span>
-        </div>
-        <div class="list-item">
-            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Message Modifier</div>
-                <div class="item-subtitle">Replace words, links and usernames</div>
-            </div>
-            <span class="chip">Active</span>
-        </div>
-    </div>
-
-    <div class="section-label">Pro Features</div>
-    <div class="list-group">
-        <div class="list-item">
-            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">AI Watermark Engine</div>
-                <div class="item-subtitle">Automatically brand images</div>
-            </div>
-            <span class="chip">PRO</span>
-        </div>
-        <div class="list-item">
-            <div class="icon-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
-            <div class="item-text">
-                <div class="item-title">Drip Posting</div>
-                <div class="item-subtitle">Auto-post on a delayed schedule</div>
-            </div>
-            <span class="chip">PRO</span>
-        </div>
-    </div>
-
-    <button class="primary-btn" onclick="Telegram.WebApp.close()">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        Close Dashboard
-    </button>
-    <div class="footer">WP Relay Dashboard &bull; Version 2.0</div>
-
-
-    <!-- MODAL POPUP -->
-    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
-    <div class="modal" id="manager-modal">
-        <div class="modal-drag"></div>
-        <div class="modal-header">
-            <div class="modal-header-top">
-                <div class="modal-title" id="modal-title">
-                    <svg viewBox="0 0 24 24" id="modal-icon"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg>
-                    Manage Channels
-                </div>
-                <button class="modal-close" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-            </div>
-            <div class="modal-subtitle" id="modal-subtitle">Add or remove channels from your routing list.</div>
-        </div>
-        <div class="modal-body" id="modal-list">
-            <div class="empty-state">Loading...</div>
-        </div>
-        
-        <div id="modal-settings-content" style="display:none; padding: 20px; overflow-y: auto; flex: 1;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-color); border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border-color);">
-                <div>
-                    <div style="font-weight: 700; color: var(--text-main); font-size: 16px; margin-bottom: 4px;">Anti-Payment Stripper</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">Deletes Banks & Crypto details</div>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_payment_details', this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);">
-                <div>
-                    <div style="font-weight: 700; color: var(--text-main); font-size: 16px; margin-bottom: 4px;">Skip Audio/Voice</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">Blocks audio files & voice notes</div>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-voice" onchange="toggleSetting('disable_voicenotes', this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        
-        <div class="add-channel-row" id="modal-add-row">
-            <input type="text" id="modal-input" class="add-input" placeholder="@channel or ID">
-            <input type="text" id="modal-input-2" class="add-input" placeholder="Replace with..." style="display:none;">
-            <button class="btn-add" onclick="submitModalAdd()">Add</button>
-        </div>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        
-        // Theme matching
-        document.documentElement.style.setProperty('--bg-color', tg.backgroundColor || '#181818');
-        
-        // Set User info
-        const userName = tg.initDataUnsafe?.user?.first_name || tg.initDataUnsafe?.user?.username || 'User';
-        document.getElementById('user-greeting').innerText = `Hi, ${userName}!`;
-        
-
-        
-        const photoUrl = tg.initDataUnsafe?.user?.photo_url;
-        if (photoUrl) {
-            document.getElementById('user-avatar-container').innerHTML = `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-        }
-        
-        // Fetch Real-time status
-        function showFeedback() {
-            document.getElementById('feedbackOverlay').classList.add('active');
-            document.getElementById('feedbackModal').classList.add('active');
-        }
-        function closeFeedback() {
-            document.getElementById('feedbackOverlay').classList.remove('active');
-            document.getElementById('feedbackModal').classList.remove('active');
-            sessionStorage.setItem('feedbackClosed', 'true');
-        }
-        async function submitFeedbackIOS() {
-            const text = document.getElementById('feedbackTextIOS').value.trim();
-            if(!text) return;
-            const btn = document.getElementById('feedbackBtnIOS');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = 'Sending...';
-            
-            try {
-                const userId = tg.initDataUnsafe?.user?.id || '123456';
-                await fetch('/api/feedback', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, text: text })
-                });
-                btn.innerHTML = 'Sent!';
-                tg.HapticFeedback.notificationOccurred('success');
-                setTimeout(() => { closeFeedback(); }, 1000);
-            } catch (err) {
-                btn.innerHTML = originalHtml;
-                tg.showAlert("Failed to send.");
-            }
-        }
-    
-        
-        function showFeedback() {
-            document.getElementById('feedbackOverlay').classList.add('active');
-            document.getElementById('feedbackModal').classList.add('active');
-        }
-        function closeFeedback() {
-            document.getElementById('feedbackOverlay').classList.remove('active');
-            document.getElementById('feedbackModal').classList.remove('active');
-            sessionStorage.setItem('feedbackClosed', 'true');
-        }
-        async function submitFeedbackIOS() {
-            const text = document.getElementById('feedbackTextIOS').value.trim();
-            if(!text) return;
-            const btn = document.getElementById('feedbackBtnIOS');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = 'Sending...';
-            
-            try {
-                const userId = tg.initDataUnsafe?.user?.id || '123456';
-                await fetch('/api/feedback', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, text: text })
-                });
-                btn.innerHTML = 'Sent!';
-                tg.HapticFeedback.notificationOccurred('success');
-                setTimeout(() => { closeFeedback(); }, 1000);
-            } catch (err) {
-                btn.innerHTML = originalHtml;
-                tg.showAlert("Failed to send.");
-            }
-        }
-    
-        async function fetchStatus() {
-            try {
-                // If opening outside Telegram (for dev), use a dummy user
-                const userId = tg.initDataUnsafe?.user?.id || '123456';
-                
-                const response = await fetch('/api/user_status?user_id=' + userId);
-                const data = await response.json();
-                
-                // Update Badges
-                const tierBadge = document.getElementById('tier-badge');
-                tierBadge.classList.remove('skeleton', 'free', 'pro');
-                if (data.is_pro || data.is_admin) {
-                    tierBadge.classList.add('pro');
-                    tierBadge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"></path><path d="M11 3l-4 6 5 13"></path><path d="M13 3l4 6-5 13"></path><path d="M2 9h20"></path></svg> PRO';
-                    document.getElementById('tier-diamond').style.display = 'block';
-                    document.getElementById('avatar-frame').classList.add('pro');
-                } else {
-                    tierBadge.classList.add('free');
-                    tierBadge.innerHTML = 'FREE';
-                }
-                
-                
-                window.globalSources = data.sources || [];
-                window.globalTargets = data.targets || [];
-                window.globalSwaps = data.text_swaps || {};
-                
-                document.getElementById('stat-sources').innerText = data.sources_count;
-                document.getElementById('stat-targets').innerText = data.targets_count;
-                document.getElementById('stat-replacements').innerText = Object.keys(window.globalSwaps).length;
-                document.getElementById('stat-replacements').classList.remove('skeleton');
-                document.getElementById('stat-sources').classList.remove('skeleton');
-                document.getElementById('stat-targets').classList.remove('skeleton');
-                
-                if(document.getElementById('toggle-strip')) document.getElementById('toggle-strip').checked = data.strip_payment_details;
-                if(document.getElementById('toggle-voice')) document.getElementById('toggle-voice').checked = data.disable_voicenotes;
-                
-                const connBadge = document.getElementById('conn-badge');
-                connBadge.classList.remove('skeleton', 'connected', 'disconnected');
-                if (data.has_session) {
-                    connBadge.classList.add('connected');
-                    connBadge.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Connected';
-                } else {
-                    connBadge.classList.add('disconnected');
-                    connBadge.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Disconnected';
-                }
-                
-
-                
-            
-                if (data.should_popup_feedback && !sessionStorage.getItem('feedbackClosed')) {
-                    setTimeout(showFeedback, 1500);
-                }
-
-            } catch (err) {
-                console.error("Error fetching status:", err);
-                document.getElementById('tier-badge').classList.remove('skeleton');
-                document.getElementById('tier-badge').innerText = 'ERROR';
-                document.getElementById('conn-badge').classList.remove('skeleton');
-                document.getElementById('conn-badge').innerText = 'ERROR';
-            }
-        }
-        
-        
-        let currentModalType = '';
-        
-        function openModal(type) {
-            currentModalType = type;
-            
-            document.getElementById('modal-list').style.display = 'block';
-            document.getElementById('modal-add-row').style.display = 'flex';
-            if (document.getElementById('modal-settings-content')) {
-                document.getElementById('modal-settings-content').style.display = 'none';
-            }
-            if (type === 'sources') {
-                document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg> Source Channels';
-                document.getElementById('modal-subtitle').innerText = 'Messages posted here will be forwarded.';
-            } else if (type === 'targets') {
-                document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Target Channels';
-                document.getElementById('modal-subtitle').innerText = 'Messages will be forwarded to these groups.';
-                document.getElementById('modal-input-2').style.display = 'none';
-                document.getElementById('modal-input').placeholder = '@channel or ID';
-            } else if (type === 'replacements') {
-                document.getElementById('modal-title').innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Word Swaps';
-                document.getElementById('modal-subtitle').innerText = 'Auto-replace words, links, and text in messages.';
-                document.getElementById('modal-input').placeholder = 'Find what...';
-                document.getElementById('modal-input-2').placeholder = 'Replace with...';
-                document.getElementById('modal-input-2').style.display = 'block';
-            } else if (type === 'settings') {
-                document.getElementById('modal-title').innerHTML = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Filters & Settings';
-                document.getElementById('modal-subtitle').innerText = 'Configure your automated rules.';
-                document.getElementById('modal-list').style.display = 'none';
-                document.getElementById('modal-add-row').style.display = 'none';
-                if (document.getElementById('modal-settings-content')) {
-                    document.getElementById('modal-settings-content').style.display = 'block';
-                }
-            }
-            
-            document.getElementById('modal-overlay').classList.add('active');
-            
-            // tiny delay for animation
-            setTimeout(() => {
-                document.getElementById('manager-modal').classList.add('active');
-            }, 10);
-            
-            renderModalList();
-        }
-        
-        function closeModal() {
-            document.getElementById('manager-modal').classList.remove('active');
-            setTimeout(() => {
-                document.getElementById('modal-overlay').classList.remove('active');
-            }, 300);
-        }
-        
-        function renderModalList() {
-            const container = document.getElementById('modal-list');
-            
-            if (currentModalType === 'replacements') {
-                const swaps = window.globalSwaps || {};
-                const keys = Object.keys(swaps);
-                if (keys.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg></div>
-                            <div class="empty-title">No Word Swaps</div>
-                            <div>Enter a word to find and replace below.</div>
-                        </div>`;
-                    return;
-                }
-                
-                container.innerHTML = keys.map(k => `
-                    <div class="channel-row">
-                        <div class="channel-name" style="flex:1;"><span style="color:var(--text-muted)">Find:</span> ${k}<br><span style="color:var(--text-muted)">Replace:</span> ${swaps[k]}</div>
-                        <button class="btn-remove" onclick="manageSwap('remove', '${k}')">
-                            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                    </div>
-                `).join('');
-                return;
-            }
-
-            const list = currentModalType === 'sources' ? window.globalSources : window.globalTargets;
-            if (!list || list.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM12 8v8m-4-4h8"></path></svg></div>
-                        <div class="empty-title">No ${currentModalType}</div>
-                        <div>Add a channel ID or @username below to get started.</div>
-                    </div>`;
-                return;
-            }
-            
-            container.innerHTML = list.map(item => `
-                <div class="channel-row">
-                    <div class="channel-name">${item}</div>
-                    <button class="btn-remove" onclick="manageChannel('${currentModalType}', 'remove', '${item}')">
-                        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button>
-                </div>
-            `).join('');
-        }
-        
-        function submitModalAdd() {
-            const inputEl = document.getElementById('modal-input');
-            const val = inputEl.value.trim();
-            if(!val) return;
-            
-            if (currentModalType === 'replacements') {
-                const inputEl2 = document.getElementById('modal-input-2');
-                const val2 = inputEl2.value.trim();
-                manageSwap('add', val, val2);
-                inputEl.value = '';
-                inputEl2.value = '';
-            } else {
-                manageChannel(currentModalType, 'add', val);
-                inputEl.value = '';
-            }
-        }
-        
-        async function manageSwap(action, oldWord, newWord = null) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
-            try {
-                tg.HapticFeedback.impactOccurred('medium');
-                const response = await fetch('/api/manage_swap', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, action: action, old_word: oldWord, new_word: newWord })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    window.globalSwaps = data.swaps;
-                    document.getElementById('stat-replacements').innerText = Object.keys(data.swaps).length;
-                    renderModalList();
-                } else {
-                    tg.showAlert(data.error || "Failed to update word swap.");
-                }
-            } catch (err) {
-                tg.showAlert("Network error.");
-            }
-        }
-
-        async function manageChannel(type, action, channelId) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
-            
-            try {
-                tg.HapticFeedback.impactOccurred('medium');
-                const response = await fetch('/api/manage_channel', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        type: type,
-                        action: action,
-                        channel_id: channelId
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('modal-list').style.display = 'block';
-            document.getElementById('modal-add-row').style.display = 'flex';
-            if (document.getElementById('modal-settings-content')) {
-                document.getElementById('modal-settings-content').style.display = 'none';
-            }
-            if (type === 'sources') {
-                        window.globalSources = data.list;
-                        document.getElementById('stat-sources').innerText = data.list.length;
-                    } else {
-                        window.globalTargets = data.list;
-                        document.getElementById('stat-targets').innerText = data.list.length;
-                    }
-                    renderModalList();
-                } else {
-                    tg.showAlert(data.error || "Failed to update channel.");
-                }
-            } catch (err) {
-                tg.showAlert("Network error.");
-            }
-        }
-        
-        
-        async function toggleSetting(key, val) {
-            const userId = tg.initDataUnsafe?.user?.id || '123456';
-            tg.HapticFeedback.impactOccurred('light');
-            try {
-                await fetch('/api/toggle_setting', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, key: key, val: val })
-                });
-            } catch (err) {
-                tg.showAlert("Failed to save setting.");
-            }
-        }
-        
-        fetchStatus();
-
-    </script>
-
-    <!-- Feedback Custom iOS Modal -->
-    <div class="modal-overlay" id="feedbackOverlay"></div>
-    <div class="modal" id="feedbackModal">
-        <div class="modal-drag"></div>
-        <div class="modal-header">
-            <div class="modal-header-top">
-                <div class="modal-title">
-    <svg style="width:24px;height:24px;color:var(--accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 18h6"></path>
-        <path d="M10 22h4"></path>
-        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
-    </svg>
-    Help Us Improve
-</div>
-                <button class="modal-close" onclick="closeFeedback()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div class="modal-subtitle">What feature should we build next? Is there anything you find confusing or wish worked better?</div>
-        </div>
-        <div class="add-channel-row">
-            <textarea id="feedbackTextIOS" class="add-input" rows="3" placeholder="I would love to have a feature that..."></textarea>
-            <button id="feedbackBtnIOS" class="btn-add" onclick="submitFeedbackIOS()">
-                <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-                    Send to Developer 
-                    <svg style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                </div>
-            </button>
-        </div>
-    </div>
-</body>
-</html>'''
+# --- SYNCHRONIZED NATIVE BOT BACKEND API ROUTES ---
 
 @app.route('/api/user_status', methods=['GET'])
 def api_user_status():
     user_id = request.args.get('user_id')
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
-        
     try:
         user_id = int(user_id)
     except:
         return jsonify({"error": "Invalid user_id"}), 400
         
-    import os
-    from database_manager import get_user_data
-    
     ADMIN_ID = os.getenv("ADMIN_ID", "")
     is_admin = (str(user_id) == str(ADMIN_ID))
+    from database_manager import get_user_data
     user_data = get_user_data(user_id)
     
     has_session = bool(user_data.get('session_string'))
     is_pro = user_data.get('is_pro', False)
-    
     if is_admin:
         is_pro = True
         
@@ -1414,95 +693,85 @@ def api_user_status():
         "sources": user_data.get('sources', []),
         "targets": user_data.get('targets', []),
         "text_swaps": user_data.get('text_swaps', {}),
+        "replace_all_links_with": user_data.get('replace_all_links_with', ''),
+        "exclude_link_keywords": user_data.get('exclude_link_keywords', ''),
+        "replace_all_usernames_with": user_data.get('replace_all_usernames_with', ''),
+        "image_override_enabled": user_data.get('image_override_enabled', True),
+        "image_swap_url": user_data.get('image_swap_url', ''),
+        "video_override_enabled": user_data.get('video_override_enabled', True),
+        "video_swap_url": user_data.get('video_swap_url', ''),
+        "ai_watermark_mode": user_data.get('ai_watermark_mode', 'off'),
+        "ai_watermark_target": user_data.get('ai_watermark_target', ''),
+        "ai_watermark_replace": user_data.get('ai_watermark_replace', ''),
+        "cta_buttons": user_data.get('cta_buttons', []),
+        "smart_delay_enabled": user_data.get('smart_delay_enabled', False),
+        "drip_interval": user_data.get('drip_interval', 0),
+        "sleep_mode": user_data.get('sleep_mode', {"enabled": False, "start_time": "22:00", "end_time": "08:00", "timezone_offset": 0}),
+        "mirror_delete": user_data.get('mirror_delete', False),
+        "auto_delete_limit": user_data.get('auto_delete_limit', 0),
         "strip_payment_details": user_data.get('strip_payment_details', False),
         "disable_voicenotes": user_data.get('disable_voicenotes', False)
     })
-
 
 def validate_channel_input(x):
     import re
     x = x.strip()
     if not x: return None, "Empty input"
-    
-    # Is it a standard numeric ID?
-    if x.startswith('-100') and x[4:].isdigit():
-        return x, None
-    if x.lstrip('-').isdigit():
-        return x, None
-        
-    # Is it an @username?
-    if x.startswith('@') and len(x) > 3:
-        return x, None
-        
-    # Is it a t.me link?
+    if x.startswith('-100') and x[4:].isdigit(): return x, None
+    if x.lstrip('-').isdigit(): return x, None
+    if x.startswith('@') and len(x) > 3: return x, None
     if 't.me/c/' in x:
-        match = re.search(r't\.me/c/(\d+)', x)
-        if match:
-            return f"-100{match.group(1)}", None
-            
+        m = re.search(r't\.me/c/(\d+)', x)
+        if m: return f"-100{m.group(1)}", None
     if 't.me/' in x:
-        match = re.search(r't\.me/([^/\?]+)', x)
-        if match:
-            username = match.group(1)
-            if username in ['joinchat'] or username.startswith('+'):
-                return None, "Private invite links (joinchat/+) are not supported. Please use a public @username or the numeric -100 Channel ID."
-            return f"@{username}", None
-            
-    return None, "Invalid format. Please enter a valid @username, -100 ID, or public t.me link."
+        m = re.search(r't\.me/([^/\?]+)', x)
+        if m:
+            u = m.group(1)
+            if u in ['joinchat'] or u.startswith('+'):
+                return None, "Private invite links (joinchat/+) are not supported. Use a public @username or numeric -100 ID."
+            return f"@{u}", None
+    return None, "Invalid format. Enter a valid @username or -100 ID."
 
 @app.route('/api/manage_channel', methods=['POST'])
 def api_manage_channel():
-    data = request.json
+    data = request.json or {}
     user_id = data.get('user_id')
-    channel_type = data.get('type') # 'sources' or 'targets'
-    action = data.get('action') # 'add' or 'remove'
+    channel_type = data.get('type')
+    action = data.get('action')
     channel_id = data.get('channel_id')
-    
     if not all([user_id, channel_type, action, channel_id]):
         return jsonify({"error": "Missing params"}), 400
-        
     if action == 'add':
         parsed_id, err = validate_channel_input(channel_id)
-        if err:
-            return jsonify({"error": err}), 400
+        if err: return jsonify({"error": err}), 400
         channel_id = parsed_id
-        
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
-    
     if channel_type not in ['sources', 'targets']:
         return jsonify({"error": "Invalid type"}), 400
-        
     current_list = user_data.get(channel_type, [])
-    
     if action == 'add':
         if channel_id not in current_list:
             current_list.append(channel_id)
     elif action == 'remove':
         if channel_id in current_list:
             current_list.remove(channel_id)
-            
     user_data[channel_type] = current_list
     save_user_data(user_id, user_data)
-    
     return jsonify({"success": True, "list": current_list})
-
 
 @app.route('/api/manage_swap', methods=['POST'])
 def api_manage_swap():
-    data = request.json
+    data = request.json or {}
     user_id = data.get('user_id')
-    action = data.get('action') # 'add' or 'remove'
+    action = data.get('action')
     old_word = data.get('old_word')
     new_word = data.get('new_word')
-    
     if not all([user_id, action, old_word]):
         return jsonify({"error": "Missing params"}), 400
-        
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     text_swaps = user_data.get('text_swaps', {})
-    
     if action == 'add':
         if not new_word:
             return jsonify({"error": "Missing replacement word"}), 400
@@ -1510,38 +779,151 @@ def api_manage_swap():
     elif action == 'remove':
         if old_word in text_swaps:
             del text_swaps[old_word]
-            
     user_data['text_swaps'] = text_swaps
     save_user_data(user_id, user_data)
-    
     return jsonify({"success": True, "swaps": text_swaps})
-
 
 @app.route('/api/toggle_setting', methods=['POST'])
 def api_toggle_setting():
-    data = request.json
+    data = request.json or {}
     user_id = data.get('user_id')
     key = data.get('key')
     val = data.get('val')
-    
     if not user_id or not key:
         return jsonify({"error": "Missing params"}), 400
-        
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data[key] = bool(val)
     save_user_data(user_id, user_data)
-    
     return jsonify({"success": True, "val": bool(val)})
+
+@app.route('/api/save_branding', methods=['POST'])
+def api_save_branding():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    user_data['replace_all_links_with'] = data.get('global_link', '').strip()
+    user_data['exclude_link_keywords'] = data.get('exclude_keywords', '').strip()
+    user_data['replace_all_usernames_with'] = data.get('global_username', '').strip()
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True})
+
+@app.route('/api/manage_cta', methods=['POST'])
+def api_manage_cta():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    action = data.get('action')
+    if not user_id or not action:
+        return jsonify({"error": "Missing params"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    btns = user_data.get('cta_buttons', [])
+    if action == 'add':
+        btn_text = data.get('text', '').strip()
+        btn_url = data.get('url', '').strip()
+        if not btn_text or not btn_url:
+            return jsonify({"error": "Missing text or url"}), 400
+        if not btn_url.startswith(('http://', 'https://', 't.me/')):
+            btn_url = 'https://' + btn_url
+        btns.append({"text": btn_text, "url": btn_url})
+    elif action == 'remove':
+        idx = data.get('index')
+        if idx is not None and 0 <= idx < len(btns):
+            btns.pop(idx)
+    elif action == 'clear':
+        btns = []
+    user_data['cta_buttons'] = btns
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True, "cta_buttons": btns})
+
+@app.route('/api/save_media_url', methods=['POST'])
+def api_save_media_url():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    m_type = data.get('type')
+    url = data.get('url', '').strip()
+    if not user_id or not m_type:
+        return jsonify({"error": "Missing params"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    if m_type == 'image':
+        user_data['image_swap_url'] = url
+        user_data['image_swap_path'] = ''
+    elif m_type == 'video':
+        user_data['video_swap_url'] = url
+        user_data['video_swap_path'] = ''
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True})
+
+@app.route('/api/save_watermark', methods=['POST'])
+def api_save_watermark():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    user_data['ai_watermark_mode'] = data.get('mode', 'off')
+    user_data['ai_watermark_target'] = data.get('target', '').strip()
+    user_data['ai_watermark_replace'] = data.get('replace', '').strip()
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True})
+
+@app.route('/api/set_drip', methods=['POST'])
+def api_set_drip():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    interval = data.get('interval', 0)
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    user_data['drip_interval'] = int(interval)
+    if int(interval) == 0:
+        user_data['drip_queue'] = []
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True, "interval": int(interval)})
+
+@app.route('/api/save_sleep_mode', methods=['POST'])
+def api_save_sleep_mode():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    user_data['sleep_mode'] = {
+        "enabled": bool(data.get('enabled', False)),
+        "start_time": data.get('start_time', '22:00'),
+        "end_time": data.get('end_time', '08:00'),
+        "timezone_offset": float(data.get('timezone_offset', 0))
+    }
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True})
+
+@app.route('/api/save_auto_delete', methods=['POST'])
+def api_save_auto_delete():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    limit = data.get('limit', 0)
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    from database_manager import get_user_data, save_user_data
+    user_data = get_user_data(user_id)
+    user_data['auto_delete_limit'] = int(limit)
+    save_user_data(user_id, user_data)
+    return jsonify({"success": True, "limit": int(limit)})
 
 @app.route('/miniapp')
 def miniapp():
-    return html_content
-
+    return get_miniapp_html()
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
-    data = request.json
+    data = request.json or {}
     chat_id = session.get('chat_id') or data.get('user_id')
     text = data.get('text', '')
     if text and chat_id:
@@ -1550,27 +932,16 @@ def submit_feedback():
         submitted = ud.get('feedback_submitted_count', 0)
         ud['feedback_submitted_count'] = submitted + 1
         save_user_data(chat_id, ud)
-        
         import requests, os
         admin_id = os.getenv('ADMIN_ID')
         bot_token = os.getenv('BOT_TOKEN')
         if admin_id and bot_token:
             url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
-            payload = {
-                'chat_id': admin_id,
-                'text': f'Feature Request!\n\nFrom: {chat_id}\n\nMessage:\n{text}'
-            }
-            try: 
-                r = requests.post(url, json=payload, timeout=15)
-                with open('delivery_log.txt', 'a') as lf:
-                    lf.write(f"STATUS: {r.status_code}\nRESPONSE: {r.text}\n")
-            except Exception as e:
-                with open('delivery_log.txt', 'a') as lf:
-                    lf.write(f"ERROR: {str(e)}\n")
+            payload = {'chat_id': admin_id, 'text': f'Feature Request!\n\nFrom: {chat_id}\n\nMessage:\n{text}'}
+            try: requests.post(url, json=payload, timeout=15)
+            except: pass
     return jsonify({'success': True})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-
-

@@ -47,9 +47,12 @@ def get_main_keyboard(chat_id):
     has_session = bool(user_data.get('session_string', ''))
     status_text = "🟢 Connected" if has_session else "🔴 Disconnected"
     
-    buttons = [
-        [Button.inline(f"📱 Account: {status_text}", b"status")],
-    ]
+    miniapp_url = os.getenv('MINIAPP_URL', '').strip()
+    
+    buttons = []
+    if miniapp_url:
+        buttons.append([Button.url("🚀 Open Mini App Studio", miniapp_url)])
+    buttons.append([Button.inline(f"📱 Account: {status_text}", b"status")])
     
     if not has_session:
         buttons.append([Button.inline("🔑 Connect Account", b"connect_account")])
@@ -134,6 +137,22 @@ async def start(event):
         msg = f"👋 Hi, **{name}**! Welcome to the **WP Relay Dashboard**!{badge}\n\nManage your forwarding rules, channels, and replacements directly from this menu."
         
     await event.respond(msg, buttons=get_main_keyboard(chat_id))
+
+@bot.on(events.NewMessage(pattern=r'^/(app|miniapp)'))
+async def open_app_command(event):
+    chat_id = event.chat_id
+    if not is_tenant(chat_id):
+        await event.respond("❌ You must have an active subscription to access the Mini App.")
+        return
+    miniapp_url = os.getenv('MINIAPP_URL', '').strip()
+    if miniapp_url:
+        buttons = [[Button.url("🚀 Open Mini App Studio", miniapp_url)]]
+        await event.respond(
+            "📱 **WP Relay Cloud Studio**\n\nTap below to launch the full native dashboard:",
+            buttons=buttons
+        )
+    else:
+        await event.respond("⚠️ Mini App URL has not been configured in `.env` yet (`MINIAPP_URL=https://.../miniapp`).")
 
 @bot.on(events.CallbackQuery)
 async def callback(event):
