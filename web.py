@@ -833,15 +833,21 @@ def api_admin_overview():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    from database_manager import get_tenants, get_stats, get_all_users, get_user_data
+    from database_manager import get_tenants, get_stats, get_all_users, get_user_data, get_feature_toggles
     tenants = get_tenants()
     stats = get_stats()
+    toggles = get_feature_toggles()
 
     tenant_details = []
+    pro_count = 0
     for t in tenants:
         ud = get_user_data(t)
+        is_p = ud.get('is_pro', False) or (str(t) == admin_id)
+        if is_p:
+            pro_count += 1
         tenant_details.append({
             "tenant_id": str(t),
+            "is_pro": is_p,
             "sources_count": len(ud.get('sources', [])),
             "targets_count": len(ud.get('targets', [])),
             "swaps_count": len(ud.get('text_swaps', {})),
@@ -849,11 +855,20 @@ def api_admin_overview():
             "has_session": bool(ud.get('session_string'))
         })
 
+    free_count = len(tenants) - pro_count
+
     return jsonify({
         "success": True,
         "is_admin": True,
         "stats": stats,
         "tenants": tenant_details,
+        "total_tenants": len(tenants),
+        "pro_count": pro_count,
+        "free_count": free_count,
+        "toggles": toggles,
+        "api_id": os.getenv("API_ID", ""),
+        "api_hash": os.getenv("API_HASH", ""),
+        "has_session": bool(os.getenv("SESSION_STRING")),
         "total_users_in_db": len(get_all_users())
     })
 
@@ -868,22 +883,139 @@ def api_admin_manage_tenant():
     action = data.get('action')
     tenant_id = str(data.get('tenant_id', '')).strip()
 
-    if not tenant_id or action not in ['add', 'remove']:
+    if not tenant_id or action not in ['add', 'remove', 'toggle_pro']:
         return jsonify({"error": "Invalid action or tenant ID"}), 400
 
-    from database_manager import get_tenants, save_tenants
+    from database_manager import get_tenants, save_tenants, get_user_data, save_user_data
     tenants = [str(t) for t in get_tenants()]
 
     if action == 'add':
         if tenant_id not in tenants:
             tenants.append(tenant_id)
             save_tenants(tenants)
+            # Try to notify new tenant via bot
+            bot_token = os.getenv('BOT_TOKEN')
+            if bot_token:
+                try:
+                    import requests
+                    requests.post(
+                        f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                        json={"chat_id": tenant_id, "text": "Account Activated!\nThe Administrator has granted you access to the forwarder platform."},
+                        timeout=5
+                    )
+                except: pass
     elif action == 'remove':
         if tenant_id in tenants:
             tenants.remove(tenant_id)
             save_tenants(tenants)
+    elif action == 'toggle_pro':
+        ud = get_user_data(tenant_id)
+        current_pro = ud.get('is_pro', False)
+        ud['is_pro'] = not current_pro
+        save_user_data(tenant_id, ud)
+        return jsonify({"success": True, "tenant_id": tenant_id, "is_pro": ud['is_pro']})
 
     return jsonify({"success": True, "tenants": tenants})
+
+@app.route('/api/admin_toggle_feature', methods=['POST'])
+def api_admin_toggle_feature():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    feature = data.get('feature')
+    val = bool(data.get('value', False))
+    if not feature:
+        return jsonify({"error": "Missing feature name"}), 400
+
+    from database_manager import get_feature_toggles, save_feature_toggles
+    toggles = get_feature_toggles() or {}
+    toggles[feature] = val
+    save_feature_toggles(toggles)
+    return jsonify({"success": True, "toggles": toggles})
+
+@app.route('/api/admin_broadcast', methods=['POST'])
+def api_admin_broadcast():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    msg_text = str(data.get('message', '')).strip()
+    if not msg_text:
+        return jsonify({"error": "Message cannot be empty"}), 400
+
+    bot_token = os.getenv('BOT_TOKEN')
+    if not bot_token:
+        return jsonify({"error": "BOT_TOKEN not configured"}), 500
+
+    from database_manager import get_tenants
+    tenants = get_tenants()
+    import requests, time
+
+    sent = 0
+    for t in tenants:
+        try:
+            r = requests.post(
+                f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                json={"chat_id": t, "text": msg_text, "parse_mode": "HTML"},
+                timeout=8
+            )
+            if r.status_code == 200:
+                sent += 1
+            time.sleep(0.05)
+        except:
+            pass
+
+    return jsonify({"success": True, "sent": sent, "total": len(tenants)})
+
+@app.route('/api/admin_update_api_config', methods=['POST'])
+def api_admin_update_api_config():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    api_id = str(data.get('api_id', '')).strip()
+    api_hash = str(data.get('api_hash', '')).strip()
+    session_string = str(data.get('session_string', '')).strip()
+
+    if api_id:
+        os.environ['API_ID'] = api_id
+        set_key(ENV_FILE, 'API_ID', api_id)
+    if api_hash:
+        os.environ['API_HASH'] = api_hash
+        set_key(ENV_FILE, 'API_HASH', api_hash)
+    if session_string:
+        os.environ['SESSION_STRING'] = session_string
+        set_key(ENV_FILE, 'SESSION_STRING', session_string)
+
+    return jsonify({"success": True})
+
+@app.route('/api/admin_logs', methods=['GET'])
+def api_admin_logs():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    logs = []
+    log_file = 'forwarder.log'
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                lines = f.readlines()
+                logs = [l.strip() for l in lines[-60:] if l.strip()]
+        except Exception as e:
+            logs = [f"Error reading log file: {e}"]
+    else:
+        logs = ["Log file does not exist yet."]
+
+    return jsonify({"success": True, "logs": logs})
 
 # --- SYNCHRONIZED NATIVE BOT BACKEND API ROUTES ---
 
