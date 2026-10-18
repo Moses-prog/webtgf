@@ -869,6 +869,8 @@ def api_admin_overview():
         "api_id": os.getenv("API_ID", ""),
         "api_hash": os.getenv("API_HASH", ""),
         "has_session": bool(os.getenv("SESSION_STRING")),
+        "bot_token_configured": bool(os.getenv("BOT_TOKEN")),
+        "bot_token_preview": (os.getenv("BOT_TOKEN")[:10] + "...") if os.getenv("BOT_TOKEN") else "",
         "total_users_in_db": len(get_all_users())
     })
 
@@ -1050,6 +1052,7 @@ def api_admin_update_api_config():
     api_id = str(data.get('api_id', '')).strip()
     api_hash = str(data.get('api_hash', '')).strip()
     session_string = str(data.get('session_string', '')).strip()
+    bot_token = str(data.get('bot_token', '')).strip()
 
     if api_id:
         os.environ['API_ID'] = api_id
@@ -1060,8 +1063,167 @@ def api_admin_update_api_config():
     if session_string:
         os.environ['SESSION_STRING'] = session_string
         set_key(ENV_FILE, 'SESSION_STRING', session_string)
+    if bot_token:
+        os.environ['BOT_TOKEN'] = bot_token
+        set_key(ENV_FILE, 'BOT_TOKEN', bot_token)
 
     return jsonify({"success": True})
+
+@app.route('/api/admin_test_bot_token', methods=['POST'])
+def api_admin_test_bot_token():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    candidate_token = str(data.get('bot_token', '')).strip() or os.getenv('BOT_TOKEN', '').strip()
+    if not candidate_token:
+        return jsonify({"success": False, "error": "No bot token provided"}), 400
+
+    try:
+        import requests
+        r = requests.get(f"https://api.telegram.org/bot{candidate_token}/getMe", timeout=8)
+        d = r.json()
+        if d.get("ok"):
+            res = d.get("result", {})
+            return jsonify({
+                "success": True,
+                "valid": True,
+                "bot_id": res.get("id"),
+                "username": res.get("username"),
+                "first_name": res.get("first_name")
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "valid": False,
+                "error": d.get("description", "Unauthorized")
+            })
+    except Exception as e:
+        return jsonify({"success": False, "valid": False, "error": str(e)})
+
+@app.route('/api/admin_channel_info', methods=['GET'])
+def api_admin_channel_info():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    import channel_engine
+    bot_st = channel_engine.get_bot_status()
+    auto_cfg = channel_engine.get_autopilot_config()
+    return jsonify({
+        "success": True,
+        "bot_status": bot_st,
+        "autopilot": auto_cfg,
+        "categories": channel_engine.TOPIC_CATEGORIES,
+        "default_channel": channel_engine.DEFAULT_CHANNEL,
+        "bot_username": channel_engine.DEFAULT_BOT_USERNAME
+    })
+
+@app.route('/api/admin_channel_generate', methods=['POST'])
+def api_admin_channel_generate():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    category = str(data.get('category', '')).strip() or None
+    prompt = str(data.get('custom_prompt', '')).strip() or None
+
+    try:
+        import channel_engine
+        res = channel_engine.generate_channel_post(category_id=category, custom_prompt=prompt)
+        return jsonify({
+            "success": True,
+            "text": res["text"],
+            "buttons": res["buttons"],
+            "model_used": res["model_used"]
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin_channel_post', methods=['POST'])
+def api_admin_channel_post():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    msg_text = str(data.get('message', '')).strip()
+    if not msg_text:
+        return jsonify({"error": "Message text cannot be empty"}), 400
+
+    target_channel = str(data.get('channel', '@webtgfv1')).strip() or '@webtgfv1'
+    buttons = data.get('buttons', [])
+    pin = bool(data.get('pin', False))
+    silent = bool(data.get('disable_notification', False))
+
+    try:
+        import channel_engine
+        res = channel_engine.publish_to_channel(
+            text=msg_text,
+            buttons=buttons,
+            pin=pin,
+            target_channel=target_channel,
+            disable_notification=silent
+        )
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin_channel_autopilot', methods=['POST'])
+def api_admin_channel_autopilot():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    import channel_engine
+    cfg = channel_engine.get_autopilot_config()
+
+    if 'enabled' in data:
+        cfg['enabled'] = bool(data['enabled'])
+    if 'frequency_hours' in data:
+        try:
+            cfg['frequency_hours'] = max(1, int(data['frequency_hours']))
+        except Exception:
+            pass
+
+    channel_engine.save_autopilot_config(cfg)
+    return jsonify({"success": True, "autopilot": cfg})
+
+@app.route('/api/admin_channel_autopilot_trigger', methods=['POST'])
+def api_admin_channel_autopilot_trigger():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    import channel_engine, time
+    try:
+        cfg = channel_engine.get_autopilot_config()
+        idx = cfg.get("topic_index", 0) % len(channel_engine.TOPIC_CATEGORIES)
+        category = channel_engine.TOPIC_CATEGORIES[idx]
+
+        post_data = channel_engine.generate_channel_post(category_id=category["id"])
+        should_pin = category["id"] in ["anti_ban", "pro_features"]
+        result = channel_engine.publish_to_channel(
+            text=post_data["text"],
+            buttons=post_data["buttons"],
+            pin=should_pin,
+            target_channel=channel_engine.DEFAULT_CHANNEL
+        )
+        cfg["topic_index"] = (idx + 1) % len(channel_engine.TOPIC_CATEGORIES)
+        cfg["last_posted_at"] = int(time.time())
+        channel_engine.save_autopilot_config(cfg)
+        return jsonify({"success": True, "result": result, "category": category["title"]})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/admin_logs', methods=['GET'])
 def api_admin_logs():
@@ -1470,6 +1632,25 @@ def submit_feedback():
             except: pass
     return jsonify({'success': True})
 
+def start_autopilot_worker():
+    def loop():
+        import time
+        time.sleep(15)  # initial delay
+        while True:
+            try:
+                import channel_engine
+                channel_engine.run_autopilot_tick()
+            except Exception as e:
+                print(f"[AUTOPILOT WORKER ERROR] {e}")
+            time.sleep(300) # check every 5 minutes
+
+    import threading
+    t = threading.Thread(target=loop, daemon=True)
+    t.start()
+
+start_autopilot_worker()
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+

@@ -997,6 +997,9 @@
             currentAdminTab = tabName;
             try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
             renderAdminModalContent();
+            if (tabName === 'channel') {
+                adminLoadChannelData();
+            }
         }
 
         function renderAdminModalContent() {
@@ -1158,6 +1161,101 @@
                         <button class="btn-submit" onclick="adminSendBroadcast()">Send Broadcast to All Tenants</button>
                     </div>
                 `;
+            } else if (currentAdminTab === 'channel') {
+                tabHtml = `
+                    <!-- CHANNEL TARGET & STATUS -->
+                    <div class="form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="form-label" style="margin-bottom:0;">Official Channel Target</span>
+                            <span class="admin-badge" id="admin-channel-status-badge">Checking...</span>
+                        </div>
+                        <div class="form-hint">Broadcast tips, announcements, and guides to your official channel with native bot buttons and pinning.</div>
+                        <input type="text" id="inp-channel-target" class="form-input" value="@webtgfv1" style="margin-bottom:8px;">
+                        <div class="form-hint" style="font-size:11px;">Requirement: @wprelaybot must be an Administrator in @webtgfv1 with 'Post Messages' and 'Pin Messages' permissions.</div>
+                    </div>
+
+                    <!-- AI CHANNEL CONTENT GENERATOR -->
+                    <div class="form-card">
+                        <div class="form-label">AI Channel Content Generator</div>
+                        <div class="form-hint">WP Relay Knowledge Engine writes specialized, high-impact channel tips ready for publication.</div>
+                        <select id="sel-channel-category" class="form-input" style="margin-bottom:8px;">
+                            <option value="anti_ban">Anti-Ban & Human Simulation Jitter</option>
+                            <option value="link_rewriting">Automated Link & Mention Monetization</option>
+                            <option value="watermarking">Dynamic Watermarking & Brand Defense</option>
+                            <option value="cta_buttons">High-Converting CTA Inline Buttons</option>
+                            <option value="drip_pacer">Drip Posting Pacer vs Audience Churn</option>
+                            <option value="auto_delete">Ephemeral Content & Auto-Delete Cleanups</option>
+                            <option value="pro_features">WP Relay PRO Power Suite</option>
+                            <option value="telegram_growth">Multi-Channel Growth Strategy</option>
+                        </select>
+                        <input type="text" id="inp-channel-custom-prompt" class="form-input" placeholder="Custom topic instructions (optional)..." style="margin-bottom:8px;">
+                        <button class="btn-submit" id="btn-channel-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateChannelPost()">Generate Smart Tip with AI</button>
+                    </div>
+
+                    <!-- CHANNEL MESSAGE EDITOR -->
+                    <div class="form-card">
+                        <div class="form-label">Channel Message (HTML Formatted)</div>
+                        <div class="form-hint">You can edit the generated message before posting.</div>
+                        <textarea id="inp-channel-msg-text" class="form-input" style="height:140px; resize:vertical; font-size:11px; font-family:monospace; margin-bottom:12px;" placeholder="Message to publish to @webtgfv1..."></textarea>
+
+                        <!-- INTERACTIVE NATIVE BUTTONS -->
+                        <div class="form-label">Native Interactive Buttons</div>
+                        <div class="form-hint">Clickable inline buttons attached below the channel post leading to @wprelaybot.</div>
+                        
+                        <div style="margin-bottom:8px;">
+                            <input type="text" id="inp-channel-btn1-text" class="form-input" value="⚡ Launch WP Relay Bot" placeholder="Button 1 Label" style="margin-bottom:4px;">
+                            <input type="text" id="inp-channel-btn1-url" class="form-input" value="https://t.me/wprelaybot?start=channel_tip" placeholder="Button 1 URL" style="margin-bottom:8px;">
+                        </div>
+
+                        <div style="margin-bottom:12px;">
+                            <input type="text" id="inp-channel-btn2-text" class="form-input" value="💎 Upgrade to PRO" placeholder="Button 2 Label" style="margin-bottom:4px;">
+                            <input type="text" id="inp-channel-btn2-url" class="form-input" value="https://t.me/wprelaybot?start=pro_upgrade" placeholder="Button 2 URL" style="margin-bottom:8px;">
+                        </div>
+
+                        <!-- PINNING & SILENT OPTIONS -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:6px 0; border-top:1px solid var(--border-color);">
+                            <div>
+                                <div class="form-label" style="margin-bottom:2px;">Auto-Pin to Channel Top</div>
+                                <div class="form-hint">Pins this post to the top banner of the channel</div>
+                            </div>
+                            <input type="checkbox" id="chk-channel-pin" checked style="width:18px; height:18px; accent-color:var(--text-main);">
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding:6px 0; border-top:1px solid var(--border-color);">
+                            <div>
+                                <div class="form-label" style="margin-bottom:2px;">Silent Broadcast</div>
+                                <div class="form-hint">Send without push sound alert</div>
+                            </div>
+                            <input type="checkbox" id="chk-channel-silent" style="width:18px; height:18px; accent-color:var(--text-main);">
+                        </div>
+
+                        <button class="btn-submit" id="btn-channel-publish" onclick="adminPublishChannelPost()">Publish to Official Channel</button>
+                    </div>
+
+                    <!-- AUTOPILOT SCHEDULER -->
+                    <div class="form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="form-label" style="margin-bottom:0;">Autonomous AI Channel Autopilot</span>
+                            <input type="checkbox" id="chk-autopilot-enabled" style="width:18px; height:18px; accent-color:var(--text-main);" onchange="adminSaveAutopilot()">
+                        </div>
+                        <div class="form-hint">Automatically composes and posts high-value tips on schedule without repeating topics.</div>
+
+                        <div style="margin-top:8px; margin-bottom:8px;">
+                            <div class="form-label">Posting Cadence</div>
+                            <select id="sel-autopilot-freq" class="form-input" onchange="adminSaveAutopilot()">
+                                <option value="6">Every 6 Hours</option>
+                                <option value="12" selected>Every 12 Hours</option>
+                                <option value="24">Every 24 Hours (Daily)</option>
+                            </select>
+                        </div>
+
+                        <div id="autopilot-status-box" style="font-size:11px; color:var(--hint-color); margin-bottom:10px;">
+                            Status: Checking schedule...
+                        </div>
+
+                        <button class="btn-sm-action" style="width:100%; padding:8px; text-align:center;" onclick="adminTriggerAutopilotNow()">Trigger Autopilot Run Now</button>
+                    </div>
+                `;
             } else if (currentAdminTab === 'system') {
                 tabHtml = `
                     <div class="form-card">
@@ -1167,7 +1265,16 @@
                         <input type="password" id="inp-admin-api-hash" class="form-input" placeholder="Enter API Hash" value="${d.api_hash || ''}" style="margin-bottom:8px;">
                         <div class="form-label">Session String</div>
                         <textarea id="inp-admin-session-string" class="form-input" style="height:60px; font-size:11px; font-family:monospace; margin-bottom:8px;" placeholder="Optional StringSession"></textarea>
-                        <button class="btn-submit" onclick="adminSaveApiConfig()">Save API Config</button>
+
+                        <div class="form-label">Telegram Bot Token (@BotFather for @wprelaybot)</div>
+                        <div class="form-hint">Powers official channel broadcasts, buttons, and auto-pinning.</div>
+                        <div style="display:flex; gap:6px; margin-bottom:8px;">
+                            <input type="password" id="inp-admin-bot-token" class="form-input" placeholder="e.g. 123456789:ABCdefGHI..." value="${d.bot_token_preview || ''}" style="flex:1;">
+                            <button class="btn-sm-action" onclick="adminTestBotToken()">Test</button>
+                        </div>
+                        <div id="bot-token-test-result" style="font-size:11px; margin-bottom:8px; display:none;"></div>
+
+                        <button class="btn-submit" onclick="adminSaveApiConfig()">Save System Config</button>
                     </div>
 
                     <div class="form-card">
@@ -1184,6 +1291,7 @@
                 <div class="segmented-control">
                     <button class="seg-btn ${currentAdminTab==='overview'?'active':''}" onclick="switchAdminTab('overview')">Overview</button>
                     <button class="seg-btn ${currentAdminTab==='tenants'?'active':''}" onclick="switchAdminTab('tenants')">Tenants</button>
+                    <button class="seg-btn ${currentAdminTab==='channel'?'active':''}" onclick="switchAdminTab('channel')">Channel</button>
                     <button class="seg-btn ${currentAdminTab==='broadcast'?'active':''}" onclick="switchAdminTab('broadcast')">Broadcast</button>
                     <button class="seg-btn ${currentAdminTab==='system'?'active':''}" onclick="switchAdminTab('system')">System</button>
                 </div>
@@ -1349,25 +1457,248 @@
         }
 
         async function adminSaveApiConfig() {
-            const apiId = document.getElementById('inp-admin-api-id').value.trim();
-            const apiHash = document.getElementById('inp-admin-api-hash').value.trim();
-            const sessionStr = document.getElementById('inp-admin-session-string').value.trim();
+            const apiId = document.getElementById('inp-admin-api-id')?.value.trim() || '';
+            const apiHash = document.getElementById('inp-admin-api-hash')?.value.trim() || '';
+            const sessionStr = document.getElementById('inp-admin-session-string')?.value.trim() || '';
+            const botToken = document.getElementById('inp-admin-bot-token')?.value.trim() || '';
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
                 const res = await fetch('/api/admin_update_api_config', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ api_id: apiId, api_hash: apiHash, session_string: sessionStr })
+                    body: JSON.stringify({
+                        api_id: apiId,
+                        api_hash: apiHash,
+                        session_string: sessionStr,
+                        bot_token: botToken
+                    })
                 });
                 const d = await res.json();
                 if (d.success) {
-                    tg.showAlert("API configuration updated successfully.");
+                    tg.showAlert("System configuration updated successfully.");
                 } else {
-                    tg.showAlert(d.error || "Failed to save API config");
+                    tg.showAlert(d.error || "Failed to save config");
                 }
             } catch(e) {
                 tg.showAlert("Network error");
+            }
+        }
+
+        async function adminTestBotToken() {
+            const inp = document.getElementById('inp-admin-bot-token');
+            const token = inp ? inp.value.trim() : '';
+            const resBox = document.getElementById('bot-token-test-result');
+
+            if (resBox) {
+                resBox.style.display = 'block';
+                resBox.style.color = 'var(--hint-color)';
+                resBox.innerText = 'Testing connection with Telegram...';
+            }
+
+            try {
+                const res = await fetch('/api/admin_test_bot_token', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ bot_token: token })
+                });
+                const d = await res.json();
+                if (resBox) {
+                    if (d.success && d.valid) {
+                        resBox.style.color = 'var(--text-main)';
+                        resBox.innerText = `Connected: @${d.username} (${d.first_name || 'Bot'})`;
+                    } else {
+                        resBox.style.color = 'var(--text-main)';
+                        resBox.innerText = `Failed: ${d.error || 'Invalid token'}`;
+                    }
+                }
+            } catch(e) {
+                if (resBox) {
+                    resBox.style.color = 'var(--text-main)';
+                    resBox.innerText = 'Network error testing token';
+                }
+            }
+        }
+
+        let adminChannelData = null;
+
+        async function adminLoadChannelData() {
+            try {
+                const res = await fetch('/api/admin_channel_info', { credentials: 'include', headers: getAuthHeaders() });
+                const d = await res.json();
+                if (d.success) {
+                    adminChannelData = d;
+                    const badge = document.getElementById('admin-channel-status-badge');
+                    if (badge) {
+                        if (d.bot_status && d.bot_status.valid) {
+                            badge.innerText = `Connected: @${d.bot_status.username}`;
+                        } else {
+                            badge.innerText = `Token Missing / Unauthorized`;
+                        }
+                    }
+                    const autoChk = document.getElementById('chk-autopilot-enabled');
+                    if (autoChk && d.autopilot) {
+                        autoChk.checked = Boolean(d.autopilot.enabled);
+                    }
+                    const autoFreq = document.getElementById('sel-autopilot-freq');
+                    if (autoFreq && d.autopilot && d.autopilot.frequency_hours) {
+                        autoFreq.value = String(d.autopilot.frequency_hours);
+                    }
+                    const statusBox = document.getElementById('autopilot-status-box');
+                    if (statusBox && d.autopilot) {
+                        if (d.autopilot.enabled) {
+                            const lastRun = d.autopilot.last_posted_at ? new Date(d.autopilot.last_posted_at * 1000).toLocaleTimeString() : 'Never';
+                            statusBox.innerText = `Active (Every ${d.autopilot.frequency_hours}h) • Last post: ${lastRun}`;
+                        } else {
+                            statusBox.innerText = 'Autopilot is currently paused.';
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        async function adminGenerateChannelPost() {
+            const cat = document.getElementById('sel-channel-category')?.value || 'anti_ban';
+            const customPrompt = document.getElementById('inp-channel-custom-prompt')?.value.trim() || '';
+            const btn = document.getElementById('btn-channel-ai-gen');
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Generating Smart Tip with Gemini...';
+            }
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_channel_generate', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ category: cat, custom_prompt: customPrompt })
+                });
+                const d = await res.json();
+                if (d.success && d.text) {
+                    const area = document.getElementById('inp-channel-msg-text');
+                    if (area) area.value = d.text;
+                    if (d.buttons && d.buttons.length >= 2) {
+                        const b1t = document.getElementById('inp-channel-btn1-text');
+                        const b1u = document.getElementById('inp-channel-btn1-url');
+                        const b2t = document.getElementById('inp-channel-btn2-text');
+                        const b2u = document.getElementById('inp-channel-btn2-url');
+                        if (b1t) b1t.value = d.buttons[0].text;
+                        if (b1u) b1u.value = d.buttons[0].url;
+                        if (b2t) b2t.value = d.buttons[1].text;
+                        if (b2u) b2u.value = d.buttons[1].url;
+                    }
+                    tg.showAlert('Smart channel tip generated!');
+                } else {
+                    tg.showAlert(d.error || 'Failed to generate post');
+                }
+            } catch(e) {
+                tg.showAlert('Network error generating tip');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Generate Smart Tip with AI';
+                }
+            }
+        }
+
+        async function adminPublishChannelPost() {
+            const channel = document.getElementById('inp-channel-target')?.value.trim() || '@webtgfv1';
+            const msg = document.getElementById('inp-channel-msg-text')?.value.trim();
+            if (!msg) return tg.showAlert('Please enter or generate a message to publish.');
+
+            const btn1Text = document.getElementById('inp-channel-btn1-text')?.value.trim();
+            const btn1Url = document.getElementById('inp-channel-btn1-url')?.value.trim();
+            const btn2Text = document.getElementById('inp-channel-btn2-text')?.value.trim();
+            const btn2Url = document.getElementById('inp-channel-btn2-url')?.value.trim();
+
+            const buttons = [];
+            if (btn1Text && btn1Url) buttons.push({ text: btn1Text, url: btn1Url });
+            if (btn2Text && btn2Url) buttons.push({ text: btn2Text, url: btn2Url });
+
+            const pin = Boolean(document.getElementById('chk-channel-pin')?.checked);
+            const silent = Boolean(document.getElementById('chk-channel-silent')?.checked);
+
+            if (!confirm(`Publish this post to ${channel}${pin ? ' and pin to top' : ''}?`)) return;
+
+            const btn = document.getElementById('btn-channel-publish');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Publishing to Channel...';
+            }
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_channel_post', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        channel: channel,
+                        message: msg,
+                        buttons: buttons,
+                        pin: pin,
+                        disable_notification: silent
+                    })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    tg.showAlert(`Successfully published to ${d.channel}! Message ID: ${d.message_id}${d.pinned ? ' (Pinned to top)' : ''}`);
+                    adminLoadChannelData();
+                } else {
+                    tg.showAlert(d.error || 'Failed to publish to channel');
+                }
+            } catch(e) {
+                tg.showAlert('Network error publishing to channel');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Publish to Official Channel';
+                }
+            }
+        }
+
+        async function adminSaveAutopilot() {
+            const enabled = Boolean(document.getElementById('chk-autopilot-enabled')?.checked);
+            const freq = parseInt(document.getElementById('sel-autopilot-freq')?.value || '12', 10);
+
+            try {
+                const res = await fetch('/api/admin_channel_autopilot', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ enabled: enabled, frequency_hours: freq })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    const statusBox = document.getElementById('autopilot-status-box');
+                    if (statusBox) {
+                        statusBox.innerText = enabled ? `Active (Every ${freq}h)` : 'Autopilot is currently paused.';
+                    }
+                }
+            } catch(e){}
+        }
+
+        async function adminTriggerAutopilotNow() {
+            if (!confirm('Generate and publish the next scheduled autopilot tip right now?')) return;
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_channel_autopilot_trigger', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders()
+                });
+                const d = await res.json();
+                if (d.success) {
+                    tg.showAlert(`Autopilot ran successfully! Category: ${d.category}. Published to channel.`);
+                    adminLoadChannelData();
+                } else {
+                    tg.showAlert(d.error || 'Autopilot run failed');
+                }
+            } catch(e) {
+                tg.showAlert('Network error triggering autopilot');
             }
         }
 
