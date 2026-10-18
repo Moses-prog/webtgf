@@ -826,6 +826,65 @@ def api_lock_studio():
     session.pop('miniapp_user', None)
     return jsonify({"success": True, "locked": True})
 
+@app.route('/api/admin_overview', methods=['GET'])
+def api_admin_overview():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    from database_manager import get_tenants, get_stats, get_all_users, get_user_data
+    tenants = get_tenants()
+    stats = get_stats()
+
+    tenant_details = []
+    for t in tenants:
+        ud = get_user_data(t)
+        tenant_details.append({
+            "tenant_id": str(t),
+            "sources_count": len(ud.get('sources', [])),
+            "targets_count": len(ud.get('targets', [])),
+            "swaps_count": len(ud.get('text_swaps', {})),
+            "is_active": ud.get('is_active', False),
+            "has_session": bool(ud.get('session_string'))
+        })
+
+    return jsonify({
+        "success": True,
+        "is_admin": True,
+        "stats": stats,
+        "tenants": tenant_details,
+        "total_users_in_db": len(get_all_users())
+    })
+
+@app.route('/api/admin_manage_tenant', methods=['POST'])
+def api_admin_manage_tenant():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id:
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    data = request.json or {}
+    action = data.get('action')
+    tenant_id = str(data.get('tenant_id', '')).strip()
+
+    if not tenant_id or action not in ['add', 'remove']:
+        return jsonify({"error": "Invalid action or tenant ID"}), 400
+
+    from database_manager import get_tenants, save_tenants
+    tenants = [str(t) for t in get_tenants()]
+
+    if action == 'add':
+        if tenant_id not in tenants:
+            tenants.append(tenant_id)
+            save_tenants(tenants)
+    elif action == 'remove':
+        if tenant_id in tenants:
+            tenants.remove(tenant_id)
+            save_tenants(tenants)
+
+    return jsonify({"success": True, "tenants": tenants})
+
 # --- SYNCHRONIZED NATIVE BOT BACKEND API ROUTES ---
 
 @app.route('/api/user_status', methods=['GET'])

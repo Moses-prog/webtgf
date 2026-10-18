@@ -230,6 +230,142 @@
         .empty-state { padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .empty-icon { width: 54px; height: 54px; color: var(--border-color); background: var(--bg-color); border-radius: 50%; padding: 14px; margin-bottom: 4px; }
         .empty-title { font-weight: 700; color: var(--text-main); font-size: 16px; }
+
+        /* Compact Feature Cards Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 0 16px 14px;
+        }
+        .feature-tile {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: transform 0.12s, border-color 0.2s, background 0.15s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 86px;
+        }
+        .feature-tile:active {
+            transform: scale(0.97);
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .tile-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .tile-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tile-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tile-badge-count {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* 2x2 Automation Switches Matrix */
+        .switches-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 0 16px 16px;
+        }
+        .switch-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .switch-card:active {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .switch-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .switch-card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .switch-card-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Floating Round Admin Button (FAB) */
+        .floating-admin-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #ef4444, #8b5cf6);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.45), 0 0 15px rgba(239, 68, 68, 0.35);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            z-index: 999;
+            border: 2.5px solid rgba(255, 255, 255, 0.35);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+            animation: fabFloat 3s ease-in-out infinite alternate;
+        }
+        .floating-admin-fab:active {
+            transform: scale(0.92);
+        }
+        @keyframes fabFloat {
+            0% { transform: translateY(0px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.45); }
+            100% { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(239, 68, 68, 0.6); }
+        }
+        .fab-icon {
+            width: 22px;
+            height: 22px;
+            color: #ffffff;
+            fill: #ffffff;
+        }
+        .fab-badge {
+            font-size: 8.5px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-top: 1px;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -255,169 +391,194 @@
         </div>
     </div>
 
-    <!-- Quick Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card" onclick="openModal('sources')">
-            <div id="stat-sources" class="stat-value skeleton">0</div>
-            <div class="stat-label">Source Channels &rarr;</div>
+    <!-- Inspection Banner for Admin -->
+    <div id="admin-inspect-bar" style="display:none; background: linear-gradient(90deg, #f59e0b, #ef4444); color: white; padding: 10px 16px; border-radius: 12px; margin: 0 16px 14px; font-size: 13px; font-weight: 600; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span>👑 Viewing Tenant: <b id="inspect-tenant-id">...</b></span>
         </div>
-        <div class="stat-card" onclick="openModal('targets')">
-            <div id="stat-targets" class="stat-value skeleton">0</div>
-            <div class="stat-label">Target Channels &rarr;</div>
+        <button onclick="switchBackToAdminAccount()" style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">
+            ✕ Exit Inspection
+        </button>
+    </div>
+
+    <!-- 1. COMPACT 2-COLUMN FEATURES GRID -->
+    <div class="section-label">⚡ Forwarding & Content Engine</div>
+    <div class="features-grid">
+        <!-- 1. Sources -->
+        <div class="feature-tile" onclick="openModal('sources')">
+            <div class="tile-top">
+                <div class="icon-box"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+                <div class="tile-badge-count" id="stat-sources">0</div>
+            </div>
+            <div>
+                <div class="tile-title">Sources</div>
+                <div class="tile-desc">Listening channels</div>
+            </div>
         </div>
-        <div class="stat-card" onclick="openModal('replacements')">
-            <div id="stat-replacements" class="stat-value skeleton">0</div>
-            <div class="stat-label">Word Swaps &rarr;</div>
+
+        <!-- 2. Targets -->
+        <div class="feature-tile" onclick="openModal('targets')">
+            <div class="tile-top">
+                <div class="icon-box green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="2"></circle></svg></div>
+                <div class="tile-badge-count" id="stat-targets">0</div>
+            </div>
+            <div>
+                <div class="tile-title">Targets</div>
+                <div class="tile-desc">Destination channels</div>
+            </div>
         </div>
-        <div class="stat-card" onclick="openModal('cta')">
-            <div id="stat-cta" class="stat-value skeleton">0</div>
-            <div class="stat-label">CTA Buttons &rarr;</div>
+
+        <!-- 3. Word Swapper -->
+        <div class="feature-tile" onclick="openModal('replacements')">
+            <div class="tile-top">
+                <div class="icon-box purple"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+                <span class="chip" id="stat-replacements" style="font-size:11px; font-weight:800; background:rgba(167,139,250,0.15); color:#a78bfa;">0</span>
+            </div>
+            <div>
+                <div class="tile-title">Word Swapper</div>
+                <div class="tile-desc" id="sub-words">Text replacements</div>
+            </div>
+        </div>
+
+        <!-- 4. Global Links -->
+        <div class="feature-tile" onclick="openModal('links')">
+            <div class="tile-top">
+                <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
+                <span class="chip active" id="chip-links" style="font-size:9px;">SYNC</span>
+            </div>
+            <div>
+                <div class="tile-title">Global Links</div>
+                <div class="tile-desc" id="sub-links">Swap all URLs & @users</div>
+            </div>
+        </div>
+
+        <!-- 5. CTA Buttons -->
+        <div class="feature-tile" onclick="openModal('cta')">
+            <div class="tile-top">
+                <div class="icon-box yellow"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="12" x2="15" y2="12"></line></svg></div>
+                <span class="chip pro">PRO</span>
+            </div>
+            <div>
+                <div class="tile-title">CTA Buttons</div>
+                <div class="tile-desc" id="stat-cta">0 buttons active</div>
+            </div>
+        </div>
+
+        <!-- 6. Photo Banner Override -->
+        <div class="feature-tile" onclick="openModal('image')">
+            <div class="tile-top">
+                <div class="icon-box purple"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                <span class="chip" id="chip-img" style="font-size:9px; background:rgba(255,255,255,0.08);">PHOTO</span>
+            </div>
+            <div>
+                <div class="tile-title">Photo Banner</div>
+                <div class="tile-desc" id="sub-image">Custom image override</div>
+            </div>
+        </div>
+
+        <!-- 7. Video Swapper -->
+        <div class="feature-tile" onclick="openModal('video')">
+            <div class="tile-top">
+                <div class="icon-box red"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></div>
+                <span class="chip pro">PRO</span>
+            </div>
+            <div>
+                <div class="tile-title">Video Swapper</div>
+                <div class="tile-desc" id="sub-video">Replace incoming video</div>
+            </div>
+        </div>
+
+        <!-- 8. AI Watermark -->
+        <div class="feature-tile" onclick="openModal('watermark')">
+            <div class="tile-top">
+                <div class="icon-box yellow"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
+                <span class="chip pro">PRO</span>
+            </div>
+            <div>
+                <div class="tile-title">AI Watermark</div>
+                <div class="tile-desc" id="sub-watermark">Hunt & erase logos</div>
+            </div>
+        </div>
+
+        <!-- 9. Drip Posting -->
+        <div class="feature-tile" onclick="openModal('drip')">
+            <div class="tile-top">
+                <div class="icon-box green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <span class="chip pro">PRO</span>
+            </div>
+            <div>
+                <div class="tile-title">Drip Posting</div>
+                <div class="tile-desc" id="sub-drip">Release pace interval</div>
+            </div>
+        </div>
+
+        <!-- 10. Sleep Mode -->
+        <div class="feature-tile" onclick="openModal('sleep')">
+            <div class="tile-top">
+                <div class="icon-box purple"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
+                <span class="chip pro">PRO</span>
+            </div>
+            <div>
+                <div class="tile-title">Sleep Mode</div>
+                <div class="tile-desc" id="sub-sleep">Night quiet hours</div>
+            </div>
+        </div>
+
+        <!-- 11. Auto-Delete Limit -->
+        <div class="feature-tile" onclick="openModal('deletion')" style="grid-column: span 2;">
+            <div class="tile-top">
+                <div class="icon-box red"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                <span class="chip pro">PRO</span>
+            </div>
+            <div>
+                <div class="tile-title">Auto-Delete Rolling Limit</div>
+                <div class="tile-desc" id="sub-limit">Keep last N messages in target channel</div>
+            </div>
         </div>
     </div>
 
-    <!-- 1. LINKS & BRANDING -->
-    <div class="section-label">1. Links & Content Branding</div>
-    <div class="list-group">
-        <div class="list-item" onclick="openModal('links')">
-            <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Global Links & Mentions</div>
-                <div class="item-subtitle" id="sub-links">Swap all URLs & @usernames across posts</div>
+    <!-- 2. COMPACT 2X2 AUTOMATION TOGGLES MATRIX -->
+    <div class="section-label">🛡️ Quick Automations & Filters</div>
+    <div class="switches-matrix">
+        <div class="switch-card" onclick="document.getElementById('toggle-smart-delay').click()">
+            <div class="switch-card-info">
+                <div class="switch-card-title">Anti-Ban Delay</div>
+                <div class="switch-card-desc">Simulate human posting</div>
             </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-
-        <div class="list-item" onclick="openModal('replacements')">
-            <div class="icon-box green"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Word Swapper Dictionary</div>
-                <div class="item-subtitle" id="sub-words">Custom find-and-replace word pairs</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-
-        <div class="list-item" onclick="openModal('cta')">
-            <div class="icon-box yellow"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="12" x2="15" y2="12"></line></svg></div>
-            <div class="item-text">
-                <div class="item-title">Call-to-Action (CTA) Buttons <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle" id="sub-cta">Append clickable buttons & links to messages</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-    </div>
-
-    <!-- 2. MEDIA & VISUAL OVERRIDES -->
-    <div class="section-label">2. Media & Visual Overrides</div>
-    <div class="list-group">
-        <div class="list-item" onclick="openModal('image')">
-            <div class="icon-box purple"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
-            <div class="item-text">
-                <div class="item-title">Photo Overwrite Banner</div>
-                <div class="item-subtitle" id="sub-image">Replace incoming photos with custom banner</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-
-        <div class="list-item" onclick="openModal('video')">
-            <div class="icon-box red"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></div>
-            <div class="item-text">
-                <div class="item-title">Video Swapper <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle" id="sub-video">Replace incoming videos with your video</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-
-        <div class="list-item" onclick="openModal('watermark')">
-            <div class="icon-box yellow"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">AI Watermark Engine <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle" id="sub-watermark">Hunt & erase competitor text on images</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-    </div>
-
-    <!-- 3. PACING & AUTOMATION -->
-    <div class="section-label">3. Auto-Posting & Timing</div>
-    <div class="list-group">
-        <div class="list-item" onclick="openModal('drip')">
-            <div class="icon-box green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
-            <div class="item-text">
-                <div class="item-title">Drip Posting Pacer <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle" id="sub-drip">Queue posts and drip-forward on interval</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-
-        <div class="list-item" onclick="openModal('sleep')">
-            <div class="icon-box purple"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Sleep Mode (Quiet Hours) <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle" id="sub-sleep">Pause forwarding during the night</div>
-            </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-
-        <div class="list-item">
-            <div class="icon-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
-            <div class="item-text">
-                <div class="item-title">Smart Anti-Ban Delay</div>
-                <div class="item-subtitle">Random 60-180s delay simulating human posting</div>
-            </div>
-            <label class="switch">
+            <label class="switch" onclick="event.stopPropagation()">
                 <input type="checkbox" id="toggle-smart-delay" onchange="toggleSetting('smart_delay_enabled', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>
-    </div>
 
-    <!-- 4. DELETION SUITE -->
-    <div class="section-label">4. Channel Hygiene & Deletion</div>
-    <div class="list-group">
-        <div class="list-item">
-            <div class="icon-box red"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg></div>
-            <div class="item-text">
-                <div class="item-title">Mirror Deletion <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle">Auto-delete target post when source post is deleted</div>
+        <div class="switch-card" onclick="document.getElementById('toggle-mirror-delete').click()">
+            <div class="switch-card-info">
+                <div class="switch-card-title">Mirror Delete <span class="chip pro" style="font-size:7px; padding:1px 4px;">PRO</span></div>
+                <div class="switch-card-desc">Sync post deletions</div>
             </div>
-            <label class="switch">
+            <label class="switch" onclick="event.stopPropagation()">
                 <input type="checkbox" id="toggle-mirror-delete" onchange="toggleSetting('mirror_delete', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>
 
-        <div class="list-item" onclick="openModal('deletion')">
-            <div class="icon-box yellow"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
-            <div class="item-text">
-                <div class="item-title">Auto-Delete Rolling Limit <span class="chip pro">PRO</span></div>
-                <div class="item-subtitle" id="sub-limit">Keep only the last N messages in target channel</div>
+        <div class="switch-card" onclick="document.getElementById('toggle-strip').click()">
+            <div class="switch-card-info">
+                <div class="switch-card-title">Strip Payments</div>
+                <div class="switch-card-desc">Erase Crypto & Banks</div>
             </div>
-            <div class="item-right"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></div>
-        </div>
-    </div>
-
-    <!-- 5. SECURITY & FILTERS -->
-    <div class="section-label">5. Security & Content Filters</div>
-    <div class="list-group">
-        <div class="list-item">
-            <div class="icon-box green"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
-            <div class="item-text">
-                <div class="item-title">Anti-Payment Stripper</div>
-                <div class="item-subtitle">Erase Crypto wallets (BTC/ETH/Tron) & Bank details</div>
-            </div>
-            <label class="switch">
+            <label class="switch" onclick="event.stopPropagation()">
                 <input type="checkbox" id="toggle-strip" onchange="toggleSetting('strip_payment_details', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>
 
-        <div class="list-item">
-            <div class="icon-box red"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></div>
-            <div class="item-text">
-                <div class="item-title">Block Audio & Voice Notes</div>
-                <div class="item-subtitle">Skip voice recordings & audio clips</div>
+        <div class="switch-card" onclick="document.getElementById('toggle-voice').click()">
+            <div class="switch-card-info">
+                <div class="switch-card-title">Block Audio</div>
+                <div class="switch-card-desc">Skip voice notes</div>
             </div>
-            <label class="switch">
+            <label class="switch" onclick="event.stopPropagation()">
                 <input type="checkbox" id="toggle-voice" onchange="toggleSetting('disable_voicenotes', this.checked)">
                 <span class="slider"></span>
             </label>
@@ -429,6 +590,33 @@
         Close Dashboard
     </button>
     <div class="footer">WP Relay Cloud Studio &bull; v2.0 Native Synchronized</div>
+
+    <!-- FLOATING ROUND ADMIN ACTION BUTTON (FAB) -->
+    <div id="admin-fab" class="floating-admin-fab" onclick="openAdminModal()" title="Master Admin Studio">
+        <svg viewBox="0 0 24 24" class="fab-icon">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+        <div class="fab-badge">ADMIN</div>
+    </div>
+
+    <!-- MASTER ADMIN CONTROL MODAL -->
+    <div class="modal-overlay" id="admin-modal-overlay" onclick="closeAdminModal()"></div>
+    <div class="modal" id="admin-modal">
+        <div class="modal-drag"></div>
+        <div class="modal-header">
+            <div class="modal-header-top">
+                <div class="modal-title" style="display:flex; align-items:center; gap:8px;">
+                    <svg viewBox="0 0 24 24" style="color:#f59e0b; fill:#f59e0b; width:22px; height:22px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    Master Admin Studio
+                </div>
+                <button class="modal-close" onclick="closeAdminModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal-subtitle">Platform overview & multi-tenant control</div>
+        </div>
+        <div class="modal-body" id="admin-modal-body" style="padding: 16px; overflow-y: auto;">
+            <!-- Injected via openAdminModal() -->
+        </div>
+    </div>
 
     <!-- UNIVERSAL MODAL POPUP -->
     <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
@@ -490,10 +678,11 @@
         
         let currentUserData = {};
         let currentModalType = '';
-
         let SERVER_USER_ID = "";
+        let inspectedTenantId = null;
 
         function getEffectiveUserId() {
+            if (inspectedTenantId) return String(inspectedTenantId);
             const tgId = tg.initDataUnsafe?.user?.id;
             const savedId = localStorage.getItem('webtgf_user_id');
             const urlParams = new URLSearchParams(window.location.search);
@@ -572,6 +761,180 @@
             showLockScreen();
         }
 
+        /* --- MASTER ADMIN FAB & MULTI-TENANT INSPECTOR --- */
+        function inspectTenant(tenantId) {
+            inspectedTenantId = tenantId;
+            closeAdminModal();
+            const bar = document.getElementById('admin-inspect-bar');
+            if (bar) bar.style.display = 'flex';
+            const tidEl = document.getElementById('inspect-tenant-id');
+            if (tidEl) tidEl.innerText = tenantId;
+            try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+            fetchStatus();
+        }
+
+        function switchBackToAdminAccount() {
+            inspectedTenantId = null;
+            const bar = document.getElementById('admin-inspect-bar');
+            if (bar) bar.style.display = 'none';
+            try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+            fetchStatus();
+        }
+
+        async function openAdminModal() {
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            const overlay = document.getElementById('admin-modal-overlay');
+            const modal = document.getElementById('admin-modal');
+            const body = document.getElementById('admin-modal-body');
+            
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                modal.style.bottom = '0';
+            }, 10);
+            
+            body.innerHTML = `
+                <div style="text-align:center; padding: 24px; color: var(--text-muted);">
+                    <div class="skeleton" style="width:100%; height:70px; border-radius:12px; margin-bottom:12px;"></div>
+                    <div class="skeleton" style="width:100%; height:110px; border-radius:12px;"></div>
+                </div>
+            `;
+
+            try {
+                const res = await fetch('/api/admin_overview', { headers: getAuthHeaders() });
+                const d = await res.json();
+                if (!d.success) {
+                    body.innerHTML = `<div style="color:#ef4444; padding:20px; text-align:center;">${d.error || 'Failed to load admin data'}</div>`;
+                    return;
+                }
+
+                const stats = d.stats || {};
+                const tenants = d.tenants || [];
+
+                let html = `
+                    <!-- Global Platform Stats -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom: 16px;">
+                        <div style="background:#121418; border:1px solid var(--border-color); border-radius:12px; padding:10px 6px; text-align:center;">
+                            <div style="font-size:18px; font-weight:800; color:#3b82f6;">${stats.total || 0}</div>
+                            <div style="font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Total Forwards</div>
+                        </div>
+                        <div style="background:#121418; border:1px solid var(--border-color); border-radius:12px; padding:10px 6px; text-align:center;">
+                            <div style="font-size:18px; font-weight:800; color:#10b981;">${stats.today || 0}</div>
+                            <div style="font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Today</div>
+                        </div>
+                        <div style="background:#121418; border:1px solid var(--border-color); border-radius:12px; padding:10px 6px; text-align:center;">
+                            <div style="font-size:18px; font-weight:800; color:#f59e0b;">${tenants.length}</div>
+                            <div style="font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Tenants</div>
+                        </div>
+                    </div>
+
+                    <!-- Add Tenant Row -->
+                    <div style="background:#121418; border:1px solid var(--border-color); border-radius:14px; padding:12px; margin-bottom:16px;">
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Add New Tenant ID</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="inp-admin-tenant-add" class="form-input" placeholder="Telegram ID (e.g. 8094046191)" style="flex:1;">
+                            <button class="btn-submit" style="margin:0; width:auto; padding:10px 16px; border-radius:10px;" onclick="adminAddTenant()">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Active Tenants List & Inspector -->
+                    <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>Registered Tenants (${tenants.length})</span>
+                        <span style="font-size:10px; color:#60a5fa;">Tap Inspect to view</span>
+                    </div>
+                `;
+
+                if (tenants.length === 0) {
+                    html += `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:13px;">No tenants added yet.</div>`;
+                } else {
+                    tenants.forEach(t => {
+                        const isCurrent = (inspectedTenantId === t.tenant_id);
+                        html += `
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:#121418; border:1px solid ${isCurrent ? '#3b82f6' : 'var(--border-color)'}; border-radius:12px; padding:10px 12px; margin-bottom:8px;">
+                                <div>
+                                    <div style="font-weight:700; font-size:13px; color:#ffffff; display:flex; align-items:center; gap:6px;">
+                                        <span>👤 ${t.tenant_id}</span>
+                                        ${isCurrent ? '<span class="chip active" style="font-size:8px;">INSPECTING</span>' : ''}
+                                    </div>
+                                    <div style="font-size:10.5px; color:var(--text-muted); margin-top:2px;">
+                                        ${t.sources_count} sources &bull; ${t.targets_count} targets &bull; ${t.swaps_count} swaps
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <button onclick="inspectTenant('${t.tenant_id}')" style="background:#2563eb; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:11.5px; font-weight:700; cursor:pointer;">
+                                        Inspect 👁️
+                                    </button>
+                                    <button onclick="adminRemoveTenant('${t.tenant_id}')" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:6px 9px; border-radius:8px; font-size:11.5px; cursor:pointer;" title="Remove Tenant">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                body.innerHTML = html;
+            } catch(e) {
+                body.innerHTML = `<div style="color:#ef4444; padding:20px; text-align:center;">Network error loading admin overview.</div>`;
+            }
+        }
+
+        function closeAdminModal() {
+            const overlay = document.getElementById('admin-modal-overlay');
+            const modal = document.getElementById('admin-modal');
+            modal.style.bottom = '-100%';
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 280);
+        }
+
+        async function adminAddTenant() {
+            const input = document.getElementById('inp-admin-tenant-add');
+            const tenantId = input ? input.value.trim() : '';
+            if (!tenantId) return tg.showAlert("Please enter a valid Telegram ID.");
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_manage_tenant', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ action: 'add', tenant_id: tenantId })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    tg.showAlert(`✅ Tenant ${tenantId} added!`);
+                    openAdminModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to add tenant");
+                }
+            } catch(e) {
+                tg.showAlert("Network error");
+            }
+        }
+
+        async function adminRemoveTenant(tenantId) {
+            if (!confirm(`Are you sure you want to remove tenant ${tenantId}?`)) return;
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_manage_tenant', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ action: 'remove', tenant_id: tenantId })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    if (inspectedTenantId === tenantId) {
+                        switchBackToAdminAccount();
+                    }
+                    tg.showAlert(`Removed tenant ${tenantId}`);
+                    openAdminModal();
+                } else {
+                    tg.showAlert(d.error || "Failed to remove tenant");
+                }
+            } catch(e) {
+                tg.showAlert("Network error");
+            }
+        }
+
         const userName = tg.initDataUnsafe?.user?.first_name || tg.initDataUnsafe?.user?.username || 'User';
         document.getElementById('user-greeting').innerText = `Hi, ${userName}!`;
         const photoUrl = tg.initDataUnsafe?.user?.photo_url;
@@ -602,6 +965,12 @@
                 }
                 
                 currentUserData = data;
+
+                // Show Floating Admin FAB if Admin
+                const fab = document.getElementById('admin-fab');
+                if (fab) {
+                    fab.style.display = (data.is_admin || inspectedTenantId) ? 'flex' : 'none';
+                }
                 
                 // Tier & Connection Badges
                 const tierBadge = document.getElementById('tier-badge');
@@ -626,33 +995,46 @@
                     connBadge.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Disconnected';
                 }
 
-                // Stats Grid
-                document.getElementById('stat-sources').innerText = (data.sources || []).length;
-                document.getElementById('stat-targets').innerText = (data.targets || []).length;
-                document.getElementById('stat-replacements').innerText = Object.keys(data.text_swaps || {}).length;
-                document.getElementById('stat-cta').innerText = (data.cta_buttons || []).length;
-                
-                document.getElementById('stat-sources').classList.remove('skeleton');
-                document.getElementById('stat-targets').classList.remove('skeleton');
-                document.getElementById('stat-replacements').classList.remove('skeleton');
-                document.getElementById('stat-cta').classList.remove('skeleton');
+                // Feature Grid Counts & Subtitles
+                const sourcesCount = (data.sources || []).length;
+                const targetsCount = (data.targets || []).length;
+                const swapsCount = Object.keys(data.text_swaps || {}).length;
+                const ctaCount = (data.cta_buttons || []).length;
 
-                // Subtitle states
-                if (data.replace_all_links_with) {
-                    document.getElementById('sub-links').innerText = `Global: ${data.replace_all_links_with}`;
-                }
+                document.getElementById('stat-sources').innerText = sourcesCount;
+                document.getElementById('stat-targets').innerText = targetsCount;
+                document.getElementById('stat-replacements').innerText = swapsCount;
+                document.getElementById('stat-cta').innerText = ctaCount > 0 ? `${ctaCount} active` : '0 active';
+
+                document.getElementById('sub-words').innerText = swapsCount > 0 ? `${swapsCount} word pairs` : 'Text replacements';
+                document.getElementById('sub-links').innerText = data.replace_all_links_with ? data.replace_all_links_with : 'Swap URLs & @users';
+                document.getElementById('chip-links').innerText = data.replace_all_links_with ? 'ACTIVE' : 'OFF';
+                document.getElementById('chip-links').className = data.replace_all_links_with ? 'chip active' : 'chip off';
+
+                document.getElementById('sub-image').innerText = data.image_swap_url ? 'Custom image active' : 'Photo override banner';
+                document.getElementById('chip-img').innerText = data.image_swap_url ? 'CUSTOM' : 'DEFAULT';
+                document.getElementById('chip-img').className = data.image_swap_url ? 'chip active' : 'chip off';
+
+                document.getElementById('sub-video').innerText = data.video_swap_url ? 'Custom video active' : 'Replace incoming video';
+                document.getElementById('sub-watermark').innerText = (data.ai_watermark_mode && data.ai_watermark_mode !== 'off') ? `Active: ${data.ai_watermark_mode.toUpperCase()}` : 'Hunt & erase logos';
+
                 if (data.drip_interval > 0) {
                     const sec = data.drip_interval;
-                    document.getElementById('sub-drip').innerText = sec < 60 ? `Active: every ${sec}s` : `Active: every ${Math.round(sec/60)}m`;
+                    document.getElementById('sub-drip').innerText = sec < 60 ? `Every ${sec}s` : `Every ${Math.round(sec/60)}m`;
+                } else {
+                    document.getElementById('sub-drip').innerText = 'Queue & pacer';
                 }
+
                 if (data.sleep_mode && data.sleep_mode.enabled) {
-                    document.getElementById('sub-sleep').innerText = `Active: ${data.sleep_mode.start_time} - ${data.sleep_mode.end_time}`;
+                    document.getElementById('sub-sleep').innerText = `${data.sleep_mode.start_time} - ${data.sleep_mode.end_time}`;
+                } else {
+                    document.getElementById('sub-sleep').innerText = 'Night quiet hours';
                 }
+
                 if (data.auto_delete_limit > 0) {
-                    document.getElementById('sub-limit').innerText = `Keep last ${data.auto_delete_limit} messages`;
-                }
-                if (data.ai_watermark_mode && data.ai_watermark_mode !== 'off') {
-                    document.getElementById('sub-watermark').innerText = `Active Mode: ${data.ai_watermark_mode.toUpperCase()}`;
+                    document.getElementById('sub-limit').innerText = `Keep last ${data.auto_delete_limit} posts`;
+                } else {
+                    document.getElementById('sub-limit').innerText = 'Keep last N messages in target channel';
                 }
 
                 // Toggles
@@ -663,7 +1045,7 @@
 
                 const subTitleEl = document.querySelector('.bot-subtitle');
                 if (subTitleEl) {
-                    subTitleEl.innerText = `Account ID: ${userId}`;
+                    subTitleEl.innerText = inspectedTenantId ? `Viewing Tenant: ${userId}` : `Account ID: ${userId}`;
                 }
                 return true;
             } catch (err) {
