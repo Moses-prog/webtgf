@@ -251,6 +251,7 @@
         <div class="status-badges">
             <div id="tier-badge" class="badge free skeleton">Tier</div>
             <div id="conn-badge" class="badge disconnected skeleton">Status</div>
+            <div id="lock-btn" class="badge free" onclick="lockStudio()" style="cursor:pointer;" title="Lock Studio"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Lock</div>
         </div>
     </div>
 
@@ -455,6 +456,33 @@
         </div>
     </div>
 
+    <!-- Security Lock Gate Screen -->
+    <div id="lock-screen" style="display: none; position: fixed; inset: 0; background: rgba(15, 17, 21, 0.96); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: var(--card-bg); border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 35px rgba(37, 99, 235, 0.25); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 380px; text-align: center;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <svg style="width: 30px; height: 30px; color: #60a5fa;" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #ffffff;">Studio Access Locked</h2>
+            <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 20px;">
+                Authentication required. Enter your Studio Passcode or Security PIN below to unlock your dashboard.
+            </p>
+            
+            <div id="lock-error" style="display: none; color: #ef4444; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 10px; font-size: 12px; font-weight: 600; margin-bottom: 14px;"></div>
+            
+            <div style="margin-bottom: 16px;">
+                <input type="password" id="inp-lock-passcode" class="form-input" placeholder="Enter Passcode or PIN" style="text-align: center; font-size: 16px; letter-spacing: 2px;" onkeydown="if(event.key==='Enter') unlockStudio()">
+            </div>
+            
+            <button class="primary-btn" style="margin: 0; width: 100%;" onclick="unlockStudio()">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Unlock Studio
+            </button>
+            <div style="margin-top: 14px; font-size: 11px; color: var(--text-muted);">
+                Protected by Telegram Cryptographic Signing & Studio Vault
+            </div>
+        </div>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -466,23 +494,86 @@
         let SERVER_USER_ID = "";
 
         function getEffectiveUserId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const queryId = urlParams.get('user_id') || urlParams.get('id');
             const tgId = tg.initDataUnsafe?.user?.id;
             const savedId = localStorage.getItem('webtgf_user_id');
-            const finalId = tgId || queryId || (SERVER_USER_ID && SERVER_USER_ID !== "" ? SERVER_USER_ID : null) || savedId || '5628105961';
-            localStorage.setItem('webtgf_user_id', String(finalId));
-            return String(finalId);
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryId = urlParams.get('user_id') || urlParams.get('id');
+
+            if (tgId) return String(tgId);
+            if (savedId) return String(savedId);
+            if (SERVER_USER_ID && SERVER_USER_ID !== "") return String(SERVER_USER_ID);
+            if (queryId) return String(queryId);
+            return "";
         }
 
+        function getAuthHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                headers['X-Telegram-Init-Data'] = window.Telegram.WebApp.initData;
+            }
+            const token = localStorage.getItem('webtgf_studio_token');
+            if (token) {
+                headers['X-Studio-Token'] = token;
+            }
+            return headers;
+        }
+
+        function showLockScreen() {
+            document.getElementById('lock-screen').style.display = 'flex';
+            setTimeout(() => {
+                const inp = document.getElementById('inp-lock-passcode');
+                if (inp) inp.focus();
+            }, 100);
+        }
+
+        async function unlockStudio() {
+            const passcode = document.getElementById('inp-lock-passcode').value.trim();
+            const errEl = document.getElementById('lock-error');
+            errEl.style.display = 'none';
+            if (!passcode) {
+                errEl.innerText = "Please enter your passcode or PIN.";
+                errEl.style.display = 'block';
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetId = urlParams.get('user_id') || urlParams.get('id') || '';
+
+            try {
+                const res = await fetch('/api/unlock_studio', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ passcode: passcode, user_id: targetId })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    localStorage.setItem('webtgf_studio_token', d.token);
+                    localStorage.setItem('webtgf_user_id', d.user_id);
+                    document.getElementById('lock-screen').style.display = 'none';
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    await fetchStatus();
+                } else {
+                    errEl.innerText = d.error || "Access Denied: Invalid Passcode";
+                    errEl.style.display = 'block';
+                    try { tg.HapticFeedback?.notificationOccurred('error'); } catch(e){}
+                }
+            } catch(e) {
+                errEl.innerText = "Connection error. Please try again.";
+                errEl.style.display = 'block';
+            }
+        }
+
+        async function lockStudio() {
+            localStorage.removeItem('webtgf_studio_token');
+            localStorage.removeItem('webtgf_user_id');
+            try {
+                await fetch('/api/lock_studio', { method: 'POST' });
+            } catch(e){}
+            showLockScreen();
+        }
 
         const userName = tg.initDataUnsafe?.user?.first_name || tg.initDataUnsafe?.user?.username || 'User';
         document.getElementById('user-greeting').innerText = `Hi, ${userName}!`;
-        const effectiveId = getEffectiveUserId();
-        const subTitleEl = document.querySelector('.bot-subtitle');
-        if (subTitleEl) {
-            subTitleEl.innerText = `Account ID: ${effectiveId}`;
-        }
         const photoUrl = tg.initDataUnsafe?.user?.photo_url;
         if (photoUrl) {
             document.getElementById('user-avatar-container').innerHTML = `<img src="${photoUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
@@ -491,8 +582,25 @@
         async function fetchStatus() {
             try {
                 const userId = getEffectiveUserId();
-                const response = await fetch('/api/user_status?user_id=' + userId);
+                if (!userId) {
+                    showLockScreen();
+                    return false;
+                }
+                const response = await fetch('/api/user_status?user_id=' + encodeURIComponent(userId), {
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    showLockScreen();
+                    return false;
+                }
+                
                 const data = await response.json();
+                if (data.error && data.locked) {
+                    showLockScreen();
+                    return false;
+                }
+                
                 currentUserData = data;
                 
                 // Tier & Connection Badges
@@ -553,8 +661,14 @@
                 document.getElementById('toggle-smart-delay').checked = !!data.smart_delay_enabled;
                 document.getElementById('toggle-mirror-delete').checked = !!data.mirror_delete;
 
+                const subTitleEl = document.querySelector('.bot-subtitle');
+                if (subTitleEl) {
+                    subTitleEl.innerText = `Account ID: ${userId}`;
+                }
+                return true;
             } catch (err) {
                 console.error("fetchStatus error", err);
+                return false;
             }
         }
 
@@ -918,9 +1032,13 @@
             try {
                 const res = await fetch('/api/manage_channel', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, type: type, action: action, channel_id: channelId })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     if (type === 'sources') currentUserData.sources = d.list;
@@ -939,9 +1057,13 @@
             try {
                 const res = await fetch('/api/manage_swap', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, action: action, old_word: oldW, new_word: newW })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.text_swaps = d.swaps;
@@ -958,11 +1080,14 @@
             tg.HapticFeedback.impactOccurred('light');
             currentUserData[key] = val;
             try {
-                await fetch('/api/toggle_setting', {
+                const res = await fetch('/api/toggle_setting', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, key: key, val: val })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                }
             } catch (e) { tg.showAlert('Failed to save setting'); }
         }
 
@@ -975,9 +1100,13 @@
             try {
                 const res = await fetch('/api/save_branding', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, global_link: link, exclude_keywords: excl, global_username: user })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.replace_all_links_with = link;
@@ -999,9 +1128,13 @@
             try {
                 const res = await fetch('/api/manage_cta', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, action: 'add', text: text, url: url })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.cta_buttons = d.cta_buttons;
@@ -1017,9 +1150,13 @@
             try {
                 const res = await fetch('/api/manage_cta', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, action: 'remove', index: index })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.cta_buttons = d.cta_buttons;
@@ -1036,9 +1173,13 @@
             try {
                 const res = await fetch('/api/save_media_url', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, type: type, url: val })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     if (type === 'image') currentUserData.image_swap_url = val;
@@ -1065,9 +1206,13 @@
             try {
                 const res = await fetch('/api/save_watermark', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, mode: pendingWmMode, target: target, replace: rep })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.ai_watermark_mode = pendingWmMode;
@@ -1086,9 +1231,13 @@
             try {
                 const res = await fetch('/api/set_drip', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, interval: seconds })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.drip_interval = seconds;
@@ -1114,9 +1263,13 @@
             try {
                 const res = await fetch('/api/save_sleep_mode', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, enabled: enabled, start_time: start, end_time: end, timezone_offset: tz })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.sleep_mode = { enabled: enabled, start_time: start, end_time: end, timezone_offset: tz };
@@ -1134,9 +1287,13 @@
             try {
                 const res = await fetch('/api/save_auto_delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ user_id: userId, limit: lim })
                 });
+                if (res.status === 401 || res.status === 403) {
+                    showLockScreen();
+                    return;
+                }
                 const d = await res.json();
                 if (d.success) {
                     currentUserData.auto_delete_limit = lim;
@@ -1147,7 +1304,43 @@
             } catch(e) { tg.showAlert("Network error"); }
         }
 
-        fetchStatus();
+        async function checkAuthAndInit() {
+            // 1. If inside Telegram, automatically authenticate via cryptographic initData
+            if (tg.initData && tg.initData.length > 0) {
+                try {
+                    const res = await fetch('/api/auth_check', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ init_data: tg.initData })
+                    });
+                    const d = await res.json();
+                    if (d.authenticated) {
+                        localStorage.setItem('webtgf_studio_token', d.token);
+                        localStorage.setItem('webtgf_user_id', d.user_id);
+                        document.getElementById('lock-screen').style.display = 'none';
+                        await fetchStatus();
+                        return;
+                    }
+                } catch(e) {
+                    console.error("Telegram initData auth error:", e);
+                }
+            }
+
+            // 2. If stored token exists or already authenticated, try fetchStatus
+            const savedToken = localStorage.getItem('webtgf_studio_token');
+            if (savedToken || (SERVER_USER_ID && SERVER_USER_ID !== "")) {
+                const ok = await fetchStatus();
+                if (ok) {
+                    document.getElementById('lock-screen').style.display = 'none';
+                    return;
+                }
+            }
+
+            // 3. Otherwise show lock screen
+            showLockScreen();
+        }
+
+        checkAuthAndInit();
     </script>
 </body>
 </html>

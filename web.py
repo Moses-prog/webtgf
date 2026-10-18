@@ -658,13 +658,183 @@ def get_miniapp_html():
             return f.read()
     return "<h1>Mini App Template Missing</h1>"
 
+# --- AUTHENTICATION & SECURITY VAULT GUARDS ---
+
+import hmac
+import hashlib
+from urllib.parse import parse_qsl
+
+def verify_telegram_init_data(init_data_str):
+    bot_token = os.getenv("BOT_TOKEN")
+    if not init_data_str or not bot_token:
+        return None
+    try:
+        parsed_data = dict(parse_qsl(init_data_str, keep_blank_values=True))
+        if 'hash' not in parsed_data:
+            return None
+        received_hash = parsed_data.pop('hash')
+        data_check_string = '\n'.join(f"{k}={v}" for k, v in sorted(parsed_data.items()))
+        secret_key = hmac.new(b"WebAppData", bot_token.encode('utf-8'), hashlib.sha256).digest()
+        calc_hash = hmac.new(secret_key, data_check_string.encode('utf-8'), hashlib.sha256).hexdigest()
+        if hmac.compare_digest(calc_hash, received_hash):
+            user_json = parsed_data.get('user')
+            if user_json:
+                u = json.loads(user_json)
+                return str(u.get('id'))
+            return parsed_data.get('query_id')
+        return None
+    except Exception as e:
+        print(f"initData verification error: {e}")
+        return None
+
+def make_studio_token(user_id):
+    secret = (app.secret_key or "super_secret_key_for_session").encode('utf-8')
+    sig = hmac.new(secret, str(user_id).encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+    return f"{user_id}:{sig}"
+
+def verify_studio_token(token):
+    if not token or ':' not in token:
+        return None
+    try:
+        user_id, sig = token.split(':', 1)
+        expected = make_studio_token(user_id)
+        if hmac.compare_digest(token, expected):
+            return str(user_id)
+    except:
+        pass
+    return None
+
+def get_authenticated_user():
+    # 1. Telegram Init Data (Header or query/body param)
+    init_data = request.headers.get('X-Telegram-Init-Data') or request.args.get('init_data')
+    if not init_data and request.is_json:
+        init_data = (request.json or {}).get('init_data')
+    if init_data:
+        tg_user_id = verify_telegram_init_data(init_data)
+        if tg_user_id:
+            return str(tg_user_id)
+
+    # 2. Studio Token (Header or query/body param)
+    token = request.headers.get('X-Studio-Token') or request.args.get('token')
+    if not token and request.is_json:
+        token = (request.json or {}).get('token')
+    if token:
+        token_user_id = verify_studio_token(token)
+        if token_user_id:
+            return str(token_user_id)
+
+    # 3. Flask Session
+    if session.get('logged_in') and session.get('chat_id'):
+        return str(session.get('chat_id'))
+    if session.get('miniapp_user'):
+        return str(session.get('miniapp_user'))
+
+    return None
+
+def check_permission(target_user_id):
+    auth_user = get_authenticated_user()
+    if not auth_user:
+        return None, (jsonify({"error": "Unauthorized. Studio is locked.", "locked": True}), 401)
+    
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    is_admin = (auth_user == admin_id)
+    
+    if target_user_id:
+        target_str = str(target_user_id)
+        if not is_admin and auth_user != target_str:
+            return None, (jsonify({"error": "Forbidden: You cannot access or modify another tenant's account.", "locked": False}), 403)
+        return target_str, None
+            
+    return auth_user, None
+
+@app.route('/api/auth_check', methods=['POST'])
+def api_auth_check():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user:
+        return jsonify({
+            "authenticated": True,
+            "user_id": auth_user,
+            "is_admin": (auth_user == admin_id),
+            "token": make_studio_token(auth_user)
+        })
+    return jsonify({"authenticated": False, "locked": True}), 401
+
+@app.route('/api/unlock_studio', methods=['POST'])
+def api_unlock_studio():
+    data = request.json or {}
+    passcode = str(data.get('passcode', '')).strip()
+    target_user_id = str(data.get('user_id', '')).strip()
+    
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    from database_manager import get_tenants, get_user_data
+    
+    # 1. Check Master Admin verification
+    admin_data = get_user_data(admin_id)
+    admin_pins = [admin_id, "admin"]
+    if admin_data.get('deletion_pin'):
+        admin_pins.append(str(admin_data.get('deletion_pin')))
+    if os.getenv("ADMIN_PIN"):
+        admin_pins.append(str(os.getenv("ADMIN_PIN")))
+        
+    if passcode in admin_pins:
+        resolved_user = target_user_id if target_user_id else admin_id
+        session['chat_id'] = admin_id
+        session['miniapp_user'] = admin_id
+        session['logged_in'] = True
+        return jsonify({
+            "success": True, 
+            "token": make_studio_token(admin_id), 
+            "user_id": resolved_user, 
+            "is_admin": True,
+            "message": "Admin authenticated"
+        })
+        
+    # 2. Check if passcode matches a registered Tenant ID directly
+    tenants = [str(t) for t in get_tenants()]
+    if passcode in tenants:
+        session['chat_id'] = passcode
+        session['miniapp_user'] = passcode
+        session['logged_in'] = True
+        return jsonify({
+            "success": True, 
+            "token": make_studio_token(passcode), 
+            "user_id": passcode, 
+            "is_admin": False,
+            "message": "Tenant authenticated"
+        })
+        
+    # 3. Check if passcode matches a tenant's security deletion_pin
+    if target_user_id and target_user_id in tenants:
+        ud = get_user_data(target_user_id)
+        if ud.get('deletion_pin') and str(ud.get('deletion_pin')) == passcode:
+            session['chat_id'] = target_user_id
+            session['miniapp_user'] = target_user_id
+            session['logged_in'] = True
+            return jsonify({
+                "success": True, 
+                "token": make_studio_token(target_user_id), 
+                "user_id": target_user_id, 
+                "is_admin": False,
+                "message": "Tenant PIN authenticated"
+            })
+            
+    return jsonify({"error": "Invalid Passcode or PIN. Access denied."}), 401
+
+@app.route('/api/lock_studio', methods=['POST'])
+def api_lock_studio():
+    session.pop('miniapp_user', None)
+    return jsonify({"success": True, "locked": True})
+
 # --- SYNCHRONIZED NATIVE BOT BACKEND API ROUTES ---
 
 @app.route('/api/user_status', methods=['GET'])
 def api_user_status():
-    user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
+    requested_user = request.args.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+        
     try:
         user_id = int(user_id)
     except:
@@ -735,11 +905,15 @@ def validate_channel_input(x):
 @app.route('/api/manage_channel', methods=['POST'])
 def api_manage_channel():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     channel_type = data.get('type')
     action = data.get('action')
     channel_id = data.get('channel_id')
-    if not all([user_id, channel_type, action, channel_id]):
+    if not all([channel_type, action, channel_id]):
         return jsonify({"error": "Missing params"}), 400
     if action == 'add':
         parsed_id, err = validate_channel_input(channel_id)
@@ -763,11 +937,15 @@ def api_manage_channel():
 @app.route('/api/manage_swap', methods=['POST'])
 def api_manage_swap():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     action = data.get('action')
     old_word = data.get('old_word')
     new_word = data.get('new_word')
-    if not all([user_id, action, old_word]):
+    if not all([action, old_word]):
         return jsonify({"error": "Missing params"}), 400
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
@@ -786,11 +964,15 @@ def api_manage_swap():
 @app.route('/api/toggle_setting', methods=['POST'])
 def api_toggle_setting():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     key = data.get('key')
     val = data.get('val')
-    if not user_id or not key:
-        return jsonify({"error": "Missing params"}), 400
+    if not key:
+        return jsonify({"error": "Missing key"}), 400
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data[key] = bool(val)
@@ -800,9 +982,11 @@ def api_toggle_setting():
 @app.route('/api/save_branding', methods=['POST'])
 def api_save_branding():
     data = request.json or {}
-    user_id = data.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['replace_all_links_with'] = data.get('global_link', '').strip()
@@ -814,10 +998,14 @@ def api_save_branding():
 @app.route('/api/manage_cta', methods=['POST'])
 def api_manage_cta():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     action = data.get('action')
-    if not user_id or not action:
-        return jsonify({"error": "Missing params"}), 400
+    if not action:
+        return jsonify({"error": "Missing action"}), 400
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     btns = user_data.get('cta_buttons', [])
@@ -842,11 +1030,15 @@ def api_manage_cta():
 @app.route('/api/save_media_url', methods=['POST'])
 def api_save_media_url():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     m_type = data.get('type')
     url = data.get('url', '').strip()
-    if not user_id or not m_type:
-        return jsonify({"error": "Missing params"}), 400
+    if not m_type:
+        return jsonify({"error": "Missing type"}), 400
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     if m_type == 'image':
@@ -861,9 +1053,11 @@ def api_save_media_url():
 @app.route('/api/save_watermark', methods=['POST'])
 def api_save_watermark():
     data = request.json or {}
-    user_id = data.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['ai_watermark_mode'] = data.get('mode', 'off')
@@ -875,10 +1069,12 @@ def api_save_watermark():
 @app.route('/api/set_drip', methods=['POST'])
 def api_set_drip():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     interval = data.get('interval', 0)
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['drip_interval'] = int(interval)
@@ -890,9 +1086,11 @@ def api_set_drip():
 @app.route('/api/save_sleep_mode', methods=['POST'])
 def api_save_sleep_mode():
     data = request.json or {}
-    user_id = data.get('user_id')
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['sleep_mode'] = {
@@ -907,10 +1105,12 @@ def api_save_sleep_mode():
 @app.route('/api/save_auto_delete', methods=['POST'])
 def api_save_auto_delete():
     data = request.json or {}
-    user_id = data.get('user_id')
+    requested_user = data.get('user_id')
+    user_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     limit = data.get('limit', 0)
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
     from database_manager import get_user_data, save_user_data
     user_data = get_user_data(user_id)
     user_data['auto_delete_limit'] = int(limit)
@@ -919,16 +1119,20 @@ def api_save_auto_delete():
 
 @app.route('/miniapp')
 def miniapp():
-    ADMIN_ID = os.getenv("ADMIN_ID", "5628105961")
-    resolved_id = session.get('chat_id') or request.args.get('user_id') or request.args.get('id') or ADMIN_ID
+    # Only resolve server user ID if caller is already authenticated
+    auth_user = get_authenticated_user() or ""
     html = get_miniapp_html()
-    html = html.replace('let SERVER_USER_ID = "";', f'let SERVER_USER_ID = "{resolved_id}";')
+    html = html.replace('let SERVER_USER_ID = "";', f'let SERVER_USER_ID = "{auth_user}";')
     return html
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
     data = request.json or {}
-    chat_id = session.get('chat_id') or data.get('user_id')
+    requested_user = data.get('user_id')
+    chat_id, err = check_permission(requested_user)
+    if err:
+        return err
+
     text = data.get('text', '')
     if text and chat_id:
         from database_manager import get_user_data, save_user_data
