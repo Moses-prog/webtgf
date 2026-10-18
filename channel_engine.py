@@ -189,8 +189,8 @@ Output ONLY the formatted post. Do not include introductory notes or markdown co
                 text = text.strip()
 
                 recommended_buttons = [
-                    {"text": "⚡ Launch WP Relay Bot", "url": "https://t.me/wprelaybot?start=channel_tip"},
-                    {"text": "💎 Upgrade to PRO", "url": "https://t.me/wprelaybot?start=pro_upgrade"}
+                    {"text": "🟢 [ ⚡ Launch WP Relay Bot ]", "url": "https://t.me/wprelaybot?start=channel_tip"},
+                    {"text": "🔵 [ 💎 Upgrade to PRO ]", "url": "https://t.me/wprelaybot?start=pro_upgrade"}
                 ]
                 return {
                     "text": text,

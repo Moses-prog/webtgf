@@ -22,3 +22,1548 @@ Booting Engine for Tenant 8094046191...
 [DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
 [DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1003518650835
 [DEBUG-MATCH] incoming=-1003518650835 (3518650835) vs saved=-1002499610869 (2499610869)
+Starting Multi-Tenant Forwarding Engine...
+Booting Engine for Tenant 5628105961...
+[Tenant 5628105961] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 5628105961
+Booting Engine for Tenant 7600806544...
+[Tenant 7600806544] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 7600806544
+Booting Engine for Tenant 8094046191...
+[Tenant 8094046191] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 8094046191
+Booting Engine for Tenant 7531221514...
+[Tenant 7531221514] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 7531221514
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22012...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19320...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 7600806544] Popping queued message 19321...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003843617363
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 7097155197
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002499610869
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[Tenant 8094046191] Popping queued message 22013...
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from 8405314628
+[DEBUG-MATCH] incoming=8405314628 (8405314628) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004436572672
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1002257843688
+[MATCH-USERNAME] @webtgfv1
+[Tenant 7531221514] Received message from source: -1002257843688
+[Tenant 7531221514] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 7531221514] Popping queued message 2898...
+[Tenant 7531221514] Failed to forward cleanly to @mrunknown: Nobody is using this username or the username is unacceptable (caused by ResolveUsernameRequest)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[Tenant 7531221514] Fallback failed for @mrunknown: Nobody is using this username or the username is unacceptable (caused by ResolveUsernameRequest)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1002257843688
+[MATCH-USERNAME] @webtgfv1
+[Tenant 7531221514] Received message from source: -1002257843688
+[Tenant 7531221514] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7531221514] Popping queued message 2899...
+[Tenant 7531221514] Auto-deleted 1 old msgs in @mrunknown75755
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19322...
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelyError saving message map: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+Error saving message map: [WinError 10035] A non-blocking socket operation could not be completed immediately
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19323...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 7531221514] Auto-deleted 1 old msgs in @mrunknown75755
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004436572672
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19324...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 7600806544] Popping queued message 19325...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from 6132603360
+[DEBUG-MATCH] incoming=6132603360 (6132603360) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22014...
+[Tenant 8094046191] Message is a voice note or audio file. Skipping due to settings.
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003490429628
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003490429628
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately[DEBUG-MATCH] incoming=-1003490429628 (3490429628) vs saved=-1003164655537 (3164655537)
+
+
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002530992110
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19326...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 7600806544] Popping queued message 19327...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19328...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1001652661102
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1001652661102 (652661102) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[Tenant 7600806544] Popping queued message 19329...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002499610869
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002370631635
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002370631635
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22015...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -4982790901
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -4982790901
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002297822321
+[DEBUG-MATCH] incoming=-1002297822321 (2297822321) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19330...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[Tenant 7600806544] Popping queued message 19331...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19332...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19333...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001451932219
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001482371863
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22016...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004444518948
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004293375635
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22017...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001515819636
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19334...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22018...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002370631635
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19335...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+Shutting down Engine for Tenant 7600806544...
+Booting Engine for Tenant 7600806544...
+[Tenant 7600806544] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 7600806544
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002297822321
+[DEBUG-MATCH] incoming=-1002297822321 (2297822321) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22019...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004497007036
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19336...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19337...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22020...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19338...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 2)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[Tenant 7600806544] Popping queued message 19339...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[Tenant 7600806544] Popping queued message 19340...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22021...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002370631635
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22022...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002044316859
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+Supabase get_all_users error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004444518948
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004293375635
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004444518948
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22023...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004293375635
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22024...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001717570779
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22025...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003486578530
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003486578530
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1003486578530 (3486578530) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1003486578530 (3486578530) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003486578530
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003486578530
+[DEBUG-MATCH] incoming=-1003486578530 (3486578530) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1003486578530 (3486578530) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22026...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22027...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1001652661102
+[DEBUG-MATCH] incoming=-1001652661102 (652661102) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22028...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[Tenant 8094046191] Popping queued message 22029...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 8094046191] Popping queued message 22030...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19341...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 2)
+[Tenant 7600806544] Popping queued message 19342...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22031...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 2)
+[Tenant 7600806544] Popping queued message 19343...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[Tenant 7600806544] Popping queued message 19344...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22032...
+Server closed the connection: [WinError 121] The semaphore timeout period has expired
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+Server closed the connection: [WinError 121] The semaphore timeout period has expired
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+Server closed the connection: [WinError 121] The semaphore timeout period has expired
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+Attempt 1 at connecting failed: TimeoutError: 
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 8094046191] Popping queued message 22033...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002238109938
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[Tenant 8094046191] Popping queued message 22034...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001787462526
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22035...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22036...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelyError saving message map: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+Shutting down Engine for Tenant 5628105961...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+Booting Engine for Tenant 5628105961...
+[Tenant 5628105961] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 5628105961
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22037...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19346...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 7600806544] Popping queued message 19347...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from 8794765311
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22038...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002212970394
+[MATCH-USERNAME] @wingames4
+[Tenant 7600806544] Received message from source: -1002212970394
+[Tenant 7600806544] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[Tenant 7600806544] Popping queued message 19348...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22039...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22040...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22041...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22042...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001895898153
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001895898153
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001895898153
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001895898153
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22043...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001724655300
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22044...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22045...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22046...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1001652661102
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1001652661102
+[DEBUG-MATCH] incoming=-1001652661102 (652661102) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1001652661102 (652661102) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from 8405314628
+[DEBUG-MATCH] incoming=8405314628 (8405314628) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from 8405314628
+[Tenant 8094046191] Popping queued message 22047...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001724655300
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004497007036
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004497007036
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1004497007036
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22048...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22049...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001584939836
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001584939836
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001584939836
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1003164655537
+[MATCH-ID] -1003164655537 matched -1003164655537
+[Tenant 8094046191] Received message from source: -1003164655537
+[Tenant 8094046191] Message queued for Drip Posting. (Queue size: 1)
+[Tenant 8094046191] Popping queued message 22050...
+[Tenant 8094046191] Source chat is restricted, downloading media to forward...
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1002559459781
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002136063124
+[DEBUG-MATCH] incoming=-1002136063124 (2136063124) vs saved=-1003164655537 (3164655537)
+Supabase get_all_users error: [WinError 10065] A socket operation was attempted to an unreachable hostServer closed the connection: [WinError 1236] The network connection was aborted by the local system
+
+Server closed the connection: [WinError 1236] The network connection was aborted by the local system
+Server closed the connection: [WinError 1236] The network connection was aborted by the local system
+Server closed the connection: [WinError 1236] The network connection was aborted by the local system
+Attempt 1 at connecting failed: OSError: [WinError 1232] The network location cannot be reached. For information about network troubleshooting, see Windows Help
+Attempt 1 at connecting failed: OSError: [WinError 1232] The network location cannot be reached. For information about network troubleshooting, see Windows Help
+Attempt 1 at connecting failed: OSError: [WinError 1232] The network location cannot be reached. For information about network troubleshooting, see Windows Help
+Attempt 1 at connecting failed: OSError: [WinError 1232] The network location cannot be reached. For information about network troubleshooting, see Windows Help
+Supabase read error: [Errno 11001] getaddrinfo failed
+Supabase read error: [Errno 11001] getaddrinfo failed
+Supabase read error: [Errno 11001] getaddrinfo failed
+Supabase read error: [Errno 11001] getaddrinfo failed
+Supabase read error: [Errno 11001] getaddrinfo failed
+Shutting down Engine for Tenant 8094046191...
+Supabase read error: [Errno 11001] getaddrinfo failed
+Shutting down Engine for Tenant 7531221514...
+Supabase read error: [Errno 11001] getaddrinfo failed
+Shutting down Engine for Tenant 7600806544...
+Supabase read error: [Errno 11001] getaddrinfo failed
+Shutting down Engine for Tenant 5628105961...
+Unexpected exception reconnecting on attempt 1
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 1
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 1
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 1
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 2
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 2
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 2
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 2
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 3
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 3
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 3
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 3
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 4
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 4
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 4
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 4
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 5
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Supabase get_all_users error: [Errno 11001] getaddrinfo failed
+Unexpected exception reconnecting on attempt 5
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 5
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Unexpected exception reconnecting on attempt 5
+Traceback (most recent call last):
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 384, in _reconnect
+    await self._connect()
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 240, in _connect
+    connected = await self._try_connect(attempt)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telethon\network\mtprotosender.py", line 290, in _try_connect
+    await self._connection.connect(timeout=self._connect_timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+Automatic reconnection failed 5 time(s)
+Automatic reconnection failed 5 time(s)
+Automatic reconnection failed 5 time(s)
+Automatic reconnection failed 5 time(s)
+Booting Engine for Tenant 5628105961...
+[Tenant 5628105961] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 5628105961
+Booting Engine for Tenant 7531221514...
+[Tenant 7531221514] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 7531221514
+Booting Engine for Tenant 7600806544...
+[Tenant 7600806544] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 7600806544
+Booting Engine for Tenant 8094046191...
+[Tenant 8094046191] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 8094046191
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001584939836
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001284268486
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001095525244
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001095525244
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001284268486
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001584939836
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001787462526
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1001652661102
+[DEBUG-MATCH] incoming=-1001652661102 (652661102) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1001652661102
+[DEBUG-MATCH] incoming=-1001652661102 (652661102) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002507808451
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001787462526
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002212490337
+[DEBUG-MATCH] incoming=-1002212490337 (2212490337) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 8094046191 received message from -1002202603619
+[DEBUG-MATCH] incoming=-1002202603619 (2202603619) vs saved=-1003164655537 (3164655537)
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001787462526
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+Supabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediatelySupabase read error: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+Shutting down Engine for Tenant 7600806544...
+Booting Engine for Tenant 7600806544...
+[Tenant 7600806544] Fetching dialogs to populate entity cache...
+✅ Engine ONLINE for Tenant 7600806544
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from 8405314628
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247474938
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7600806544 received message from -1003282185356
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002247033723
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1002281446455
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 7531221514 received message from -1001816241536
+[DEBUG-ALL-MESSAGES] Tenant 5628105961 received message from -1001816241536
