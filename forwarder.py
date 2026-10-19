@@ -484,6 +484,27 @@ async def handle_message(event, chat_id):
     from database_manager import save_user_data
     user_data = await asyncio.to_thread(get_user_data, chat_id)
     
+    # --- PRO EXPIRATION KILL-SWITCH ---
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if str(chat_id) != admin_id:
+        is_paused = user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not user_data.get('is_pro'))
+        if is_paused:
+            print(f"[Tenant {chat_id}] FORWARDING FROZEN: PRO subscription expired. Message {event.message.id} dropped.")
+            import time
+            last_alert = user_data.get('last_freeze_notice_time', 0)
+            if time.time() - last_alert > 43200:
+                user_data['last_freeze_notice_time'] = time.time()
+                await asyncio.to_thread(save_user_data, chat_id, user_data)
+                from database_manager import send_telegram_alert
+                freeze_msg = (
+                    "⛔ <b>WP RELAY: FORWARDING PAUSED</b>\n\n"
+                    "A new post was detected in your source channel, but <b>forwarding is currently halted</b> because your PRO subscription has expired.\n\n"
+                    "All routing, anti-ban protection, and custom modifications are frozen.\n\n"
+                    "👉 Contact Administrator @apklord55 to unpause your channels."
+                )
+                await asyncio.to_thread(send_telegram_alert, chat_id, freeze_msg, "💎 UNPAUSE FORWARDER ↗", "https://t.me/apklord55")
+            return
+
     source_channels = user_data.get('sources', [])
     target_channels = user_data.get('targets', [])
     
@@ -568,6 +589,11 @@ async def monitor_users():
                 extract_url = udata.get("manual_extract_url")
                 if extract_url:
                     udata["manual_extract_url"] = ""
+                    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+                    if str(chat_id) != admin_id and (udata.get('pro_paused') or (udata.get('pro_expired_at') and not udata.get('is_pro'))):
+                        udata["manual_extract_result"] = "❌ PRO Subscription Expired. Feature paused until renewed. Contact @apklord55."
+                        await asyncio.to_thread(save_user_data, chat_id, udata)
+                        continue
                     try:
                         import re
                         m_priv = re.search(r't\.me/c/(\d+)/(\d+)', extract_url)
@@ -658,6 +684,9 @@ async def monitor_users():
                 queue = udata.get("drip_queue", [])
                 
                 if queue and not is_in_sleep_mode(udata):
+                    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+                    if str(chat_id) != admin_id and (udata.get('pro_paused') or (udata.get('pro_expired_at') and not udata.get('is_pro'))):
+                        continue
                     last_drip = udata.get("last_drip_time", 0)
                     
                     # interval is stored in seconds directly

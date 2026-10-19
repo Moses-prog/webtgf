@@ -123,7 +123,15 @@ async def start(event):
     user_states[chat_id] = None
     
     user_data = get_user_data(chat_id)
-    badge = " 💎 [PRO LIFETIME]" if is_admin(chat_id) else (" 💎 [PRO]" if is_pro(chat_id) else " 🟢 [FREE]")
+    is_paused = user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not is_pro(chat_id))
+    if is_admin(chat_id):
+        badge = " 💎 [PRO LIFETIME]"
+    elif is_paused:
+        badge = " 🔴 [PRO EXPIRED — PAUSED]"
+    elif is_pro(chat_id):
+        badge = " 💎 [PRO]"
+    else:
+        badge = " 🟢 [FREE]"
     
     sender = await event.get_sender()
     first = getattr(sender, 'first_name', '') or ''
@@ -136,6 +144,21 @@ async def start(event):
         user_data['display_name'] = disp
         save_user_data(chat_id, user_data)
     name = first or uname or "User"
+
+    if is_paused and not is_admin(chat_id):
+        msg = (
+            f"👋 Hi, **{name}**!{badge}\n\n"
+            f"⛔ **FORWARDING & FEATURES ARE PAUSED**\n\n"
+            f"Your PRO subscription has expired. All channel relays, anti-ban jitter delays, watermark replacements, and features are currently **frozen**.\n\n"
+            f"Your destination channels will not receive new messages until your subscription is renewed.\n\n"
+            f"👉 Contact Administrator @apklord55 to unpause your service immediately."
+        )
+        buttons = [
+            [Button.url("💎 Renew PRO (Unpause) ↗", "https://t.me/apklord55")],
+            [Button.inline("🔄 Check Status", b"status_check")]
+        ]
+        await event.respond(msg, buttons=buttons)
+        return
     
     if not user_data.get('session_string'):
         msg = f"👋 Hi, **{name}**! Welcome to the **WP Relay Dashboard**!{badge}\n\nYour forwarding engine is currently **Disconnected**. Please click **🔑 Connect Account** below to securely link your Telegram account and start forwarding messages."
@@ -154,8 +177,22 @@ async def callback(event):
         
     data = event.data.decode('utf-8')
     
+    # Check if PRO subscription is expired and paused
+    user_data = get_user_data(chat_id)
+    is_paused = user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not is_pro(chat_id))
+    if is_paused and not is_admin(chat_id):
+        if data in ["status", "status_check"]:
+            if not (user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not is_pro(chat_id))):
+                await event.answer("🎉 PRO Unpaused! Loading dashboard...", alert=True)
+                await event.edit(buttons=get_main_keyboard(chat_id))
+                return
+            await event.answer("⛔ Forwarding is still PAUSED. Please contact @apklord55 to renew and unpause.", alert=True)
+            return
+        await event.answer("⛔ Your PRO license has expired. All features and forwarders are paused. Contact @apklord55 to unpause.", alert=True)
+        return
+
     try:
-        if data == "status":
+        if data in ["status", "status_check"]:
             await event.answer("Refreshing status...")
             await event.edit(buttons=get_main_keyboard(chat_id))
             return
@@ -1219,18 +1256,28 @@ async def callback(event):
             
             if data == "pro_revoke":
                 t_data["is_pro"] = False
+                t_data["pro_paused"] = True
+                t_data["pro_expired_at"] = now.isoformat()
                 t_data["pro_expiry"] = None
-                action = "Revoked"
+                action = "Revoked (Forwarding Paused)"
                 
             elif data == "pro_lifetime":
                 t_data["is_pro"] = True
+                t_data["pro_paused"] = False
                 t_data["pro_expiry"] = None
+                t_data.pop("pro_expired_at", None)
+                t_data.pop("expiry_notified", None)
+                t_data.pop("expiry_warning_24h_notified", None)
                 if not t_data.get("pro_since"):
                     t_data["pro_since"] = now.isoformat()
-                action = "Granted Lifetime"
+                action = "Granted Lifetime (Unpaused)"
                 
             else:
                 t_data["is_pro"] = True
+                t_data["pro_paused"] = False
+                t_data.pop("pro_expired_at", None)
+                t_data.pop("expiry_notified", None)
+                t_data.pop("expiry_warning_24h_notified", None)
                 if not t_data.get("pro_since"):
                     t_data["pro_since"] = now.isoformat()
                 months = 1
@@ -1239,7 +1286,7 @@ async def callback(event):
                 
                 expiry_date = now + datetime.timedelta(days=30 * months)
                 t_data["pro_expiry"] = expiry_date.isoformat()
-                action = f"Granted {months} Month(s) (Expires: {expiry_date.strftime('%Y-%m-%d')})"
+                action = f"Granted {months} Month(s) (Expires: {expiry_date.strftime('%Y-%m-%d')}) (Unpaused)"
                 
             save_user_data(target_uid, t_data)
             user_states[chat_id] = None
@@ -1271,18 +1318,28 @@ async def callback(event):
             
             if data == "pro_revoke":
                 t_data["is_pro"] = False
+                t_data["pro_paused"] = True
+                t_data["pro_expired_at"] = now.isoformat()
                 t_data["pro_expiry"] = None
-                action = "Revoked"
+                action = "Revoked (Forwarding Paused)"
                 
             elif data == "pro_lifetime":
                 t_data["is_pro"] = True
+                t_data["pro_paused"] = False
                 t_data["pro_expiry"] = None
+                t_data.pop("pro_expired_at", None)
+                t_data.pop("expiry_notified", None)
+                t_data.pop("expiry_warning_24h_notified", None)
                 if not t_data.get("pro_since"):
                     t_data["pro_since"] = now.isoformat()
-                action = "Granted Lifetime"
+                action = "Granted Lifetime (Unpaused)"
                 
             else:
                 t_data["is_pro"] = True
+                t_data["pro_paused"] = False
+                t_data.pop("pro_expired_at", None)
+                t_data.pop("expiry_notified", None)
+                t_data.pop("expiry_warning_24h_notified", None)
                 if not t_data.get("pro_since"):
                     t_data["pro_since"] = now.isoformat()
                 months = 1
@@ -1291,7 +1348,7 @@ async def callback(event):
                 
                 expiry_date = now + datetime.timedelta(days=30 * months)
                 t_data["pro_expiry"] = expiry_date.isoformat()
-                action = f"Granted {months} Month(s) (Expires: {expiry_date.strftime('%Y-%m-%d')})"
+                action = f"Granted {months} Month(s) (Expires: {expiry_date.strftime('%Y-%m-%d')}) (Unpaused)"
                 
             save_user_data(target_uid, t_data)
             user_states[chat_id] = None

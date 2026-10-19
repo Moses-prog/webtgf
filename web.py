@@ -750,7 +750,7 @@ def get_authenticated_user():
 
     return None
 
-def check_permission(target_user_id):
+def check_permission(target_user_id, allow_paused=False):
     auth_user = get_authenticated_user()
     if not auth_user:
         return None, (jsonify({"error": "Unauthorized. Studio is locked.", "locked": True}), 401)
@@ -758,13 +758,23 @@ def check_permission(target_user_id):
     admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
     is_admin = (auth_user == admin_id)
     
+    eff_user = str(target_user_id) if target_user_id else auth_user
     if target_user_id:
         target_str = str(target_user_id)
         if not is_admin and auth_user != target_str:
             return None, (jsonify({"error": "Forbidden: You cannot access or modify another tenant's account.", "locked": False}), 403)
-        return target_str, None
+        eff_user = target_str
+
+    if not is_admin and not allow_paused:
+        from database_manager import get_user_data
+        ud = get_user_data(eff_user)
+        if ud.get('pro_paused') or (ud.get('pro_expired_at') and not ud.get('is_pro')):
+            return None, (jsonify({
+                "error": "Your PRO subscription has expired. All features and forwarders are paused until renewed. Please contact @apklord55 to unpause.",
+                "pro_paused": True
+            }), 403)
             
-    return auth_user, None
+    return eff_user, None
 
 @app.route('/api/auth_check', methods=['POST'])
 def api_auth_check():
@@ -956,10 +966,18 @@ def api_admin_manage_tenant():
         ud = get_user_data(tenant_id)
         current_pro = ud.get('is_pro', False)
         ud['is_pro'] = not current_pro
-        if ud['is_pro'] and not ud.get('pro_since'):
-            ud['pro_since'] = datetime.datetime.now().isoformat()
+        if ud['is_pro']:
+            ud['pro_paused'] = False
+            ud.pop('pro_expired_at', None)
+            ud.pop('expiry_notified', None)
+            ud.pop('expiry_warning_24h_notified', None)
+            if not ud.get('pro_since'):
+                ud['pro_since'] = datetime.datetime.now().isoformat()
+        else:
+            ud['pro_paused'] = True
+            ud['pro_expired_at'] = datetime.datetime.now().isoformat()
         save_user_data(tenant_id, ud)
-        return jsonify({"success": True, "tenant_id": tenant_id, "is_pro": ud['is_pro']})
+        return jsonify({"success": True, "tenant_id": tenant_id, "is_pro": ud['is_pro'], "pro_paused": ud.get('pro_paused', False)})
     elif action == 'set_name':
         new_name = str(data.get('name', '')).strip()
         if new_name:
@@ -1232,6 +1250,10 @@ def api_admin_update_pro_subscription():
 
     if action == 'add_days':
         ud['is_pro'] = True
+        ud['pro_paused'] = False
+        ud.pop('pro_expired_at', None)
+        ud.pop('expiry_notified', None)
+        ud.pop('expiry_warning_24h_notified', None)
         curr_expiry = ud.get('pro_expiry')
         base_time = now
         if curr_expiry:
@@ -1243,30 +1265,35 @@ def api_admin_update_pro_subscription():
                 pass
         new_expiry = base_time + datetime.timedelta(days=days)
         ud['pro_expiry'] = new_expiry.isoformat()
-        ud.pop('pro_expired_at', None)
         msg_to_send = (
             f"🎉 <b>WP Relay PRO Subscription Extended!</b>\n\n"
             f"The Administrator has added <b>+{days} days</b> of PRO access to your account.\n"
             f"📅 <b>New Expiry Date:</b> <code>{new_expiry.strftime('%B %d, %Y')}</code>\n\n"
+            f"⚡ <b>All channel forwarders and automation features have been UNPAUSED and are active!</b>\n\n"
             f"Thank you for powering your channels with WP Relay!"
         )
 
     elif action == 'set_lifetime':
         ud['is_pro'] = True
+        ud['pro_paused'] = False
         ud['pro_expiry'] = None
         ud.pop('pro_expired_at', None)
+        ud.pop('expiry_notified', None)
+        ud.pop('expiry_warning_24h_notified', None)
         msg_to_send = (
             "🌟 <b>Lifetime VIP PRO Granted!</b>\n\n"
-            "Congratulations! The Administrator has upgraded your account to permanent Lifetime PRO with unrestricted access to all current and future features."
+            "Congratulations! The Administrator has upgraded your account to permanent Lifetime PRO with unrestricted access to all current and future features.\n\n"
+            "⚡ <b>All channel forwarders and features are permanently UNPAUSED!</b>"
         )
 
     elif action == 'revoke':
         ud['is_pro'] = False
+        ud['pro_paused'] = True
         ud['pro_expired_at'] = now.isoformat()
         ud['pro_expiry'] = None
         msg_to_send = (
             "⚠️ <b>WP Relay PRO Access Revoked</b>\n\n"
-            "Your PRO tier has been revoked by the Administrator. Contact @apklord55 for renewal inquiries."
+            "Your PRO tier has been revoked by the Administrator. All channel forwarders and features are now PAUSED. Contact @apklord55 for renewal inquiries."
         )
 
     save_user_data(tenant_id, ud)
@@ -1686,6 +1713,14 @@ def check_feature_access(user_id, feature_key=None, requires_pro=True):
     is_pro = user_data.get('is_pro', False)
     toggles = get_feature_toggles() or {}
 
+    is_paused = user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not is_pro)
+    if is_paused:
+        return jsonify({
+            "error": "Your PRO subscription has expired. All channel relays and features are paused. Contact @apklord55 to unpause.",
+            "pro_paused": True,
+            "pro_expired": True
+        }), 403
+
     # 1. Check Admin Lock Toggle
     if feature_key:
         if feature_key in ['cta_buttons_unlocked', 'video_swap_unlocked']:
@@ -1706,7 +1741,7 @@ def check_feature_access(user_id, feature_key=None, requires_pro=True):
 @app.route('/api/user_status', methods=['GET'])
 def api_user_status():
     requested_user = request.args.get('user_id')
-    user_id, err = check_permission(requested_user)
+    user_id, err = check_permission(requested_user, allow_paused=True)
     if err:
         return err
         
@@ -1726,6 +1761,10 @@ def api_user_status():
     if is_admin:
         is_pro = True
         
+    is_paused = bool(user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not is_pro))
+    if is_admin:
+        is_paused = False
+
     submitted = user_data.get("feedback_submitted_count", 0)
     should_popup = (submitted < 3)
         
@@ -1733,6 +1772,9 @@ def api_user_status():
         "is_admin": is_admin,
         "should_popup_feedback": should_popup,
         "is_pro": is_pro,
+        "pro_expiry": user_data.get('pro_expiry'),
+        "pro_expired_at": user_data.get('pro_expired_at'),
+        "pro_paused": is_paused,
         "has_session": has_session,
         "feature_toggles": toggles,
         "sources_count": len(user_data.get('sources', [])),

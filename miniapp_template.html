@@ -538,6 +538,23 @@
         <button class="inspect-btn" onclick="switchBackToAdminAccount()">Exit Inspection</button>
     </div>
 
+    <!-- Expiration Warning Alert Banner -->
+    <div id="banner-pro-expired" style="display:none; margin: 0 16px 16px 16px; background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.35); border-radius: 14px; padding: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 700; color: #ff453a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:#ff453a; stroke-width:2.5; fill:none;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                PRO License Expired &bull; Forwarding Paused
+            </div>
+            <span class="chip danger" style="background:#ff453a; color:#fff; font-size:10px; font-weight:700;">PAUSED</span>
+        </div>
+        <p id="pro-expired-desc" style="font-size: 12px; color: var(--text-main); margin: 8px 0 12px 0; line-height: 1.45;">
+            Your PRO plan has expired. All message forwarding, anti-ban jitter delays, and automation features are frozen until renewed.
+        </p>
+        <a href="https://t.me/apklord55" target="_blank" class="btn-action" style="display: block; text-align: center; text-decoration: none; background: #ff453a; color: #fff; font-weight: 700; font-size: 12px; padding: 10px; border-radius: 8px;">
+            Renew PRO with Admin (@apklord55) ↗
+        </a>
+    </div>
+
     <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card" onclick="openModal('sources')">
@@ -950,7 +967,12 @@
 
         // --- FEATURE ACCESS ENFORCEMENT ---
         function canAccessFeature(type) {
+            if (!currentUserData) return { ok: false, msg: "Loading data..." };
             if (currentUserData.is_admin) return { ok: true };
+
+            if (currentUserData.pro_paused) {
+                return { ok: false, msg: "Your PRO subscription has expired. All channel relays and features are paused. Please contact @apklord55 to unpause." };
+            }
             const toggles = currentUserData.feature_toggles || {};
 
             // 1. Check Admin Locks
@@ -2233,11 +2255,32 @@
                     tierBadge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"></path></svg> PRO';
                     frame.classList.add('pro');
                     diamond.style.display = 'block';
+                } else if (data.pro_paused) {
+                    tierBadge.className = 'badge paused';
+                    tierBadge.style.background = 'rgba(255, 69, 58, 0.15)';
+                    tierBadge.style.color = '#ff453a';
+                    tierBadge.style.borderColor = 'rgba(255, 69, 58, 0.35)';
+                    tierBadge.innerHTML = 'PAUSED';
+                    frame.classList.remove('pro');
+                    diamond.style.display = 'none';
                 } else {
                     tierBadge.className = 'badge free';
                     tierBadge.innerHTML = 'FREE';
                     frame.classList.remove('pro');
                     diamond.style.display = 'none';
+                }
+
+                // Check Expiration Banner
+                const banner = document.getElementById('banner-pro-expired');
+                const desc = document.getElementById('pro-expired-desc');
+                if (data.pro_paused && !data.is_admin) {
+                    if (banner) banner.style.display = 'block';
+                    if (desc && data.pro_expired_at) {
+                        const expDate = data.pro_expired_at.slice(0, 10);
+                        desc.innerHTML = `Your PRO plan expired on <b>${expDate}</b>. All live channel relays, auto-swapping, and automation features are <b>frozen</b> until renewed.`;
+                    }
+                } else {
+                    if (banner) banner.style.display = 'none';
                 }
 
                 if (data.has_session) {
@@ -2658,6 +2701,12 @@
         }
 
         async function toggleSetting(key, val) {
+            if (currentUserData && currentUserData.pro_paused && !currentUserData.is_admin) {
+                try { tg.HapticFeedback?.notificationOccurred('warning'); } catch(e){}
+                tg.showAlert("Your PRO subscription has expired. All features and forwarders are paused until renewed. Contact @apklord55.");
+                fetchStatus();
+                return;
+            }
             const userId = getEffectiveUserId();
             try {
                 const res = await fetch('/api/toggle_setting', {
