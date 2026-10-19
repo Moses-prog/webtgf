@@ -916,7 +916,11 @@
 
         async function lockStudio() {
             try {
-                await fetch('/api/lock_studio', { method: 'POST', headers: getAuthHeaders() });
+                await fetch('/api/lock_studio', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({})
+                });
             } catch(e){}
             localStorage.removeItem('webtgf_studio_token');
             localStorage.removeItem('webtgf_user_id');
@@ -2108,7 +2112,8 @@
                 const res = await fetch('/api/admin_channel_autopilot_trigger', {
                     method: 'POST',
                     credentials: 'include',
-                    headers: getAuthHeaders()
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({})
                 });
                 const d = await res.json();
                 if (d.success) {

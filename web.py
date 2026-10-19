@@ -727,7 +727,7 @@ def get_authenticated_user():
     # 1. Telegram Init Data (Header or query/body param)
     init_data = request.headers.get('X-Telegram-Init-Data') or request.args.get('init_data')
     if not init_data and request.is_json:
-        init_data = (request.json or {}).get('init_data')
+        init_data = (request.get_json(silent=True) or {}).get('init_data')
     if init_data:
         tg_user_id = verify_telegram_init_data(init_data)
         if tg_user_id:
@@ -736,7 +736,7 @@ def get_authenticated_user():
     # 2. Studio Token (Header or query/body param)
     token = request.headers.get('X-Studio-Token') or request.args.get('token')
     if not token and request.is_json:
-        token = (request.json or {}).get('token')
+        token = (request.get_json(silent=True) or {}).get('token')
     if token:
         token_user_id = verify_studio_token(token)
         if token_user_id:
@@ -781,7 +781,7 @@ def api_auth_check():
 
 @app.route('/api/unlock_studio', methods=['POST'])
 def api_unlock_studio():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     passcode = str(data.get('passcode', '')).strip()
     target_user_id = str(data.get('user_id', '')).strip()
     
@@ -923,7 +923,7 @@ def api_admin_manage_tenant():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     action = data.get('action')
     tenant_id = str(data.get('tenant_id', '')).strip()
 
@@ -1101,7 +1101,7 @@ def api_admin_send_tenant_notice():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     tenant_id = str(data.get('tenant_id', '')).strip()
     notice_type = str(data.get('notice_type', 'expiration')).strip()
     custom_msg = str(data.get('custom_message', '')).strip()
@@ -1212,7 +1212,7 @@ def api_admin_update_pro_subscription():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     tenant_id = str(data.get('tenant_id', '')).strip()
     action = str(data.get('action', '')).strip()
     days = int(data.get('days', 30))
@@ -1307,7 +1307,7 @@ def api_admin_toggle_feature():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     feature = data.get('feature')
     val = bool(data.get('value', False))
     if not feature:
@@ -1326,7 +1326,7 @@ def api_admin_broadcast():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     msg_text = str(data.get('message', '')).strip()
     btn_text = str(data.get('button_text', '')).strip()
     btn_url = str(data.get('button_url', '')).strip()
@@ -1380,7 +1380,7 @@ def api_admin_ai_generate_broadcast():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     user_prompt = str(data.get('prompt', '')).strip()
     if not user_prompt:
         return jsonify({"error": "Prompt cannot be empty"}), 400
@@ -1429,7 +1429,7 @@ def api_admin_update_api_config():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     api_id = str(data.get('api_id', '')).strip()
     api_hash = str(data.get('api_hash', '')).strip()
     session_string = str(data.get('session_string', '')).strip()
@@ -1457,7 +1457,7 @@ def api_admin_test_bot_token():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     candidate_token = str(data.get('bot_token', '')).strip() or os.getenv('BOT_TOKEN', '').strip()
     if not candidate_token:
         return jsonify({"success": False, "error": "No bot token provided"}), 400
@@ -1511,7 +1511,7 @@ def api_admin_channel_generate():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     category = str(data.get('category', '')).strip() or None
     prompt = str(data.get('custom_prompt', '')).strip() or None
 
@@ -1550,7 +1550,7 @@ def api_admin_channel_post():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     msg_text = str(data.get('message', '')).strip()
     if not msg_text:
         return jsonify({"error": "Message text cannot be empty"}), 400
@@ -1585,7 +1585,7 @@ def api_admin_channel_autopilot():
         return jsonify({"error": "Admin privileges required"}), 403
 
     try:
-        data = request.json or {}
+        data = request.get_json(silent=True) or {}
         import channel_engine
         cfg = channel_engine.get_autopilot_config()
 
@@ -1611,7 +1611,7 @@ def api_admin_channel_autopilot_trigger():
 
     import channel_engine, time
     try:
-        data = request.json or {}
+        data = request.get_json(silent=True) or {}
         req_category = data.get("category_id")
         post_data = channel_engine.generate_channel_post(category_id=req_category)
         should_pin = bool(post_data.get("should_pin", False))
@@ -1643,7 +1643,7 @@ def api_admin_channel_delete_post():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     message_id = data.get('message_id')
     channel = data.get('channel', '@webtgfv1')
     if not message_id:
@@ -1781,7 +1781,7 @@ def validate_channel_input(x):
 
 @app.route('/api/manage_channel', methods=['POST'])
 def api_manage_channel():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1813,7 +1813,7 @@ def api_manage_channel():
 
 @app.route('/api/manage_swap', methods=['POST'])
 def api_manage_swap():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1840,7 +1840,7 @@ def api_manage_swap():
 
 @app.route('/api/toggle_setting', methods=['POST'])
 def api_toggle_setting():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1864,7 +1864,7 @@ def api_toggle_setting():
 
 @app.route('/api/save_branding', methods=['POST'])
 def api_save_branding():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1880,7 +1880,7 @@ def api_save_branding():
 
 @app.route('/api/manage_cta', methods=['POST'])
 def api_manage_cta():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1916,7 +1916,7 @@ def api_manage_cta():
 
 @app.route('/api/save_media_url', methods=['POST'])
 def api_save_media_url():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1945,7 +1945,7 @@ def api_save_media_url():
 
 @app.route('/api/save_watermark', methods=['POST'])
 def api_save_watermark():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1966,7 +1966,7 @@ def api_save_watermark():
 
 @app.route('/api/set_drip', methods=['POST'])
 def api_set_drip():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -1988,7 +1988,7 @@ def api_set_drip():
 
 @app.route('/api/save_sleep_mode', methods=['POST'])
 def api_save_sleep_mode():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -2012,7 +2012,7 @@ def api_save_sleep_mode():
 
 @app.route('/api/save_auto_delete', methods=['POST'])
 def api_save_auto_delete():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     user_id, err = check_permission(requested_user)
     if err:
@@ -2040,7 +2040,7 @@ def miniapp():
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     requested_user = data.get('user_id')
     chat_id, err = check_permission(requested_user)
     if err:

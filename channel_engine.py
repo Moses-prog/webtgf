@@ -312,8 +312,8 @@ CRITICAL RULES:
    - "sunset_amber": For viral hacks, growth velocity, algorithm tricks, or high engagement.
    - "stealth_mono": For minimal enterprise, multi-channel syndication, or infrastructure.
 5. BUTTONS: Provide 2 full-width inline buttons with clear labels:
-   Button 1: {"text": "⭐ LAUNCH WP RELAY BOT ⚡", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"}
-   Button 2: {"text": "💎 UPGRADE TO PRO (VIP) ✅", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
+   Button 1: {{"text": "⭐ LAUNCH WP RELAY BOT ⚡", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"}}
+   Button 2: {{"text": "💎 UPGRADE TO PRO (VIP) ✅", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}}
 
 OUTPUT FORMAT:
 You MUST output a strict JSON object with these EXACT keys:
