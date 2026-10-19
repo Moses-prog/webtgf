@@ -290,10 +290,20 @@ EDITORIAL FORMAT TO USE:
 {recent_history_context}
 
 CRITICAL RULES:
-1. WORD COUNT: 75 to 105 WORDS MAXIMUM. Readers must finish the entire post in 10-15 seconds.
-2. NO COOKIE-CUTTER TEMPLATES: Write naturally, boldly, and with high punch.
+1. WORD COUNT: 75 to 95 WORDS TOTAL.
+2. STRICT POST ALIGNMENT (MUST FOLLOW THIS EXACT FIXED STRUCTURE):
+⚡ <b>WP RELAY: [Punchy 3-5 Word Title]</b>
+
+<i>[One sharp sentence explaining the challenge or angle]</i>
+
+• 🚨 <b>The Bottleneck:</b> [1 punchy sentence]
+• 🛡️ <b>The Architecture:</b> [1 punchy sentence explaining the WP Relay feature]
+• 💎 <b>The Advantage:</b> [1 punchy sentence on the measurable win]
+
+👉 <i>Configure in 30 seconds inside @wprelaybot:</i>
+
 3. ALLOWED HTML TAGS: <b>, <i>, <code>, <s>, <u>, <a href="...">, <tg-spoiler>.
-   DO NOT use <ul>, <ol>, <li>, <p>, <div>, or markdown (no asterisks ** or hash headers #).
+   DO NOT use <ul>, <ol>, <li>, <p>, <div>, or markdown.
 4. DYNAMIC THEME PAIRING: Choose the most fitting visual theme:
    - "cyber_cyan": For stealth, pacing, tech automation, or core features.
    - "crimson_alert": For security alerts, anti-ban warnings, or risk briefings.
@@ -301,7 +311,9 @@ CRITICAL RULES:
    - "royal_purple": For PRO features, VIP masterclass, or enterprise scaling.
    - "sunset_amber": For viral hacks, growth velocity, algorithm tricks, or high engagement.
    - "stealth_mono": For minimal enterprise, multi-channel syndication, or infrastructure.
-5. CONTEXTUAL BUTTONS: Provide 2 clickable inline buttons tailored to this specific post topic. First button must be an actionable hook, second button can be bot launch or pro upgrade.
+5. BUTTONS: Provide 2 full-width inline buttons with clear labels:
+   Button 1: {"text": "⭐ LAUNCH WP RELAY BOT ⚡", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"}
+   Button 2: {"text": "💎 UPGRADE TO PRO (VIP) ✅", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
 
 OUTPUT FORMAT:
 You MUST output a strict JSON object with these EXACT keys:

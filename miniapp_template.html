@@ -1358,7 +1358,7 @@
                         <div class="form-label">AI Channel Content Generator</div>
                         <div class="form-hint">WP Relay Knowledge Engine writes specialized, high-impact channel tips ready for publication.</div>
                         <select id="sel-channel-category" class="form-input" style="margin-bottom:8px;">
-                            <option value="" selected>🎲 Autonomous Selection (AI Picks Dynamic Angle & Format)</option>
+                            <option value="" selected>Autonomous Selection (AI Dynamic Angle)</option>
                             <option value="anti_ban">Anti-Ban & Stealth Jitter Delay</option>
                             <option value="link_rewriting">Link Arbitrage & Competitor Poaching</option>
                             <option value="auto_delete">Ephemeral Drops & VIP Scarcity</option>
@@ -1383,9 +1383,9 @@
                         
                         <!-- AI VISUAL CARD PREVIEW (WP Studio Engine) -->
                         <div id="channel-card-preview-box" style="display:none; margin-bottom:12px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color); background:var(--card-bg);">
-                            <div style="padding:6px 10px; background:var(--bg-color); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                                <span id="channel-card-badge-info">AI Visual Card Banner</span>
-                                <span id="channel-card-theme-info" style="font-size:9px; opacity:0.6;">WP Studio 1200x630</span>
+                            <div style="padding:6px 10px; background:var(--bg-color); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; overflow:hidden;">
+                                <span id="channel-card-badge-info" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">AI Visual Card Banner</span>
+                                <span id="channel-card-theme-info" style="font-size:9px; opacity:0.6; white-space:nowrap;">WP Studio 1200x630</span>
                             </div>
                             <img id="channel-card-preview-img" style="width:100%; height:auto; display:block;" alt="AI Visual Card">
                         </div>
@@ -1965,10 +1965,10 @@
                         if (d.has_image && d.image_url) {
                             cardImg.src = d.image_url;
                             if (badgeInfo && d.category_badge) {
-                                badgeInfo.innerText = `${d.category_badge} • ${d.format_used || 'Dynamic'}`;
+                                badgeInfo.innerText = d.category_badge;
                             }
                             if (themeInfo && d.theme) {
-                                themeInfo.innerText = `Theme: ${d.theme.replace('_', ' ')}`;
+                                themeInfo.innerText = d.theme.replace('_', ' ').toUpperCase();
                             }
                             cardBox.style.display = 'block';
                         }
