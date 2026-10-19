@@ -2051,10 +2051,13 @@
         }
 
         async function adminSaveAutopilot() {
-            const enabled = Boolean(document.getElementById('chk-autopilot-enabled')?.checked);
+            const chk = document.getElementById('chk-autopilot-enabled');
+            const enabled = Boolean(chk?.checked);
             const freq = parseInt(document.getElementById('sel-autopilot-freq')?.value || '12', 10);
+            const statusBox = document.getElementById('autopilot-status-box');
 
             try {
+                if (statusBox) statusBox.innerText = 'Saving configuration...';
                 const res = await fetch('/api/admin_channel_autopilot', {
                     method: 'POST',
                     credentials: 'include',
@@ -2063,17 +2066,31 @@
                 });
                 const d = await res.json();
                 if (d.success) {
-                    const statusBox = document.getElementById('autopilot-status-box');
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
                     if (statusBox) {
                         statusBox.innerText = enabled ? `Active (Every ${freq}h)` : 'Autopilot is currently paused.';
                     }
+                } else {
+                    if (chk) chk.checked = !enabled;
+                    if (statusBox) statusBox.innerText = !enabled ? `Active (Every ${freq}h)` : 'Autopilot is currently paused.';
+                    tg.showAlert(d.error || 'Failed to update autopilot');
                 }
-            } catch(e){}
+            } catch(e){
+                if (chk) chk.checked = !enabled;
+                if (statusBox) statusBox.innerText = !enabled ? `Active (Every ${freq}h)` : 'Autopilot is currently paused.';
+                tg.showAlert('Network error saving autopilot: ' + (e.message || e));
+            }
         }
 
         async function adminTriggerAutopilotNow() {
             if (!confirm('Generate and publish the next scheduled autopilot tip right now?')) return;
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            const btn = document.querySelector('button[onclick="adminTriggerAutopilotNow()"]');
+            const origText = btn ? btn.innerText : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Generating & Publishing...';
+            }
             try {
                 const res = await fetch('/api/admin_channel_autopilot_trigger', {
                     method: 'POST',
@@ -2088,7 +2105,12 @@
                     tg.showAlert(d.error || 'Autopilot run failed');
                 }
             } catch(e) {
-                tg.showAlert('Network error triggering autopilot');
+                tg.showAlert('Network error triggering autopilot: ' + (e.message || e));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = origText || 'Trigger Autopilot Run Now';
+                }
             }
         }
 

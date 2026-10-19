@@ -8,8 +8,9 @@ load_dotenv()
 
 DEFAULT_CHANNEL = "@webtgfv1"
 DEFAULT_BOT_USERNAME = "wprelaybot"
-AUTOPILOT_FILE = "channel_autopilot.json"
-LOCK_FILE = "autopilot.lock"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AUTOPILOT_FILE = os.path.join(BASE_DIR, "channel_autopilot.json")
+LOCK_FILE = os.path.join(BASE_DIR, "autopilot.lock")
 
 # Concise System Knowledge Base for WP Relay
 WP_RELAY_KNOWLEDGE = """
@@ -169,7 +170,7 @@ STRICT FORMATTING & LENGTH CONSTRAINTS:
 Output ONLY the formatted post. Do not include introductory notes or markdown codeblocks (no ```html).
 """
 
-    models_to_try = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash"]
+    models_to_try = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.8-flash"]
     last_err = None
 
     for m in models_to_try:
@@ -194,7 +195,7 @@ Output ONLY the formatted post. Do not include introductory notes or markdown co
                 ]
 
                 # Generate AI Visual Card for the post
-                image_path = "visual_card.png"
+                image_path = os.path.join(BASE_DIR, "visual_card.png")
                 try:
                     import card_designer
                     card_title = chosen_category["title"] if chosen_category else "PRO TIP"

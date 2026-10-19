@@ -1577,20 +1577,23 @@ def api_admin_channel_autopilot():
     if auth_user != admin_id:
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.json or {}
-    import channel_engine
-    cfg = channel_engine.get_autopilot_config()
+    try:
+        data = request.json or {}
+        import channel_engine
+        cfg = channel_engine.get_autopilot_config()
 
-    if 'enabled' in data:
-        cfg['enabled'] = bool(data['enabled'])
-    if 'frequency_hours' in data:
-        try:
-            cfg['frequency_hours'] = max(1, int(data['frequency_hours']))
-        except Exception:
-            pass
+        if 'enabled' in data:
+            cfg['enabled'] = bool(data['enabled'])
+        if 'frequency_hours' in data:
+            try:
+                cfg['frequency_hours'] = max(1, int(data['frequency_hours']))
+            except Exception:
+                pass
 
-    channel_engine.save_autopilot_config(cfg)
-    return jsonify({"success": True, "autopilot": cfg})
+        channel_engine.save_autopilot_config(cfg)
+        return jsonify({"success": True, "autopilot": cfg})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/admin_channel_autopilot_trigger', methods=['POST'])
 def api_admin_channel_autopilot_trigger():
