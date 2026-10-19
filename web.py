@@ -1523,6 +1523,12 @@ def api_admin_channel_generate():
             "text": res["text"],
             "buttons": res["buttons"],
             "model_used": res["model_used"],
+            "card_title": res.get("card_title"),
+            "card_subtitle": res.get("card_subtitle"),
+            "category_badge": res.get("category_badge"),
+            "theme": res.get("theme"),
+            "feature_pills": res.get("feature_pills"),
+            "format_used": res.get("format_used"),
             "has_image": bool(res.get("image_path") and os.path.exists(res.get("image_path"))),
             "image_url": f"/api/channel_card_preview?t={int(time.time())}"
         })
@@ -1531,7 +1537,7 @@ def api_admin_channel_generate():
 
 @app.route('/api/channel_card_preview', methods=['GET'])
 def api_channel_card_preview():
-    card_path = 'visual_card.png'
+    card_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'visual_card.png')
     if os.path.exists(card_path):
         from flask import send_file
         return send_file(card_path, mimetype='image/png')
@@ -1554,7 +1560,8 @@ def api_admin_channel_post():
     pin = bool(data.get('pin', False))
     silent = bool(data.get('disable_notification', False))
     attach_card = bool(data.get('attach_card', True))
-    image_path = "visual_card.png" if attach_card and os.path.exists("visual_card.png") else None
+    card_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "visual_card.png")
+    image_path = card_file if attach_card and os.path.exists(card_file) else None
 
     try:
         import channel_engine
@@ -1604,12 +1611,10 @@ def api_admin_channel_autopilot_trigger():
 
     import channel_engine, time
     try:
-        cfg = channel_engine.get_autopilot_config()
-        idx = cfg.get("topic_index", 0) % len(channel_engine.TOPIC_CATEGORIES)
-        category = channel_engine.TOPIC_CATEGORIES[idx]
-
-        post_data = channel_engine.generate_channel_post(category_id=category["id"])
-        should_pin = category["id"] in ["anti_ban", "pro_features"]
+        data = request.json or {}
+        req_category = data.get("category_id")
+        post_data = channel_engine.generate_channel_post(category_id=req_category)
+        should_pin = bool(post_data.get("should_pin", False))
         result = channel_engine.publish_to_channel(
             text=post_data["text"],
             buttons=post_data["buttons"],
@@ -1617,10 +1622,17 @@ def api_admin_channel_autopilot_trigger():
             target_channel=channel_engine.DEFAULT_CHANNEL,
             image_path=post_data.get("image_path")
         )
-        cfg["topic_index"] = (idx + 1) % len(channel_engine.TOPIC_CATEGORIES)
+        cfg = channel_engine.get_autopilot_config()
         cfg["last_posted_at"] = int(time.time())
         channel_engine.save_autopilot_config(cfg)
-        return jsonify({"success": True, "result": result, "category": category["title"]})
+        return jsonify({
+            "success": True,
+            "result": result,
+            "category": post_data.get("category_badge", "Intelligence"),
+            "card_title": post_data.get("card_title", "WP RELAY TIP"),
+            "theme": post_data.get("theme", "cyber_cyan"),
+            "format": post_data.get("format_used")
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

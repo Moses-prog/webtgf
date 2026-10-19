@@ -1358,14 +1358,19 @@
                         <div class="form-label">AI Channel Content Generator</div>
                         <div class="form-hint">WP Relay Knowledge Engine writes specialized, high-impact channel tips ready for publication.</div>
                         <select id="sel-channel-category" class="form-input" style="margin-bottom:8px;">
-                            <option value="anti_ban">Anti-Ban & Human Simulation Jitter</option>
-                            <option value="link_rewriting">Automated Link & Mention Monetization</option>
+                            <option value="" selected>🎲 Autonomous Selection (AI Picks Dynamic Angle & Format)</option>
+                            <option value="anti_ban">Anti-Ban & Stealth Jitter Delay</option>
+                            <option value="link_rewriting">Link Arbitrage & Competitor Poaching</option>
+                            <option value="auto_delete">Ephemeral Drops & VIP Scarcity</option>
                             <option value="watermarking">Dynamic Watermarking & Brand Defense</option>
-                            <option value="cta_buttons">High-Converting CTA Inline Buttons</option>
-                            <option value="drip_pacer">Drip Posting Pacer vs Audience Churn</option>
-                            <option value="auto_delete">Ephemeral Content & Auto-Delete Cleanups</option>
-                            <option value="pro_features">WP Relay PRO Power Suite</option>
-                            <option value="telegram_growth">Multi-Channel Growth Strategy</option>
+                            <option value="drip_pacer">Drip Pacing & Feed Hygiene</option>
+                            <option value="cta_buttons">Interactive CTA Conversion Funnels</option>
+                            <option value="multi_channel">Multi-Channel Syndication Network</option>
+                            <option value="live_sync">Live Message Sync & Mirror Deletion</option>
+                            <option value="algo_hacks">Telegram Search & Discovery Algorithms</option>
+                            <option value="pro_workers">PRO Concurrency & Enterprise Scale</option>
+                            <option value="case_study">Real Operator Case Study</option>
+                            <option value="myth_busters">Telegram Growth Myths Debunked</option>
                         </select>
                         <input type="text" id="inp-channel-custom-prompt" class="form-input" placeholder="Custom topic instructions (optional)..." style="margin-bottom:8px;">
                         <button class="btn-submit" id="btn-channel-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateChannelPost()">Generate Smart Tip with AI</button>
@@ -1379,8 +1384,8 @@
                         <!-- AI VISUAL CARD PREVIEW (WP Studio Engine) -->
                         <div id="channel-card-preview-box" style="display:none; margin-bottom:12px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color); background:var(--card-bg);">
                             <div style="padding:6px 10px; background:var(--bg-color); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                                <span>AI Visual Card Banner</span>
-                                <span style="font-size:9px; opacity:0.6;">WP Studio 1200x630</span>
+                                <span id="channel-card-badge-info">AI Visual Card Banner</span>
+                                <span id="channel-card-theme-info" style="font-size:9px; opacity:0.6;">WP Studio 1200x630</span>
                             </div>
                             <img id="channel-card-preview-img" style="width:100%; height:auto; display:block;" alt="AI Visual Card">
                         </div>
@@ -1930,13 +1935,13 @@
         }
 
         async function adminGenerateChannelPost() {
-            const cat = document.getElementById('sel-channel-category')?.value || 'anti_ban';
+            const cat = document.getElementById('sel-channel-category')?.value || '';
             const customPrompt = document.getElementById('inp-channel-custom-prompt')?.value.trim() || '';
             const btn = document.getElementById('btn-channel-ai-gen');
 
             if (btn) {
                 btn.disabled = true;
-                btn.innerText = 'Generating Smart Tip with Gemini...';
+                btn.innerText = 'Generating Intelligent Tip with AI...';
             }
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
@@ -1954,9 +1959,17 @@
 
                     const cardBox = document.getElementById('channel-card-preview-box');
                     const cardImg = document.getElementById('channel-card-preview-img');
+                    const badgeInfo = document.getElementById('channel-card-badge-info');
+                    const themeInfo = document.getElementById('channel-card-theme-info');
                     if (cardBox && cardImg) {
                         if (d.has_image && d.image_url) {
                             cardImg.src = d.image_url;
+                            if (badgeInfo && d.category_badge) {
+                                badgeInfo.innerText = `${d.category_badge} • ${d.format_used || 'Dynamic'}`;
+                            }
+                            if (themeInfo && d.theme) {
+                                themeInfo.innerText = `Theme: ${d.theme.replace('_', ' ')}`;
+                            }
                             cardBox.style.display = 'block';
                         }
                     }
@@ -1975,12 +1988,12 @@
                         if (b2u) b2u.value = d.buttons[1].url;
                         if (b2s && d.buttons[1].style) b2s.value = d.buttons[1].style;
                     }
-                    tg.showAlert('Smart channel tip generated!');
+                    tg.showAlert(`Dynamic tip generated! [${d.format_used || 'Unique Format'} | Theme: ${d.theme || 'Dynamic'}]`);
                 } else {
                     tg.showAlert(d.error || 'Failed to generate post');
                 }
             } catch(e) {
-                tg.showAlert('Network error generating tip');
+                tg.showAlert('Network error generating tip: ' + (e.message || e));
             } finally {
                 if (btn) {
                     btn.disabled = false;

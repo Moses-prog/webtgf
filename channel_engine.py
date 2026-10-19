@@ -1,6 +1,8 @@
 import os
 import json
 import time
+import re
+import random
 import requests
 from dotenv import load_dotenv
 
@@ -12,65 +14,170 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AUTOPILOT_FILE = os.path.join(BASE_DIR, "channel_autopilot.json")
 LOCK_FILE = os.path.join(BASE_DIR, "autopilot.lock")
 
-# Concise System Knowledge Base for WP Relay
+# Enterprise Knowledge Base for WP Relay Automation
 WP_RELAY_KNOWLEDGE = """
-You are the Growth & Engineering Lead for WP Relay (@wprelaybot), the enterprise Telegram channel forwarding, rewriting, and automation bot.
+You are the Growth Architect & Principal Automation Engineer for WP Relay (@wprelaybot), the enterprise Telegram channel forwarding, rewriting, and stealth automation system.
 Official Channel: @webtgfv1
 Bot Handle: @wprelaybot
 
-WP RELAY CORE FEATURES:
-1. Anti-Ban Human Jitter Delay: Randomized delivery pause (8s-35s) mimicking natural human posting, dodging Telegram spam filters and FloodWait locks.
-2. Global Link & Username Rewriter: Auto-swaps any competitor t.me link, website link, or @mention with the tenant's own handle and affiliate URL.
-3. Dynamic Watermark Engine: Auto-stamps custom brand text or logos directly onto forwarded photos.
-4. Interactive CTA Buttons: Appends clickable Telegram inline buttons ([ ⚡ Launch WP Relay Bot ], [ 💎 Upgrade to PRO ]) below forwarded messages.
-5. Drip Posting Pacer: Queues and spaces out high-burst source drops so subscribers are never spammed.
-6. Auto-Delete & Ephemeral Drops: Automatically wipes posts after X hours, creating VIP FOMO and keeping channels clutter-free.
-7. Mirror Deletion & Live Sync: Instantly mirrors edits or message deletions made in source channels.
-8. PRO Suite: Unlimited routing, custom video replacements, and dedicated high-speed forwarder workers.
+WP RELAY CORE CAPABILITIES:
+1. Anti-Ban Human Jitter Delay: Randomized delivery pause (8s-35s) mimicking organic human reading and posting, completely evading Telegram's FloodWait locks and spam heuristics.
+2. Global Link & Username Rewriter: Auto-detects and swaps any competitor t.me links, external websites, or @mentions with the tenant's own handle, referral links, and affiliate URLs.
+3. Dynamic Watermark Engine: Auto-stamps custom brand text, logos, or channel usernames directly onto forwarded photos and graphics.
+4. Interactive CTA Conversion Buttons: Appends high-converting clickable inline buttons (with custom labels, deep links, and color styles) directly below forwarded drops.
+5. Drip Posting Pacer: Buffers rapid-fire drops from high-volume source channels and spaces them out smoothly over minutes or hours so subscribers never mute the channel.
+6. Ephemeral Auto-Delete Timers: Automatically purges posts after X hours (e.g. 2h, 6h, 12h, 24h), creating VIP urgency, FOMO, and protecting proprietary trade/signal drops from leaking.
+7. Real-Time Mirror Deletion & Live Sync: Instantly mirrors edits, text corrections, and message deletions made in source channels across all destinations.
+8. Multi-Channel Syndication: Routes content from a single master source into 10+ niche target channels simultaneously with custom per-channel rewriting rules.
+9. PRO High-Velocity Workers: Dedicated worker threads with sub-second execution, custom video overrides, and unlimited forward routing.
 """
 
-TOPIC_CATEGORIES = [
+STRATEGIC_PILLARS = [
     {
         "id": "anti_ban",
-        "title": "Anti-Ban Human Jitter",
-        "topic": "Why instant 0-second forwarding triggers Telegram spam locks and how WP Relay's 8-30s Human Jitter Delay makes your forwarding 100% ban-proof."
+        "title": "Anti-Ban & Stealth Jitter",
+        "description": "How 0-second bot forwarding gets accounts flagged by Telegram heuristics, and how WP Relay's 8-35s randomized human jitter creates 100% undetected stealth delivery."
     },
     {
         "id": "link_rewriting",
-        "title": "Global Link Rewriter",
-        "topic": "How to instantly monetize incoming content by automatically replacing competitor links and @mentions with your own handles and affiliate URLs."
-    },
-    {
-        "id": "watermarking",
-        "title": "Dynamic Watermarking",
-        "topic": "How to protect brand ownership by auto-stamping your custom watermark onto every forwarded image."
-    },
-    {
-        "id": "cta_buttons",
-        "title": "Interactive CTA Buttons",
-        "topic": "How adding clickable native inline buttons below every post skyrockets click-through rates to your VIP bots and affiliate links."
-    },
-    {
-        "id": "drip_pacer",
-        "title": "Drip Posting Pacer",
-        "topic": "Why forwarding 15 posts at once causes subscribers to mute, and how WP Relay's Drip Pacer spaces them smoothly."
+        "title": "Link Arbitrage & Competitor Poaching",
+        "description": "Automated monetization: replacing competitor affiliate links, tracking URLs, and usernames with the operator's own handles without editing a single post manually."
     },
     {
         "id": "auto_delete",
-        "title": "Ephemeral Auto-Delete",
-        "topic": "How VIP and signal channels use WP Relay's rolling auto-delete timers to create exclusivity, protect content, and eliminate clutter."
+        "title": "Ephemeral Drops & VIP Scarcity",
+        "description": "Using auto-delete timers (2h, 6h, 12h) to drive insane open rates, trigger subscriber FOMO, and keep premium signal feeds spotless."
     },
     {
-        "id": "pro_features",
-        "title": "WP Relay PRO Power",
-        "topic": "Why high-scale Telegram operators upgrade to PRO for custom video overrides, unlimited channels, and priority worker threads."
+        "id": "watermarking",
+        "title": "Dynamic Watermarking & Brand Defense",
+        "description": "Auto-stamping custom branding or channel usernames onto forwarded images to prevent competitor scraping and claim visual ownership."
     },
     {
-        "id": "telegram_growth",
-        "title": "Multi-Channel Scaling",
-        "topic": "How to syndicate content across multiple niche channels simultaneously with zero manual work."
+        "id": "drip_pacer",
+        "title": "Drip Pacing & Feed Hygiene",
+        "description": "Why forward dumping 20 posts at once spikes subscriber mutes by 70%, and how WP Relay's Drip Pacer queues and spaces content smoothly."
+    },
+    {
+        "id": "cta_buttons",
+        "title": "Interactive CTA Conversion Funnels",
+        "description": "How adding native styled inline buttons beneath every drop turns passive viewers into VIP bot users and paying customers."
+    },
+    {
+        "id": "multi_channel",
+        "title": "Multi-Channel Syndication Network",
+        "description": "Scaling 1 source channel into a 10-channel niche media empire automatically with independent routing rules per channel."
+    },
+    {
+        "id": "live_sync",
+        "title": "Live Message Sync & Mirror Deletion",
+        "description": "Fixing typos or deleting retracted source alerts across all forward destinations in real-time with zero lag."
+    },
+    {
+        "id": "algo_hacks",
+        "title": "Telegram Search & Discovery Algorithms",
+        "description": "How post engagement velocity, instant reactions, and keyword pinning skyrocket Telegram global search ranking."
+    },
+    {
+        "id": "pro_workers",
+        "title": "PRO Concurrency & Enterprise Infrastructure",
+        "description": "Why high-scale Telegram operators run dedicated worker processes to handle 50,000+ daily forwards without dropping messages."
+    },
+    {
+        "id": "case_study",
+        "title": "Real Operator Case Study",
+        "description": "Concrete breakdown of how a niche channel operator scaled views, unmuted rates, or affiliate revenue using WP Relay automation."
+    },
+    {
+        "id": "myth_busters",
+        "title": "Telegram Growth Myths Debunked",
+        "description": "Exposing the fatal mistakes 95% of channel creators make when copying content or managing forward channels."
     }
 ]
+
+# Keep TOPIC_CATEGORIES as an alias for backwards compatibility with web API & Mini App UI
+TOPIC_CATEGORIES = STRATEGIC_PILLARS
+
+EDITORIAL_FORMATS = [
+    {
+        "id": "case_study",
+        "name": "Micro Case Study",
+        "instruction": """
+Format as a crisp REAL-WORLD OPERATOR CASE STUDY:
+- Header: 📊 <b>CASE STUDY: [Punchy 3-5 Word Scenario]</b>
+- The Setup: 1 sentence introducing a specific channel type (e.g. 35k crypto channel or sports signals) and their exact bottleneck.
+- The Pivot: How they deployed a specific WP Relay feature to solve it.
+- The Numbers: Concrete result (e.g., +44% unmuted views, $1.8k monthly affiliate lift, 0 shadowbans).
+- The Takeaway / CTA: 1 sharp sentence pointing to @wprelaybot.
+"""
+    },
+    {
+        "id": "myth_buster",
+        "name": "Unpopular Truth / Myth Buster",
+        "instruction": """
+Format as a contrarian UNPOPULAR TRUTH / MYTH BUSTER:
+- Header: ⚡ <b>UNPOPULAR TRUTH: [Bold Contrarian Statement]</b>
+- The Myth: What 90% of Telegram channel owners mistakenly believe.
+- The Reality: What Telegram's actual algorithms or user behavior do instead.
+- The Smart Move: How WP Relay handles this with mathematical precision.
+- The Takeaway / CTA: 1 punchy sentence pointing to @wprelaybot.
+"""
+    },
+    {
+        "id": "stealth_playbook",
+        "name": "3-Step Stealth Playbook",
+        "instruction": """
+Format as a tactical 3-STEP STEALTH PLAYBOOK:
+- Header: 🛡️ <b>PLAYBOOK: [Action-Oriented Goal in 3-5 Words]</b>
+- The Objective: 1 punchy line explaining the strategy.
+- 3 Clear Steps:
+  • <b>Step 1:</b> [Tactical action]
+  • <b>Step 2:</b> [Tactical action]
+  • <b>Step 3:</b> [Tactical action]
+- Pro Tip: 1 sentence tactical secret.
+- The Takeaway / CTA: 1 sharp sentence pointing to @wprelaybot.
+"""
+    },
+    {
+        "id": "security_alert",
+        "name": "Security & Risk Briefing",
+        "instruction": """
+Format as an urgent SECURITY & RISK BRIEFING:
+- Header: 🚨 <b>SECURITY BRIEFING: [Specific Threat or Trigger]</b>
+- The Risk: What heuristic Telegram's automated spam detection flags (e.g. FloodWait, 0s bursts).
+- The Vulnerability: Why raw or manual forwarding gets channels shadowbanned or locked.
+- The Immunity Protocol: How WP Relay's engineering provides 100% stealth protection.
+- The Takeaway / CTA: 1 urgent sentence pointing to @wprelaybot.
+"""
+    },
+    {
+        "id": "growth_teardown",
+        "name": "Operator Growth Teardown",
+        "instruction": """
+Format as a high-level OPERATOR GROWTH TEARDOWN:
+- Header: 💡 <b>GROWTH TEARDOWN: [The Strategic Lever in 3-5 Words]</b>
+- The Problem: The friction keeping 99% of Telegram channels small or unmonetized.
+- The Architecture: How top networks stack automation (rewriting + pacing + CTA buttons).
+- The ROI: The massive compounding advantage of hands-off automation.
+- The Takeaway / CTA: 1 punchy sentence pointing to @wprelaybot.
+"""
+    }
+]
+
+def sanitize_telegram_html(text):
+    """Ensure text only contains Telegram-supported HTML tags and has balanced entities."""
+    if not text:
+        return ""
+    # Convert unsupported list items and paragraphs to clean Telegram formatting
+    text = re.sub(r'</?(?:ul|ol|p|div)>', '\n', text)
+    text = re.sub(r'<li>\s*', '• ', text)
+    text = re.sub(r'</li>', '\n', text)
+    text = re.sub(r'<br\s*/?>', '\n', text)
+    # Strip any forbidden tags
+    text = re.sub(r'<(?!/?(?:b|i|u|s|code|pre|a|tg-spoiler)\b)[^>]+>', '', text)
+    # Clean multiple consecutive blank lines
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
 
 def get_autopilot_config():
     if os.path.exists(AUTOPILOT_FILE):
@@ -121,6 +228,10 @@ def get_bot_status():
         return {"configured": True, "valid": False, "error": str(e)}
 
 def generate_channel_post(category_id=None, custom_prompt=None):
+    """
+    Intelligently generates a completely unique, non-repeating Telegram channel post
+    paired with custom contextual CTA buttons and a matching multi-theme visual card.
+    """
     gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not gemini_key:
         raise ValueError("GEMINI_API_KEY is missing from environment variables.")
@@ -128,46 +239,85 @@ def generate_channel_post(category_id=None, custom_prompt=None):
     from google import genai
     client = genai.Client(api_key=gemini_key)
 
-    chosen_category = None
-    if category_id:
-        for c in TOPIC_CATEGORIES:
-            if c["id"] == category_id:
-                chosen_category = c
-                break
+    cfg = get_autopilot_config()
+    history = cfg.get("history", [])
 
-    if custom_prompt:
-        subject = custom_prompt
-    elif chosen_category:
-        subject = chosen_category["topic"]
-    else:
-        import random
-        chosen_category = random.choice(TOPIC_CATEGORIES)
-        subject = chosen_category["topic"]
+    # Extract recent post titles & snippets to prevent any thematic or structural repetition
+    recent_titles = []
+    for item in history[-12:]:
+        t = item.get("title") or item.get("snippet", "")
+        if t:
+            recent_titles.append(t[:60])
+    
+    recent_history_context = ""
+    if recent_titles:
+        recent_history_context = "PREVIOUSLY PUBLISHED TOPICS (DO NOT REPEAT OR REHASH THESE EXACT ANGLES):\n"
+        for i, rt in enumerate(recent_titles, 1):
+            recent_history_context += f"{i}. {rt}\n"
+
+    # Select Strategic Pillar
+    chosen_pillar = None
+    if category_id:
+        for p in STRATEGIC_PILLARS:
+            if p["id"] == category_id:
+                chosen_pillar = p
+                break
+    
+    if not chosen_pillar and not custom_prompt:
+        # Intelligently select a pillar not used in the last 3 runs
+        recent_cats = [h.get("category", "").lower() for h in history[-3:] if h.get("category")]
+        eligible = [p for p in STRATEGIC_PILLARS if p["title"].lower() not in recent_cats]
+        chosen_pillar = random.choice(eligible if eligible else STRATEGIC_PILLARS)
+
+    # Select Dynamic Editorial Format
+    chosen_format = random.choice(EDITORIAL_FORMATS)
+
+    pillar_topic = chosen_pillar["description"] if chosen_pillar else (custom_prompt or "Telegram channel automation and monetization")
+    pillar_title = chosen_pillar["title"] if chosen_pillar else "Telegram Growth"
 
     system_prompt = f"""
 {WP_RELAY_KNOWLEDGE}
 
-TASK:
-Write an ULTRA-CONCISE, visually captivating Telegram channel tip for @webtgfv1 about:
-{subject}
+OBJECTIVE:
+Generate an ultra-engaging, high-value Telegram channel post for @webtgfv1 that provides actionable insider value to channel owners.
 
-STRICT FORMATTING & LENGTH CONSTRAINTS:
-1. MAXIMUM 80-90 WORDS TOTAL. A subscriber must be able to scan and read the entire post in 10 seconds.
-2. ABSOLUTELY NO LONG ESSAYS OR WALLS OF TEXT.
-3. Clean, scannable formatting using Telegram HTML: <b>bold</b>, <i>italic</i>, <code>code</code>.
-4. Exact layout to follow:
+TARGET STRATEGIC PILLAR:
+"{pillar_title}": {pillar_topic}
 
-⚡ <b>WP RELAY TIP: [Punchy 3-5 Word Title]</b>
+EDITORIAL FORMAT TO USE:
+{chosen_format["instruction"]}
 
-<i>[One sharp sentence on the mistake or challenge]</i>
+{recent_history_context}
 
-• 🚨 <b>The Problem:</b> [1 punchy line]
-• 🛡️ <b>The Solution:</b> [1 punchy line explaining the WP Relay feature]
-• 💎 <b>The Win:</b> [1 punchy line on the benefit]
+CRITICAL RULES:
+1. WORD COUNT: 75 to 105 WORDS MAXIMUM. Readers must finish the entire post in 10-15 seconds.
+2. NO COOKIE-CUTTER TEMPLATES: Write naturally, boldly, and with high punch.
+3. ALLOWED HTML TAGS: <b>, <i>, <code>, <s>, <u>, <a href="...">, <tg-spoiler>.
+   DO NOT use <ul>, <ol>, <li>, <p>, <div>, or markdown (no asterisks ** or hash headers #).
+4. DYNAMIC THEME PAIRING: Choose the most fitting visual theme:
+   - "cyber_cyan": For stealth, pacing, tech automation, or core features.
+   - "crimson_alert": For security alerts, anti-ban warnings, or risk briefings.
+   - "emerald_cash": For monetization, affiliate link arbitrage, or revenue scaling.
+   - "royal_purple": For PRO features, VIP masterclass, or enterprise scaling.
+   - "sunset_amber": For viral hacks, growth velocity, algorithm tricks, or high engagement.
+   - "stealth_mono": For minimal enterprise, multi-channel syndication, or infrastructure.
+5. CONTEXTUAL BUTTONS: Provide 2 clickable inline buttons tailored to this specific post topic. First button must be an actionable hook, second button can be bot launch or pro upgrade.
 
-👉 <i>Configure in 30 seconds inside @wprelaybot:</i>
-
-Output ONLY the formatted post. Do not include introductory notes or markdown codeblocks (no ```html).
+OUTPUT FORMAT:
+You MUST output a strict JSON object with these EXACT keys:
+{{
+  "card_title": "PUNCHY 2-4 WORD CARD HEADLINE (UPPERCASE)",
+  "card_subtitle": "COMPELLING 6-9 WORD VALUE HOOK (UPPERCASE)",
+  "category_badge": "2-3 WORD BADGE (e.g. SECURITY ALERT, CASE STUDY, GROWTH HACK, OPERATOR PLAYBOOK)",
+  "theme": "one of: cyber_cyan, crimson_alert, emerald_cash, royal_purple, sunset_amber, stealth_mono",
+  "feature_pills": ["PILL 1", "PILL 2", "PILL 3"],
+  "should_pin": false,
+  "text": "Full Telegram post text with bold HTML and natural formatting",
+  "buttons": [
+    {{"text": "BUTTON 1 LABEL (E.G. 🛡️ ENABLE BAN SHIELD)", "url": "https://t.me/wprelaybot?start=topic_slug", "style": "primary"}},
+    {{"text": "BUTTON 2 LABEL (E.G. ⚡ LAUNCH @WPRELAYBOT)", "url": "https://t.me/wprelaybot?start=main", "style": "success"}}
+  ]
+}}
 """
 
     models_to_try = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.8-flash"]
@@ -177,44 +327,45 @@ Output ONLY the formatted post. Do not include introductory notes or markdown co
         try:
             resp = client.models.generate_content(
                 model=m,
-                contents=system_prompt
+                contents=system_prompt,
+                config={"response_mime_type": "application/json"}
             )
             if resp and resp.text:
-                text = resp.text.strip()
-                if text.startswith("```html"):
-                    text = text[7:]
-                if text.startswith("```"):
-                    text = text[3:]
-                if text.endswith("```"):
-                    text = text[:-3]
-                text = text.strip()
+                raw_text = resp.text.strip()
+                # Clean any lingering markdown codeblocks if present
+                if raw_text.startswith("```json"):
+                    raw_text = raw_text[7:]
+                elif raw_text.startswith("```"):
+                    raw_text = raw_text[3:]
+                if raw_text.endswith("```"):
+                    raw_text = raw_text[:-3]
+                raw_text = raw_text.strip()
 
-                recommended_buttons = [
+                parsed = json.loads(raw_text)
+
+                post_text = sanitize_telegram_html(parsed.get("text", ""))
+                card_title = parsed.get("card_title", "WP RELAY PRO").strip()
+                card_subtitle = parsed.get("card_subtitle", "SMART TELEGRAM CHANNEL AUTOMATION").strip()
+                category_badge = parsed.get("category_badge", chosen_format["name"]).strip()
+                theme = parsed.get("theme", "cyber_cyan").strip()
+                feature_pills = parsed.get("feature_pills", ["100% STEALTH", "SMART PACER", "BAN-PROOF"])
+                should_pin = bool(parsed.get("should_pin", False))
+
+                buttons = parsed.get("buttons") or [
                     {"text": "⭐ LAUNCH WP RELAY BOT ⚡", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"},
                     {"text": "💎 UPGRADE TO PRO (VIP) ✅", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
                 ]
 
-                # Generate AI Visual Card for the post
+                # Generate Dynamic Multi-Theme Visual Card
                 image_path = os.path.join(BASE_DIR, "visual_card.png")
                 try:
                     import card_designer
-                    card_title = chosen_category["title"] if chosen_category else "PRO TIP"
-                    card_sub = chosen_category["topic"] if chosen_category else "SMART HUMAN PACER FOR TELEGRAM"
-
-                    clean_lines = [l.strip() for l in text.splitlines() if l.strip()]
-                    if len(clean_lines) >= 1:
-                        c0 = clean_lines[0].replace("<b>", "").replace("</b>", "").replace("⚡", "").replace("WP RELAY TIP:", "").replace("WP RELAY HACK:", "").strip()
-                        if c0:
-                            card_title = c0[:35]
-                    if len(clean_lines) >= 2:
-                        c1 = clean_lines[1].replace("<i>", "").replace("</i>", "").replace("<b>", "").replace("</b>", "").strip()
-                        if c1:
-                            card_sub = c1[:70]
-
                     card_designer.create_visual_card(
                         title=card_title,
-                        subtitle=card_sub,
-                        category="PRO TIP",
+                        subtitle=card_subtitle,
+                        category=category_badge,
+                        theme=theme,
+                        feature_pills=feature_pills,
                         output_path=image_path
                     )
                 except Exception as card_err:
@@ -222,12 +373,20 @@ Output ONLY the formatted post. Do not include introductory notes or markdown co
                     image_path = None
 
                 return {
-                    "text": text,
-                    "buttons": recommended_buttons,
+                    "text": post_text,
+                    "buttons": buttons,
+                    "card_title": card_title,
+                    "card_subtitle": card_subtitle,
+                    "category_badge": category_badge,
+                    "theme": theme,
+                    "feature_pills": feature_pills,
+                    "should_pin": should_pin,
+                    "format_used": chosen_format["id"],
                     "model_used": m,
                     "image_path": image_path
                 }
         except Exception as e:
+            print(f"[MODEL ERROR] {m} failed: {e}")
             last_err = e
 
     raise RuntimeError(f"All Gemini models failed: {last_err}")
@@ -263,7 +422,8 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
             reply_markup = {"inline_keyboard": inline_keyboard}
 
     # Decide whether to send Photo or Text
-    use_photo = bool(image_path and os.path.exists(image_path))
+    # Telegram photo captions have a hard limit of 1024 characters
+    use_photo = bool(image_path and os.path.exists(image_path) and len(text) <= 1024)
     res_data = None
 
     if use_photo:
@@ -325,6 +485,7 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
             }
             pr = requests.post(f"https://api.telegram.org/bot{token}/pinChatMessage", json=pin_payload, timeout=8)
             pin_data = pr.json()
+            pinned = bool(pin_data.get("ok"))
         except Exception as e:
             print(f"[PIN ERROR] Failed to pin message {msg_id}: {e}")
 
@@ -340,12 +501,12 @@ def publish_to_channel(text, buttons=None, pin=False, target_channel=DEFAULT_CHA
     except Exception as rx_err:
         pass
 
-    # Record history
+    # Record history with rich deduplication metadata
     try:
         cfg = get_autopilot_config()
         cfg["last_posted_at"] = int(time.time())
         snippet = text[:100].replace("\n", " ") + "..."
-        cfg["history"] = cfg.get("history", [])[-19:] + [{
+        cfg["history"] = cfg.get("history", [])[-24:] + [{
             "timestamp": int(time.time()),
             "channel": target_channel,
             "message_id": msg_id,
@@ -412,19 +573,16 @@ def run_autopilot_tick():
     except Exception:
         pass
 
-    idx = cfg.get("topic_index", 0) % len(TOPIC_CATEGORIES)
-    category = TOPIC_CATEGORIES[idx]
-
     # Pre-commit timestamp so no other thread/process can enter this block
     cfg["last_posted_at"] = now
-    cfg["topic_index"] = (idx + 1) % len(TOPIC_CATEGORIES)
     save_autopilot_config(cfg)
 
     try:
-        print(f"[AUTOPILOT] Generating scheduled post for category '{category['id']}'...")
-        post_data = generate_channel_post(category_id=category["id"])
+        print("[AUTOPILOT] Intelligently generating next unique channel post...")
+        # Autopilot chooses a fresh dynamic pillar and format
+        post_data = generate_channel_post()
         
-        should_pin = category["id"] in ["anti_ban", "pro_features"]
+        should_pin = bool(post_data.get("should_pin", False))
 
         result = publish_to_channel(
             text=post_data["text"],
@@ -433,7 +591,7 @@ def run_autopilot_tick():
             target_channel=DEFAULT_CHANNEL,
             image_path=post_data.get("image_path")
         )
-        print(f"[AUTOPILOT] Successfully published scheduled post: {result}")
+        print(f"[AUTOPILOT] Successfully published dynamic scheduled post: {result}")
         return result
     except Exception as e:
         print(f"[AUTOPILOT] Scheduled post error: {e}")
