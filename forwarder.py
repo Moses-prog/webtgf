@@ -1,7 +1,15 @@
-media_cache_memory = {}
 import os
 import asyncio
 import sys
+
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
+media_cache_memory = {}
 
 class Logger(object):
     def __init__(self):
@@ -9,13 +17,30 @@ class Logger(object):
         self.log = open("forwarder.log", "a", encoding="utf-8")
 
     def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
-        self.log.flush()
+        try:
+            self.terminal.write(message)
+        except Exception:
+            try:
+                enc = getattr(self.terminal, 'encoding', None) or 'utf-8'
+                safe_msg = message.encode(enc, errors='replace').decode(enc)
+                self.terminal.write(safe_msg)
+            except Exception:
+                pass
+        try:
+            self.log.write(message)
+            self.log.flush()
+        except Exception:
+            pass
 
     def flush(self):
-        self.terminal.flush()
-        self.log.flush()
+        try:
+            self.terminal.flush()
+        except Exception:
+            pass
+        try:
+            self.log.flush()
+        except Exception:
+            pass
 
 sys.stdout = Logger()
 sys.stderr = sys.stdout
@@ -291,6 +316,12 @@ async def _do_execute_forward(message, chat_id, user_data):
     import os
     from database_manager import save_user_data
     target_channels = user_data.get('targets', [])
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if str(chat_id) == admin_id and not target_channels:
+        env_targets = os.getenv("TARGET_CHANNELS") or os.getenv("TARGET_CHANNEL")
+        if env_targets:
+            target_channels = [t.strip() for t in env_targets.split(",") if t.strip()]
+    target_channels = [str(t).strip() for t in target_channels if str(t).strip()]
 
     # --- VOICE NOTE FILTER ---
     if (message.voice or getattr(message, 'audio', None)) and user_data.get('disable_voicenotes', False):
@@ -375,11 +406,19 @@ async def _do_execute_forward(message, chat_id, user_data):
 
     try:
         success = False
+        msg_origin_id = message[0].chat_id if isinstance(message, list) else message.chat_id
         for target in target_channels:
+            target_clean = str(target).strip()
+            if not target_clean:
+                continue
             try:
-                t = int(target)
+                t = int(target_clean)
             except ValueError:
-                t = target
+                t = target_clean
+
+            # Loop guard: do not forward back to the origin channel
+            if t == msg_origin_id or str(t) == str(msg_origin_id):
+                continue
                 
             try:
                 sent = None
@@ -507,12 +546,37 @@ async def handle_message(event, chat_id):
 
     source_channels = user_data.get('sources', [])
     target_channels = user_data.get('targets', [])
-    
+
+    # If Admin has empty sources/targets in DB, fall back to .env
+    if str(chat_id) == admin_id:
+        if not source_channels and os.getenv("SOURCE_CHANNELS"):
+            source_channels = [s.strip() for s in os.getenv("SOURCE_CHANNELS").split(",") if s.strip()]
+        if not target_channels and (os.getenv("TARGET_CHANNELS") or os.getenv("TARGET_CHANNEL")):
+            env_targets = os.getenv("TARGET_CHANNELS") or os.getenv("TARGET_CHANNEL")
+            target_channels = [t.strip() for t in env_targets.split(",") if t.strip()]
+
     if not source_channels or not target_channels:
         return
 
+    # Loop prevention: Ignore messages originating from one of the tenant's target channels
+    incoming_id = event.chat_id
+    incoming_str = str(incoming_id)
+    target_clean_set = set()
+    for t in target_channels:
+        ts = str(t).strip()
+        if not ts:
+            continue
+        target_clean_set.add(ts)
+        target_clean_set.add(ts.lstrip('-'))
+        if ts.startswith('-100'):
+            target_clean_set.add(ts[4:])
+        elif ts.lstrip('-').isdigit():
+            target_clean_set.add(f"-100{ts.lstrip('-')}")
+
+    if incoming_str in target_clean_set or incoming_str.lstrip('-') in target_clean_set:
+        return
+
     is_source = False
-    incoming_str = str(event.chat_id)
     # Build all possible representations of the incoming channel ID
     incoming_variants = {incoming_str}
     if incoming_str.startswith('-100'):
@@ -521,27 +585,74 @@ async def handle_message(event, chat_id):
     elif incoming_str.lstrip('-').isdigit():
         incoming_variants.add(f"-100{incoming_str.lstrip('-')}")  # add -100 prefix
 
+    # Retrieve incoming username
+    incoming_uname = None
+    if hasattr(event, 'chat') and event.chat and getattr(event.chat, 'username', None):
+        incoming_uname = event.chat.username.lower()
+    else:
+        try:
+            c_obj = await event.get_chat()
+            if c_obj and getattr(c_obj, 'username', None):
+                incoming_uname = c_obj.username.lower()
+        except Exception:
+            pass
+
+    client = active_clients.get(chat_id)
+    cache = getattr(client, '_channel_cache', {}) if client else {}
+
     for src in source_channels:
         src_str = str(src).strip()
-        # Numeric match against all variants
+        if not src_str:
+            continue
+
+        # A) Direct ID match
         if src_str in incoming_variants or src_str.lstrip('-') in {v.lstrip('-') for v in incoming_variants}:
             is_source = True
-            print(f"[MATCH-ID] {src_str} matched {incoming_str}")
+            print(f"[Tenant {chat_id}] [MATCH-ID] {src_str} matched {incoming_str}")
             break
-        # Username match
-        if src_str.startswith('@') or not any(ch.isdigit() for ch in src_str):
-            if hasattr(event, 'chat') and event.chat and getattr(event.chat, 'username', None):
-                uname = event.chat.username
-                if src_str == f'@{uname}' or src_str == uname:
-                    is_source = True
-                    print(f"[MATCH-USERNAME] {src_str}")
-                    break
-        # Debug unmatched numeric sources
-        if any(ch.isdigit() for ch in src_str) and not src_str.startswith('@'):
-            src_digits = src_str.lstrip('-').lstrip('100')
-            in_digits = incoming_str.lstrip('-').lstrip('100')
-            print(f"[DEBUG-MATCH] incoming={incoming_str} ({in_digits}) vs saved={src_str} ({src_digits})")
-            
+
+        # B) Match via entity cache
+        src_lower = src_str.lower().strip()
+        if src_lower in cache:
+            resolved_id = cache[src_lower] if isinstance(cache[src_lower], int) else getattr(cache[src_lower], 'id', None)
+            if resolved_id and (str(resolved_id) in incoming_variants or str(resolved_id).lstrip('-') in {v.lstrip('-') for v in incoming_variants}):
+                is_source = True
+                print(f"[Tenant {chat_id}] [MATCH-CACHE] {src_str} ({resolved_id}) matched {incoming_str}")
+                break
+
+        # C) Telegram URL / Invite Link
+        import re
+        m_c = re.search(r't\.me/c/(\d+)', src_str)
+        if m_c:
+            c_digits = m_c.group(1)
+            c_full = f"-100{c_digits}"
+            if c_full in incoming_variants or c_digits in incoming_variants:
+                is_source = True
+                print(f"[Tenant {chat_id}] [MATCH-URL-C] {src_str} matched {incoming_str}")
+                break
+
+        m_pub = re.search(r't\.me/([a-zA-Z0-9_]+)', src_str)
+        if m_pub and not src_str.startswith('t.me/+') and '/+' not in src_str and '/joinchat/' not in src_str:
+            extracted_uname = m_pub.group(1).lower()
+            if incoming_uname and (extracted_uname == incoming_uname or f"@{extracted_uname}" == incoming_uname):
+                is_source = True
+                print(f"[Tenant {chat_id}] [MATCH-URL-PUB] {src_str} matched @{incoming_uname}")
+                break
+
+        # Known invite link for WP Community
+        if '+vYdMOKg3Gl5hMTNk' in src_str or 'vYdMOKg3Gl5hMTNk' in src_str:
+            if incoming_str in {'-1002257843688', '2257843688'}:
+                is_source = True
+                print(f"[Tenant {chat_id}] [MATCH-INVITE-LINK] {src_str} matched {incoming_str}")
+                break
+
+        # D) Username match
+        src_uname = src_lower.lstrip('@')
+        if incoming_uname and (src_uname == incoming_uname or src_lower == f"@{incoming_uname}"):
+            is_source = True
+            print(f"[Tenant {chat_id}] [MATCH-USERNAME] {src_str} matched @{incoming_uname}")
+            break
+
     if not is_source:
         return
         
@@ -779,17 +890,30 @@ async def monitor_users():
                         # Populate entity cache to make -100 IDs work for both sources and targets
                         try:
                             print(f"[Tenant {chat_id}] Fetching dialogs to populate entity cache...")
-                            await client.get_dialogs(limit=300)
+                            dialogs = await client.get_dialogs(limit=300)
+                            cache = {}
+                            for d in dialogs:
+                                cache[d.id] = d
+                                uname = getattr(d.entity, 'username', None)
+                                if uname:
+                                    cache[uname.lower()] = d.id
+                                    cache[f"@{uname.lower()}"] = d.id
+                            client._channel_cache = cache
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
                             
                         # CRITICAL: Properly remove ALL existing handlers to prevent stacking
                         for cb, ev in list(client.list_event_handlers()):
                             client.remove_event_handler(cb, ev)
-                        # incoming=True means ONLY messages received, NOT messages sent by this account
+                        
+                        def _make_msg_handler(cid):
+                            async def _msg_handler(e):
+                                await handle_message(e, cid)
+                            return _msg_handler
+
                         client.add_event_handler(
-                            lambda e, cid=chat_id: handle_message(e, cid),
-                            events.NewMessage(incoming=True)
+                            _make_msg_handler(chat_id),
+                            events.NewMessage()
                         )
                         active_clients[chat_id] = client
                         print(f"✅ Engine ONLINE for Tenant {chat_id}")
@@ -806,18 +930,15 @@ async def monitor_users():
                         active_clients.pop(chat_id, None)
                         # Notify tenant
                         try:
-                            BOT_TOKEN = os.getenv("BOT_TOKEN")
-                            import aiohttp
+                            from database_manager import send_telegram_alert
                             msg = (
-                                "⚠️ *Account Disconnected!*\n\n"
+                                "⚠️ <b>Account Disconnected!</b>\n\n"
                                 "Your Telegram session was logged out or revoked from outside the bot "
                                 "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
                                 "Your forwarding engine has been stopped automatically.\n\n"
                                 "👉 Please open the bot and reconnect your account to resume forwarding."
                             )
-                            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                            async with aiohttp.ClientSession() as sess:
-                                await sess.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                            send_telegram_alert(chat_id, msg)
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                     except Exception as e:
@@ -837,18 +958,15 @@ async def monitor_users():
                             await asyncio.to_thread(save_user_data, chat_id, user_data)
                             active_clients.pop(chat_id, None)
                             try:
-                                BOT_TOKEN = os.getenv("BOT_TOKEN")
-                                import aiohttp
+                                from database_manager import send_telegram_alert
                                 msg = (
-                                    "⚠️ *Account Disconnected!*\n\n"
+                                    "⚠️ <b>Account Disconnected!</b>\n\n"
                                     "Your Telegram session was logged out or revoked from outside the bot "
                                     "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
                                     "Your forwarding engine has been stopped automatically.\n\n"
                                     "👉 Please open the bot and reconnect your account to resume forwarding."
                                 )
-                                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                                async with aiohttp.ClientSession() as sess:
-                                    await sess.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                                send_telegram_alert(chat_id, msg)
                                 print(f"[Tenant {chat_id}] Notified about session error.")
                             except Exception as notify_err:
                                 print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
@@ -878,18 +996,15 @@ async def monitor_users():
                         await asyncio.to_thread(save_user_data, chat_id, user_data)
                         active_clients.pop(chat_id, None)
                         try:
-                            BOT_TOKEN = os.getenv("BOT_TOKEN")
-                            import aiohttp
+                            from database_manager import send_telegram_alert
                             msg = (
-                                "⚠️ *Account Disconnected!*\n\n"
+                                "⚠️ <b>Account Disconnected!</b>\n\n"
                                 "Your Telegram session was logged out or revoked from outside the bot "
                                 "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
                                 "Your forwarding engine has been stopped automatically.\n\n"
                                 "👉 Please open the bot and reconnect your account to resume forwarding."
                             )
-                            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                            async with aiohttp.ClientSession() as sess:
-                                await sess.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
+                            send_telegram_alert(chat_id, msg)
                             print(f"[Tenant {chat_id}] Notified about session revoke.")
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
