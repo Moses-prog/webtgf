@@ -514,6 +514,8 @@ async def _do_execute_forward(message, chat_id, user_data):
                         sent = await client.send_file(t, media_to_send, caption=modified_text)
                         # Cache the sent media so we don't upload the file again
                         if sent and sent.media and isinstance(media_to_send, str) and os.path.exists(media_to_send):
+                            if len(media_cache_memory) > 25:
+                                media_cache_memory.clear()
                             if is_photo:
                                 media_cache_memory[f"{chat_id}_image_{media_to_send}"] = sent.media
                             elif is_video:
@@ -584,6 +586,9 @@ async def _do_execute_forward(message, chat_id, user_data):
                 os.remove(downloaded_restricted_media)
             except:
                 pass
+
+        import gc
+        gc.collect()
 
 
 async def handle_message(event, chat_id):
@@ -956,15 +961,17 @@ async def monitor_users():
                         # Populate entity cache to make -100 IDs work for both sources and targets
                         try:
                             print(f"[Tenant {chat_id}] Fetching dialogs to populate entity cache...")
-                            dialogs = await client.get_dialogs(limit=300)
+                            dialogs = await client.get_dialogs(limit=50)
                             cache = {}
                             for d in dialogs:
-                                cache[d.id] = d
+                                cache[d.id] = d.entity
                                 uname = getattr(d.entity, 'username', None)
                                 if uname:
                                     cache[uname.lower()] = d.id
                                     cache[f"@{uname.lower()}"] = d.id
                             client._channel_cache = cache
+                            del dialogs
+                            import gc; gc.collect()
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
                             
@@ -1069,6 +1076,10 @@ async def monitor_users():
 
         except Exception as e:
             print(f"Error in monitor loop: {e}")
+
+        if int(time.time()) % 30 == 0:
+            import gc
+            gc.collect()
 
         await asyncio.sleep(5)
 
