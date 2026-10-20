@@ -1,6 +1,11 @@
 import os
-import asyncio
 import sys
+import time
+import datetime
+import json
+import re
+import random
+import asyncio
 
 if sys.platform == 'win32':
     try:
@@ -592,7 +597,6 @@ async def handle_message(event, chat_id):
         is_paused = user_data.get('pro_paused') or (user_data.get('pro_expired_at') and not user_data.get('is_pro'))
         if is_paused:
             print(f"[Tenant {chat_id}] FORWARDING FROZEN: PRO subscription expired. Message {event.message.id} dropped.")
-            import time
             last_alert = user_data.get('last_freeze_notice_time', 0)
             if time.time() - last_alert > 43200:
                 user_data['last_freeze_notice_time'] = time.time()
@@ -684,7 +688,6 @@ async def handle_message(event, chat_id):
                 break
 
         # C) Telegram URL / Invite Link
-        import re
         m_c = re.search(r't\.me/c/(\d+)', src_str)
         if m_c:
             c_digits = m_c.group(1)
@@ -746,14 +749,12 @@ async def monitor_users():
     while True:
         try:
             # 1. Write the main heartbeat so the bot knows the engine is alive
-            import time, json
             with open('status.json', 'w') as f:
                 json.dump({"last_seen": time.time(), "status": "online"}, f)
                 
             # 2. Check all tenants
             all_users = await asyncio.to_thread(get_all_users)
             
-            import time
             from database_manager import save_user_data
                         # Process Drip Queues
             for chat_id, client in list(active_clients.items()):
