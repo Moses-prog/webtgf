@@ -56,6 +56,7 @@ from telethon.errors import (
 from database_manager import get_all_users, get_user_data, save_user_data, save_message_map, get_feature_toggles
 
 active_clients = {}
+tenant_cooldowns = {}
 db_semaphore = asyncio.Semaphore(10)
 restricted_download_semaphore = asyncio.Semaphore(1)  # Prevent mass OOM from concurrent restricted downloads
 forward_semaphore = asyncio.Semaphore(15)  # Limit concurrent message processing to prevent OOM on massive channel dumps
@@ -308,6 +309,64 @@ async def ai_process_image(client, message, chat_id, user_data):
         return message.media
 
 
+async def resolve_target_entity(client, target_raw):
+    if not target_raw or not client:
+        return None
+    target_clean = str(target_raw).strip()
+    if not target_clean:
+        return None
+
+    import re
+    # 1. Private channel URL: t.me/c/1234567890/456 -> -1001234567890
+    m_c = re.search(r't\.me/c/(\d+)', target_clean)
+    if m_c:
+        target_clean = f"-100{m_c.group(1)}"
+    else:
+        # Public channel URL: t.me/username -> @username
+        m_pub = re.search(r't\.me/([a-zA-Z0-9_]+)', target_clean)
+        if m_pub and not target_clean.startswith('t.me/+') and '/+' not in target_clean and '/joinchat/' not in target_clean:
+            target_clean = f"@{m_pub.group(1)}"
+
+    # 2. Positive digits >= 9 -> convert to -100 ID
+    digits_only = target_clean.lstrip('-')
+    if digits_only.isdigit() and len(digits_only) >= 9 and not target_clean.startswith('-100'):
+        target_clean = f"-100{digits_only}"
+
+    cache = getattr(client, '_channel_cache', {})
+
+    # 3. Check client cache
+    try:
+        t_int = int(target_clean)
+        if t_int in cache:
+            return cache[t_int]
+        if str(t_int).startswith('-100'):
+            bare = int(str(t_int)[4:])
+            if bare in cache:
+                return cache[bare]
+    except ValueError:
+        t_lower = target_clean.lower()
+        if t_lower in cache:
+            return cache[t_lower]
+        t_with_at = f"@{t_lower.lstrip('@')}"
+        if t_with_at in cache:
+            return cache[t_with_at]
+
+    # 4. Resolve via client.get_entity
+    try:
+        try:
+            return await client.get_entity(int(target_clean))
+        except ValueError:
+            return await client.get_entity(target_clean)
+    except Exception:
+        pass
+
+    # 5. Fallback: return as int or string
+    try:
+        return int(target_clean)
+    except ValueError:
+        return target_clean
+
+
 async def execute_forward(message, chat_id, user_data):
     async with forward_semaphore:
         return await _do_execute_forward(message, chat_id, user_data)
@@ -411,14 +470,18 @@ async def _do_execute_forward(message, chat_id, user_data):
             target_clean = str(target).strip()
             if not target_clean:
                 continue
-            try:
-                t = int(target_clean)
-            except ValueError:
-                t = target_clean
+
+            t = await resolve_target_entity(client, target_clean)
+            if t is None:
+                continue
 
             # Loop guard: do not forward back to the origin channel
-            if t == msg_origin_id or str(t) == str(msg_origin_id):
-                continue
+            t_id = getattr(t, 'id', None) or (t if isinstance(t, int) else None)
+            if t_id:
+                t_id_str = str(t_id)
+                orig_str = str(msg_origin_id)
+                if t_id_str == orig_str or t_id_str.lstrip('-') == orig_str.lstrip('-') or f"-100{t_id_str.lstrip('-')}" == orig_str:
+                    continue
                 
             try:
                 sent = None
@@ -880,6 +943,8 @@ async def monitor_users():
                 session_str = user_data.get("session_string", "")
                 
                 if session_str and chat_id not in active_clients:
+                    if time.time() < tenant_cooldowns.get(chat_id, 0):
+                        continue
                     print(f"Booting Engine for Tenant {chat_id}...")
                     try:
                         api_id = user_data.get("api_id")
@@ -919,55 +984,45 @@ async def monitor_users():
                         print(f"✅ Engine ONLINE for Tenant {chat_id}")
                     except (AuthKeyUnregisteredError, AuthKeyInvalidError,
                             SessionRevokedError, SessionExpiredError, UserDeactivatedBanError) as e:
-                        # Session was killed externally - clean up and notify tenant
-                        print(f"[Tenant {chat_id}] ⚠️ SESSION REVOKED: {e}. Clearing session.")
+                        print(f"[Tenant {chat_id}] ⚠️ SESSION REVOKED: {e}. Pausing client.")
                         try: await client.disconnect()
                         except: pass
-                        user_data["session_string"] = ""
-                        user_data["is_active"] = False
-                        from database_manager import save_user_data
-                        await asyncio.to_thread(save_user_data, chat_id, user_data)
                         active_clients.pop(chat_id, None)
-                        # Notify tenant
+                        # Set 5-min retry cooldown in memory so we don't spam reconnect
+                        tenant_cooldowns[chat_id] = time.time() + 300
                         try:
                             from database_manager import send_telegram_alert
                             msg = (
                                 "⚠️ <b>Account Disconnected!</b>\n\n"
                                 "Your Telegram session was logged out or revoked from outside the bot "
                                 "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
-                                "Your forwarding engine has been stopped automatically.\n\n"
-                                "👉 Please open the bot and reconnect your account to resume forwarding."
+                                "Your forwarding engine has been paused.\n\n"
+                                "👉 Please open the bot or mini app to reconnect your account."
                             )
                             send_telegram_alert(chat_id, msg)
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                     except Exception as e:
-                        # Check if it's an auth/session error (covers revoke, invalid, corrupt session)
                         err_str = str(type(e).__name__).lower() + str(e).lower()
                         is_session_error = any(x in err_str for x in [
                             "authkey", "session", "revoked", "expired", "deactivated",
                             "banned", "unregistered", "invalid", "struct", "unpack"
                         ])
                         if is_session_error:
-                            print(f"[Tenant {chat_id}] ⚠️ SESSION ERROR on boot: {type(e).__name__}: {e}. Clearing.")
+                            print(f"[Tenant {chat_id}] ⚠️ SESSION ERROR on boot: {type(e).__name__}: {e}. Pausing client.")
                             try: await client.disconnect()
                             except: pass
-                            user_data["session_string"] = ""
-                            user_data["is_active"] = False
-                            from database_manager import save_user_data
-                            await asyncio.to_thread(save_user_data, chat_id, user_data)
                             active_clients.pop(chat_id, None)
+                            tenant_cooldowns[chat_id] = time.time() + 300
                             try:
                                 from database_manager import send_telegram_alert
                                 msg = (
                                     "⚠️ <b>Account Disconnected!</b>\n\n"
-                                    "Your Telegram session was logged out or revoked from outside the bot "
-                                    "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
-                                    "Your forwarding engine has been stopped automatically.\n\n"
-                                    "👉 Please open the bot and reconnect your account to resume forwarding."
+                                    "Your Telegram session had a connection error.\n\n"
+                                    "Your forwarding engine has been paused.\n\n"
+                                    "👉 Please reconnect your account if this persists."
                                 )
                                 send_telegram_alert(chat_id, msg)
-                                print(f"[Tenant {chat_id}] Notified about session error.")
                             except Exception as notify_err:
                                 print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                         else:
@@ -990,22 +1045,16 @@ async def monitor_users():
                         print(f"[Tenant {chat_id}] ⚠️ SESSION DEAD (ping): {e}")
                         try: await client.disconnect()
                         except: pass
-                        user_data["session_string"] = ""
-                        user_data["is_active"] = False
-                        from database_manager import save_user_data
-                        await asyncio.to_thread(save_user_data, chat_id, user_data)
                         active_clients.pop(chat_id, None)
+                        tenant_cooldowns[chat_id] = time.time() + 300
                         try:
                             from database_manager import send_telegram_alert
                             msg = (
                                 "⚠️ <b>Account Disconnected!</b>\n\n"
-                                "Your Telegram session was logged out or revoked from outside the bot "
-                                "(e.g. you logged out on your phone or Telegram revoked your session).\n\n"
-                                "Your forwarding engine has been stopped automatically.\n\n"
-                                "👉 Please open the bot and reconnect your account to resume forwarding."
+                                "Your Telegram session was disconnected.\n\n"
+                                "👉 Please open the bot or mini app to reconnect."
                             )
                             send_telegram_alert(chat_id, msg)
-                            print(f"[Tenant {chat_id}] Notified about session revoke.")
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                         continue

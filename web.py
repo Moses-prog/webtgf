@@ -2127,7 +2127,46 @@ def start_autopilot_worker():
 
 start_autopilot_worker()
 
+def ensure_forwarder_running():
+    import subprocess
+    import sys
+    import os
+    import time
+
+    # Run supervisor in production (Render, Heroku, or explicit flag)
+    is_prod = bool(os.getenv("RENDER") or os.getenv("DYNO") or os.getenv("ENABLE_SUPERVISOR", "").lower() in ("1", "true") or os.environ.get('PORT') == '10000')
+    if not is_prod:
+        return
+
+    def supervisor():
+        time.sleep(8)
+        while True:
+            try:
+                is_alive = False
+                if os.path.exists('status.json'):
+                    try:
+                        import json
+                        with open('status.json', 'r') as f:
+                            st = json.load(f)
+                            if time.time() - st.get('last_seen', 0) < 30:
+                                is_alive = True
+                    except Exception:
+                        pass
+                if not is_alive:
+                    print("[SUPERVISOR] forwarder.py heartbeat missing or offline. Launching forwarder.py...")
+                    subprocess.Popen([sys.executable, "forwarder.py"])
+                    time.sleep(25)
+            except Exception as e:
+                print(f"[SUPERVISOR ERROR] {e}")
+            time.sleep(20)
+
+    import threading
+    sup_thread = threading.Thread(target=supervisor, daemon=True)
+    sup_thread.start()
+
+ensure_forwarder_running()
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
 
