@@ -374,11 +374,24 @@ async def resolve_target_entity(client, target_raw):
 
 async def execute_forward(message, chat_id, user_data):
     async with forward_semaphore:
-        return await _do_execute_forward(message, chat_id, user_data)
+        try:
+            return await _do_execute_forward(message, chat_id, user_data)
+        except Exception as e:
+            print(f"[Tenant {chat_id}] Error in execute_forward: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
 
 async def _do_execute_forward(message, chat_id, user_data):
     import os
     from database_manager import save_user_data
+
+    if isinstance(message, list):
+        if not message:
+            return
+        msg = message[0]
+    else:
+        msg = message
+
     target_channels = user_data.get('targets', [])
     admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
     if str(chat_id) == admin_id and not target_channels:
@@ -388,21 +401,22 @@ async def _do_execute_forward(message, chat_id, user_data):
     target_channels = [str(t).strip() for t in target_channels if str(t).strip()]
 
     # --- VOICE NOTE FILTER ---
-    if (message.voice or getattr(message, 'audio', None)) and user_data.get('disable_voicenotes', False):
+    if (getattr(msg, 'voice', None) or getattr(msg, 'audio', None)) and user_data.get('disable_voicenotes', False):
         print(f"[Tenant {chat_id}] Message is a voice note or audio file. Skipping due to settings.")
         return
     
-    modified_text = apply_rules(message.text, user_data)
-    media_to_send = message.media
+    modified_text = apply_rules(getattr(msg, 'text', '') or '', user_data)
+    media_to_send = getattr(msg, 'media', None)
     
     client = active_clients.get(chat_id)
-    if not client: return
+    if not client:
+        print(f"[Tenant {chat_id}] Cannot forward: client not in active_clients.")
+        return
 
-    if message.media:
+    if media_to_send:
         from telethon.tl.types import MessageMediaPhoto
-        # Only override or AI-process actual PHOTOS. Videos, GIFs and documents must pass through untouched!
         from telethon.tl.types import MessageMediaDocument
-        is_photo = isinstance(message.media, MessageMediaPhoto)
+        is_photo = isinstance(media_to_send, MessageMediaPhoto)
         is_video = getattr(message, 'video', None) is not None
 
         if is_photo:
@@ -470,7 +484,7 @@ async def _do_execute_forward(message, chat_id, user_data):
 
     try:
         success = False
-        msg_origin_id = message[0].chat_id if isinstance(message, list) else message.chat_id
+        msg_origin_id = getattr(msg, 'chat_id', None)
         for target in target_channels:
             target_clean = str(target).strip()
             if not target_clean:
@@ -491,18 +505,18 @@ async def _do_execute_forward(message, chat_id, user_data):
             try:
                 sent = None
                 if media_to_send and not isinstance(media_to_send, MessageMediaWebPage):
-                    if media_to_send == message.media:
+                    if media_to_send == getattr(msg, 'media', None):
                         if downloaded_restricted_media:
                             sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
                         else:
                             try:
-                                sent = await client.send_message(t, modified_text, file=message)
+                                sent = await client.send_message(t, modified_text, file=msg)
                             except Exception as forward_err:
                                 err_str = str(forward_err).lower()
                                 if "protected chat" in err_str or "restricted" in err_str or "chatforwardsrestricted" in err_str:
                                     print(f"[Tenant {chat_id}] Source chat is restricted, downloading media to forward...")
                                     async with restricted_download_semaphore:
-                                        downloaded_restricted_media = await client.download_media(message, file=f"restricted_{message.id}_{chat_id}")
+                                        downloaded_restricted_media = await client.download_media(msg, file=f"restricted_{msg.id}_{chat_id}")
                                     if downloaded_restricted_media:
                                         sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
                                     else:
@@ -526,11 +540,7 @@ async def _do_execute_forward(message, chat_id, user_data):
                 
                 # SAVE MAPPING FOR MIRROR DELETION
                 if sent and getattr(sent, 'id', None):
-                    if isinstance(message, list):
-                        src_id = message[0].id
-                    else:
-                        src_id = message.id
-                    save_message_map(chat_id, message.chat_id, src_id, target, sent.id)
+                    save_message_map(chat_id, msg.chat_id, msg.id, target, sent.id)
                 success = True
             except Exception as e:
                 print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
@@ -732,7 +742,7 @@ async def handle_message(event, chat_id):
     drip_interval = user_data.get("drip_interval", 0)
     in_sleep = is_in_sleep_mode(user_data)
     
-    if drip_interval > 0 or in_sleep:
+    if (drip_interval and drip_interval > 1) or in_sleep:
         queue = user_data.get("drip_queue", [])
         preview = event.message.text[:50] + "..." if event.message.text else "[Media/No Text]"
         queue.append({
@@ -746,6 +756,8 @@ async def handle_message(event, chat_id):
         reason = "Sleep Mode" if in_sleep else "Drip Posting"
         print(f"[Tenant {chat_id}] Message queued for {reason}. (Queue size: {len(queue)})")
         return
+
+    await execute_forward(event.message, chat_id, user_data)
         
 import uuid
 import signal
