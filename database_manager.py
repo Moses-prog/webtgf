@@ -33,6 +33,8 @@ def send_telegram_alert(chat_id, text, button_text="💎 RENEW PRO ACCESS ↗", 
         print(f"[ALERT ERROR] Failed to send Telegram alert to {chat_id}: {e}")
         return False
 
+_user_cache = {}
+
 def get_user_data(chat_id):
     """Returns the user's config dict from Supabase, or a default template if they don't exist."""
     chat_id = str(chat_id)
@@ -52,7 +54,7 @@ def get_user_data(chat_id):
     
     if not supabase:
         print("WARNING: Supabase not configured!")
-        return default_data
+        return _user_cache.get(chat_id, default_data)
         
     try:
         response = supabase.table('users').select('data').eq('chat_id', chat_id).execute()
@@ -76,7 +78,7 @@ def get_user_data(chat_id):
                             data['expiry_notified'] = True
                             expires_str = str(data.get('pro_expiry'))[:16]
                             alert_text = (
-                                "🚨 <b>WP RELAY: PRO SUBSCRIPTION EXPIRED</b>\n\n"
+                                "⚠️ <b>WP RELAY: PRO SUBSCRIPTION EXPIRED</b>\n\n"
                                 f"Dear Subscriber,\nYour PRO plan for account <code>{chat_id}</code> expired on <b>{expires_str}</b>.\n\n"
                                 "⛔ <b>ALL CHANNEL FORWARDING & FEATURES HAVE BEEN PAUSED.</b>\n"
                                 "Your destination channels will no longer receive any forwarded messages or updates until you renew.\n\n"
@@ -106,15 +108,17 @@ def get_user_data(chat_id):
                 except Exception as ex_err:
                     print(f"[PRO CHECK ERROR] {ex_err}")
                 
+            _user_cache[chat_id] = data
             return data
         else:
-            return default_data
+            return _user_cache.get(chat_id, default_data)
     except Exception as e:
         print(f"Supabase read error: {e}")
-        return default_data
+        return _user_cache.get(chat_id, default_data)
 
 def save_user_data(chat_id, data):
     chat_id = str(chat_id)
+    _user_cache[chat_id] = data
     if not supabase:
         print("WARNING: Supabase not configured!")
         return
