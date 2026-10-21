@@ -747,12 +747,78 @@ async def handle_message(event, chat_id):
         print(f"[Tenant {chat_id}] Message queued for {reason}. (Queue size: {len(queue)})")
         return
         
-    await execute_forward(event.message, chat_id, user_data)
+import uuid
+import signal
+
+INSTANCE_ID = str(uuid.uuid4())[:8]
+
+async def acquire_or_wait_leader_lock():
+    try:
+        from database_manager import supabase
+        if not supabase:
+            return True
+        for attempt in range(6):
+            try:
+                res = await asyncio.to_thread(lambda: supabase.table('platform_state').select('value').eq('key', 'forwarder_leader').execute())
+                if res.data:
+                    leader = res.data[0].get('value', {})
+                    last_seen = leader.get('timestamp', 0)
+                    other_instance = leader.get('instance_id')
+                    if other_instance and other_instance != INSTANCE_ID and (time.time() - last_seen < 15):
+                        print(f"[LEADER LOCK] Old instance {other_instance} still active ({int(time.time() - last_seen)}s ago). Waiting for graceful shutdown...")
+                        await asyncio.sleep(5)
+                        continue
+                await asyncio.to_thread(lambda: supabase.table('platform_state').upsert({
+                    'key': 'forwarder_leader',
+                    'value': {'instance_id': INSTANCE_ID, 'timestamp': time.time()}
+                }).execute())
+                print(f"[LEADER LOCK] Acquired leadership as instance {INSTANCE_ID}.")
+                return True
+            except Exception as e:
+                print(f"[LEADER LOCK] Check attempt error: {e}")
+                await asyncio.sleep(3)
+    except Exception as outer_e:
+        print(f"[LEADER LOCK] Exception: {outer_e}")
+    return True
+
+async def update_leader_lock():
+    try:
+        from database_manager import supabase
+        if supabase:
+            await asyncio.to_thread(lambda: supabase.table('platform_state').upsert({
+                'key': 'forwarder_leader',
+                'value': {'instance_id': INSTANCE_ID, 'timestamp': time.time()}
+            }).execute())
+    except Exception:
+        pass
+
+async def graceful_shutdown():
+    print("[SHUTDOWN] Gracefully disconnecting all Telegram sessions...")
+    for cid, client in list(active_clients.items()):
+        try:
+            await client.disconnect()
+        except Exception:
+            pass
+    active_clients.clear()
 
 async def monitor_users():
-    print("Starting Multi-Tenant Forwarding Engine...")
+    print(f"Starting Multi-Tenant Forwarding Engine [{INSTANCE_ID}]...")
+    await acquire_or_wait_leader_lock()
+    try:
+        loop = asyncio.get_running_loop()
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            try:
+                loop.add_signal_handler(sig, lambda: asyncio.create_task(graceful_shutdown()))
+            except (NotImplementedError, AttributeError):
+                pass
+    except Exception:
+        pass
+
     while True:
         try:
+            if int(time.time()) % 15 == 0:
+                await update_leader_lock()
+
             # 1. Write the main heartbeat so the bot knows the engine is alive
             with open('status.json', 'w') as f:
                 json.dump({"last_seen": time.time(), "status": "online"}, f)
