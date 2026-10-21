@@ -62,6 +62,42 @@ from database_manager import get_all_users, get_user_data, save_user_data, save_
 
 active_clients = {}
 tenant_cooldowns = {}
+processed_messages_cache = {}
+
+def get_canonical_id(peer):
+    if peer is None:
+        return ""
+    try:
+        from telethon import utils
+        pid = utils.get_peer_id(peer)
+        s = str(pid).strip()
+        if s.startswith("-100"):
+            return s[4:]
+        return s.lstrip("-")
+    except Exception:
+        pass
+    s = str(getattr(peer, 'id', peer)).strip()
+    if s.startswith("-100"):
+        return s[4:]
+    if s.startswith("100") and len(s) > 10:
+        return s[3:]
+    return s.lstrip("-").lower().lstrip("@")
+
+def is_duplicate_message(chat_id, source_chat_id, msg_id):
+    now = time.time()
+    if len(processed_messages_cache) > 3000:
+        to_del = [k for k, ts in list(processed_messages_cache.items()) if now - ts > 300]
+        for k in to_del:
+            processed_messages_cache.pop(k, None)
+
+    src_canon = get_canonical_id(source_chat_id)
+    key = (str(chat_id), src_canon, str(msg_id))
+    if key in processed_messages_cache:
+        if now - processed_messages_cache[key] < 180:
+            return True
+    processed_messages_cache[key] = now
+    return False
+
 db_semaphore = asyncio.Semaphore(10)
 restricted_download_semaphore = asyncio.Semaphore(1)  # Prevent mass OOM from concurrent restricted downloads
 forward_semaphore = asyncio.Semaphore(15)  # Limit concurrent message processing to prevent OOM on massive channel dumps
@@ -482,25 +518,46 @@ async def _do_execute_forward(message, chat_id, user_data):
                 else:
                     modified_text = cta_text
 
+    fwd_msg_id = getattr(msg, 'id', None)
+    if fwd_msg_id:
+        fwd_origin = get_canonical_id(getattr(msg, 'chat_id', None) or getattr(msg, 'peer_id', None))
+        fwd_key = f"fwd_{chat_id}_{fwd_origin}_{fwd_msg_id}"
+        if fwd_key in processed_messages_cache:
+            if time.time() - processed_messages_cache[fwd_key] < 180:
+                print(f"[Tenant {chat_id}] Message {fwd_msg_id} was already forwarded to targets. Skipping duplicate.")
+                return
+        processed_messages_cache[fwd_key] = time.time()
+
     try:
         success = False
-        msg_origin_id = getattr(msg, 'chat_id', None)
+        orig_canonical = get_canonical_id(getattr(msg, 'chat_id', None) or getattr(msg, 'peer_id', None))
+        seen_target_ids = set()
         for target in target_channels:
             target_clean = str(target).strip()
             if not target_clean:
+                continue
+
+            target_pre = get_canonical_id(target_clean)
+            if target_pre and target_pre == orig_canonical:
+                continue
+            if target_pre and target_pre in seen_target_ids:
                 continue
 
             t = await resolve_target_entity(client, target_clean)
             if t is None:
                 continue
 
-            # Loop guard: do not forward back to the origin channel
-            t_id = getattr(t, 'id', None) or (t if isinstance(t, int) else None)
-            if t_id:
-                t_id_str = str(t_id)
-                orig_str = str(msg_origin_id)
-                if t_id_str == orig_str or t_id_str.lstrip('-') == orig_str.lstrip('-') or f"-100{t_id_str.lstrip('-')}" == orig_str:
+            # Loop guard & duplicate target guard
+            t_canonical = get_canonical_id(t)
+            if orig_canonical and t_canonical and t_canonical == orig_canonical:
+                continue
+            if t_canonical:
+                if t_canonical in seen_target_ids:
+                    print(f"[Tenant {chat_id}] Target {target} ({t_canonical}) already received this post. Skipping duplicate.")
                     continue
+                seen_target_ids.add(t_canonical)
+            if target_pre:
+                seen_target_ids.add(target_pre)
                 
             try:
                 sent = None
@@ -540,30 +597,22 @@ async def _do_execute_forward(message, chat_id, user_data):
                 
                 # SAVE MAPPING FOR MIRROR DELETION
                 if sent and getattr(sent, 'id', None):
-                    save_message_map(chat_id, msg.chat_id, msg.id, target, sent.id)
+                    try:
+                        save_message_map(chat_id, msg.chat_id, msg.id, target, sent.id)
+                    except Exception:
+                        pass
                 success = True
             except Exception as e:
                 print(f"[Tenant {chat_id}] Failed to forward cleanly to {t}: {e}")
-                try:
-                    import requests
-                    import os
-                    BOT_TOKEN = os.getenv("BOT_TOKEN")
-                    if BOT_TOKEN:
-                        msg = f"⚠️ **DEBUG: Failed to send media to {t}**\nError: `{e}`"
-                        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                        requests.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"})
-                except Exception as notify_err:
-                    print(f"Failed to send debug DM: {notify_err}")
-                # Try fallback just for this target
-                if modified_text:
+                # ONLY fallback if message was NOT sent at all
+                if not sent and modified_text:
                     try:
                         sent = await client.send_message(t, modified_text)
                         if sent and getattr(sent, 'id', None):
-                            if isinstance(message, list):
-                                src_id = message[0].id
-                            else:
-                                src_id = message.id
-                            save_message_map(chat_id, message.chat_id, src_id, target, sent.id)
+                            try:
+                                save_message_map(chat_id, msg.chat_id, msg.id, target, sent.id)
+                            except Exception:
+                                pass
                         success = True
                     except Exception as fallback_e:
                         print(f"[Tenant {chat_id}] Fallback failed for {t}: {fallback_e}")
@@ -737,13 +786,22 @@ async def handle_message(event, chat_id):
     if not is_source:
         return
         
+    msg_id = getattr(event.message, 'id', None)
+    if msg_id and is_duplicate_message(chat_id, event.chat_id, msg_id):
+        print(f"[Tenant {chat_id}] Ignoring DUPLICATE message {msg_id} from {event.chat_id}")
+        return
+
     print(f"[Tenant {chat_id}] Received message from source: {event.chat_id}")
     
     drip_interval = user_data.get("drip_interval", 0)
     in_sleep = is_in_sleep_mode(user_data)
     
-    if (drip_interval and drip_interval > 1) or in_sleep:
+    if (drip_interval and drip_interval > 0) or in_sleep:
         queue = user_data.get("drip_queue", [])
+        if any(item.get("msg_id") == event.message.id and get_canonical_id(item.get("source_chat_id")) == get_canonical_id(event.chat_id) for item in queue):
+            print(f"[Tenant {chat_id}] Message {event.message.id} is already in drip queue. Skipping duplicate queueing.")
+            return
+
         preview = event.message.text[:50] + "..." if event.message.text else "[Media/No Text]"
         queue.append({
             "msg_id": event.message.id, 
