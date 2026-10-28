@@ -2175,6 +2175,7 @@ def api_engine_status():
 
     return jsonify({
         "success": True,
+        "version": "unified-v2",
         "forwarder_status": fwd_status,
         "forwarder_heartbeat_age_sec": round(fwd_age, 1) if fwd_age is not None else None,
         "bot_status": bot_status,
@@ -2184,6 +2185,7 @@ def api_engine_status():
 def start_unified_background_engine():
     import threading
     import asyncio
+    import sys
 
     def run_forwarder():
         try:
@@ -2192,7 +2194,7 @@ def start_unified_background_engine():
             asyncio.set_event_loop(loop)
             loop.run_until_complete(monitor_users())
         except Exception as e:
-            print(f"[FORWARDER ENGINE ERROR] {e}")
+            print(f"[FORWARDER ENGINE ERROR] {e}", flush=True)
 
     def run_control_bot():
         try:
@@ -2201,14 +2203,14 @@ def start_unified_background_engine():
             asyncio.set_event_loop(loop)
             loop.run_until_complete(control_bot_main())
         except Exception as e:
-            print(f"[CONTROL BOT ERROR] {e}")
+            print(f"[CONTROL BOT ERROR] {e}", flush=True)
 
     fwd_thread = threading.Thread(target=run_forwarder, daemon=True, name="UnifiedForwarderThread")
     bot_thread = threading.Thread(target=run_control_bot, daemon=True, name="UnifiedBotThread")
 
     fwd_thread.start()
     bot_thread.start()
-    print("[UNIFIED ENGINE] Background Telegram Forwarder and Control Bot threads started successfully.")
+    print("[UNIFIED ENGINE] Background Telegram Forwarder and Control Bot threads started successfully.", flush=True)
 
 start_unified_background_engine()
 
