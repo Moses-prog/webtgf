@@ -2127,6 +2127,25 @@ def start_autopilot_worker():
 
 start_autopilot_worker()
 
+def start_memory_cleanup_worker():
+    def loop():
+        import time
+        import gc
+        while True:
+            time.sleep(60)
+            gc.collect()
+            try:
+                import ctypes
+                libc = ctypes.CDLL("libc.so.6")
+                libc.malloc_trim(0)
+            except Exception:
+                pass
+    import threading
+    t = threading.Thread(target=loop, daemon=True)
+    t.start()
+
+start_memory_cleanup_worker()
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

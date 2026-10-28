@@ -2221,4 +2221,17 @@ async def admin_logs_handler(event):
     except Exception as e:
         await event.respond(f"Failed to read logs: {e}")
 
+async def memory_cleanup_loop():
+    import gc
+    while True:
+        await asyncio.sleep(60)
+        gc.collect()
+        try:
+            import ctypes
+            libc = ctypes.CDLL("libc.so.6")
+            libc.malloc_trim(0)
+        except Exception:
+            pass
+
+bot.loop.create_task(memory_cleanup_loop())
 bot.run_until_disconnected()

@@ -34,9 +34,11 @@ def send_telegram_alert(chat_id, text, button_text="💎 RENEW PRO ACCESS ↗", 
         return False
 
 _user_cache = {}
+_user_cache_time = {}
 
-def get_user_data(chat_id):
+def get_user_data(chat_id, force_refresh=False):
     """Returns the user's config dict from Supabase, or a default template if they don't exist."""
+    import time
     chat_id = str(chat_id)
     default_data = {
         "api_id": "",
@@ -49,9 +51,12 @@ def get_user_data(chat_id):
         "image_swap_path": "",
         "replace_all_links_with": "",
         "replace_all_usernames_with": "",
-        "is_active": False
+        "is_active": True
     }
     
+    if not force_refresh and chat_id in _user_cache and (time.time() - _user_cache_time.get(chat_id, 0) < 15):
+        return _user_cache[chat_id]
+
     if not supabase:
         print("WARNING: Supabase not configured!")
         return _user_cache.get(chat_id, default_data)
@@ -109,6 +114,7 @@ def get_user_data(chat_id):
                     print(f"[PRO CHECK ERROR] {ex_err}")
                 
             _user_cache[chat_id] = data
+            _user_cache_time[chat_id] = time.time()
             return data
         else:
             return _user_cache.get(chat_id, default_data)
@@ -117,8 +123,10 @@ def get_user_data(chat_id):
         return _user_cache.get(chat_id, default_data)
 
 def save_user_data(chat_id, data):
+    import time
     chat_id = str(chat_id)
     _user_cache[chat_id] = data
+    _user_cache_time[chat_id] = time.time()
     if not supabase:
         print("WARNING: Supabase not configured!")
         return

@@ -16,6 +16,16 @@ if sys.platform == 'win32':
 
 media_cache_memory = {}
 
+def trim_memory():
+    import gc
+    gc.collect()
+    try:
+        import ctypes
+        libc = ctypes.CDLL("libc.so.6")
+        libc.malloc_trim(0)
+    except Exception:
+        pass
+
 class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout
@@ -375,31 +385,43 @@ async def resolve_target_entity(client, target_raw):
 
     cache = getattr(client, '_channel_cache', {})
 
-    # 3. Check client cache
+    # 3. Check client cache with variants
+    variants = [target_clean, target_clean.lower()]
+    if target_clean.startswith('@'):
+        variants.append(target_clean.lstrip('@').lower())
+    else:
+        variants.append(f"@{target_clean.lower()}")
+
     try:
         t_int = int(target_clean)
-        if t_int in cache:
-            return cache[t_int]
+        variants.append(t_int)
         if str(t_int).startswith('-100'):
-            bare = int(str(t_int)[4:])
-            if bare in cache:
-                return cache[bare]
+            variants.append(int(str(t_int)[4:]))
+            variants.append(str(t_int)[4:])
     except ValueError:
-        t_lower = target_clean.lower()
-        if t_lower in cache:
-            return cache[t_lower]
-        t_with_at = f"@{t_lower.lstrip('@')}"
-        if t_with_at in cache:
-            return cache[t_with_at]
-
-    # 4. Resolve via client.get_entity
-    try:
-        try:
-            return await client.get_entity(int(target_clean))
-        except ValueError:
-            return await client.get_entity(target_clean)
-    except Exception:
         pass
+
+    for v in variants:
+        if v in cache:
+            return cache[v]
+
+    # 4. Resolve via client.get_entity and cache it
+    try:
+        entity = None
+        try:
+            entity = await client.get_entity(int(target_clean))
+        except ValueError:
+            entity = await client.get_entity(target_clean)
+        if entity:
+            cache[target_clean] = entity
+            cache[target_clean.lower()] = entity
+            uname = getattr(entity, 'username', None)
+            if uname:
+                cache[uname.lower()] = entity
+                cache[f"@{uname.lower()}"] = entity
+            return entity
+    except Exception as e:
+        print(f"[TARGET RESOLVE] Notice: Could not resolve target {target_clean}: {e}")
 
     # 5. Fallback: return as int or string
     try:
@@ -571,13 +593,29 @@ async def _do_execute_forward(message, chat_id, user_data):
                             except Exception as forward_err:
                                 err_str = str(forward_err).lower()
                                 if "protected chat" in err_str or "restricted" in err_str or "chatforwardsrestricted" in err_str:
-                                    print(f"[Tenant {chat_id}] Source chat is restricted, downloading media to forward...")
-                                    async with restricted_download_semaphore:
-                                        downloaded_restricted_media = await client.download_media(msg, file=f"restricted_{msg.id}_{chat_id}")
-                                    if downloaded_restricted_media:
-                                        sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
+                                    print(f"[Tenant {chat_id}] Source chat is restricted, preparing media download...")
+                                    file_size = 0
+                                    doc = getattr(msg, 'document', None)
+                                    if doc:
+                                        file_size = getattr(doc, 'size', 0)
+                                    MAX_BYTES = 25 * 1024 * 1024  # 25MB safety limit
+                                    if file_size > MAX_BYTES:
+                                        print(f"[Tenant {chat_id}] Media is {file_size / (1024*1024):.1f}MB (over 25MB limit). Forwarding text only to prevent crash.")
+                                        sent = await client.send_message(t, modified_text or "[Large Media Omitted]")
                                     else:
-                                        raise forward_err
+                                        try:
+                                            async with restricted_download_semaphore:
+                                                downloaded_restricted_media = await asyncio.wait_for(
+                                                    client.download_media(msg, file=f"restricted_{msg.id}_{chat_id}"),
+                                                    timeout=60
+                                                )
+                                            if downloaded_restricted_media and os.path.exists(downloaded_restricted_media):
+                                                sent = await client.send_file(t, downloaded_restricted_media, caption=modified_text)
+                                            else:
+                                                raise forward_err
+                                        except asyncio.TimeoutError:
+                                            print(f"[Tenant {chat_id}] Media download timed out after 60s. Forwarding text fallback.")
+                                            sent = await client.send_message(t, modified_text or "")
                                 else:
                                     raise forward_err
                     else:
@@ -618,6 +656,7 @@ async def _do_execute_forward(message, chat_id, user_data):
                         print(f"[Tenant {chat_id}] Fallback failed for {t}: {fallback_e}")
                         
         if success:
+            print(f"[Tenant {chat_id}] Message {getattr(msg, 'id', '')} forwarded successfully.")
             import datetime
             from database_manager import get_stats, save_stats
             today = str(datetime.date.today())
@@ -646,8 +685,7 @@ async def _do_execute_forward(message, chat_id, user_data):
             except:
                 pass
 
-        import gc
-        gc.collect()
+        trim_memory()
 
 
 async def handle_message(event, chat_id):
@@ -884,9 +922,13 @@ async def monitor_users():
     except Exception:
         pass
 
+    last_leader_update = 0
+    last_mem_trim = time.time()
+
     while True:
         try:
-            if int(time.time()) % 15 == 0:
+            if time.time() - last_leader_update >= 15:
+                last_leader_update = time.time()
                 await update_leader_lock()
 
             # 1. Write the main heartbeat so the bot knows the engine is alive
@@ -1042,7 +1084,7 @@ async def monitor_users():
                                 import datetime
                                 today_start = datetime.datetime.now(datetime.timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
                                 ids_to_del = []
-                                async for msg in client.iter_messages(tc):
+                                async for msg in client.iter_messages(tc, limit=100):
                                     if msg.date and msg.date >= today_start:
                                         ids_to_del.append(msg.id)
                                     else:
@@ -1054,6 +1096,7 @@ async def monitor_users():
                             print(f"[Tenant {chat_id}] Wipe failed for {t}: {e}")
                     udata["pending_wipe"] = None
                     await asyncio.to_thread(save_user_data, chat_id, udata)
+                    trim_memory()
 
                 # --- Process Auto-Delete Rolling Window ---
                 auto_limit = udata.get("auto_delete_limit", 0)
@@ -1066,7 +1109,8 @@ async def monitor_users():
                                 tc = int(t) if str(t).lstrip("-").isdigit() else t
                                 ids_to_del = []
                                 count = 0
-                                async for msg in client.iter_messages(tc):
+                                max_fetch = min(auto_limit + 100, 200)
+                                async for msg in client.iter_messages(tc, limit=max_fetch):
                                     count += 1
                                     if count > auto_limit:
                                         ids_to_del.append(msg.id)
@@ -1078,6 +1122,7 @@ async def monitor_users():
                                 print(f"[Tenant {chat_id}] Auto-delete failed for {t}: {e}")
                         udata["last_auto_clean"] = time.time()
                         await asyncio.to_thread(save_user_data, chat_id, udata)
+                        trim_memory()
 
             # Start new clients
             for chat_id in all_users:
@@ -1101,13 +1146,19 @@ async def monitor_users():
                             cache = {}
                             for d in dialogs:
                                 cache[d.id] = d.entity
+                                d_str = str(d.id)
+                                cache[d_str] = d.entity
+                                cache[d_str.lstrip('-')] = d.entity
+                                if d_str.startswith('-100'):
+                                    cache[int(d_str[4:])] = d.entity
+                                    cache[d_str[4:]] = d.entity
                                 uname = getattr(d.entity, 'username', None)
                                 if uname:
-                                    cache[uname.lower()] = d.id
-                                    cache[f"@{uname.lower()}"] = d.id
+                                    cache[uname.lower()] = d.entity
+                                    cache[f"@{uname.lower()}"] = d.entity
                             client._channel_cache = cache
                             del dialogs
-                            import gc; gc.collect()
+                            trim_memory()
                         except Exception as e:
                             print(f"[Tenant {chat_id}] Failed to fetch dialogs: {e}")
                             
@@ -1213,11 +1264,11 @@ async def monitor_users():
         except Exception as e:
             print(f"Error in monitor loop: {e}")
 
-        if int(time.time()) % 30 == 0:
-            import gc
-            gc.collect()
+        if time.time() - last_mem_trim >= 30:
+            last_mem_trim = time.time()
+            trim_memory()
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(8)
 
 if __name__ == '__main__':
     asyncio.run(monitor_users())
