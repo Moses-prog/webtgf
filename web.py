@@ -2181,57 +2181,8 @@ def api_engine_status():
         "bot_heartbeat_age_sec": round(bot_age, 1) if bot_age is not None else None
     })
 
-def ensure_background_services_running():
-    import subprocess
-    import sys
-    import os
-    import time
-
-    def supervisor():
-        time.sleep(8)
-        while True:
-            try:
-                # 1. Forwarder heartbeat
-                fwd_alive = False
-                if os.path.exists('status.json'):
-                    try:
-                        with open('status.json', 'r') as f:
-                            st = json.load(f)
-                            if time.time() - st.get('last_seen', 0) < 35:
-                                fwd_alive = True
-                    except Exception:
-                        pass
-                if not fwd_alive:
-                    print("[SUPERVISOR] forwarder.py offline. Spawning forwarder.py...")
-                    subprocess.Popen([sys.executable, "forwarder.py"])
-                    time.sleep(15)
-
-                # 2. Control Bot heartbeat
-                bot_alive = False
-                if os.path.exists('bot_status.json'):
-                    try:
-                        with open('bot_status.json', 'r') as f:
-                            st = json.load(f)
-                            if time.time() - st.get('last_seen', 0) < 35:
-                                bot_alive = True
-                    except Exception:
-                        pass
-                if not bot_alive:
-                    print("[SUPERVISOR] control_bot.py offline. Spawning control_bot.py...")
-                    subprocess.Popen([sys.executable, "control_bot.py"])
-                    time.sleep(15)
-
-            except Exception as e:
-                print(f"[SUPERVISOR ERROR] {e}")
-            time.sleep(15)
-
-    import threading
-    sup_thread = threading.Thread(target=supervisor, daemon=True)
-    sup_thread.start()
-
-ensure_background_services_running()
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
 

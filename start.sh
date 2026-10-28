@@ -29,22 +29,29 @@ python web.py &
 WEB_PID=$!
 echo "[start.sh] Web server started with PID $WEB_PID"
 
-# Active supervisor: If ANY process crashes or runs out of memory, restart container
+# Active supervisor: Keep all 3 processes alive without restarting the whole container
 while true; do
   if ! kill -0 "$FWD_PID" 2>/dev/null; then
-    echo "[start.sh] ALERT: forwarder.py (PID $FWD_PID) stopped! Restarting container..."
-    cleanup
-    exit 1
+    echo "[start.sh] forwarder.py (PID $FWD_PID) exited. Restarting forwarder..."
+    python forwarder.py &
+    FWD_PID=$!
+    echo "[start.sh] forwarder.py restarted with PID $FWD_PID"
   fi
+
   if ! kill -0 "$BOT_PID" 2>/dev/null; then
-    echo "[start.sh] ALERT: control_bot.py (PID $BOT_PID) stopped! Restarting container..."
-    cleanup
-    exit 1
+    echo "[start.sh] control_bot.py (PID $BOT_PID) exited. Restarting control_bot..."
+    python control_bot.py &
+    BOT_PID=$!
+    echo "[start.sh] control_bot.py restarted with PID $BOT_PID"
   fi
+
   if ! kill -0 "$WEB_PID" 2>/dev/null; then
-    echo "[start.sh] ALERT: web.py (PID $WEB_PID) stopped! Restarting container..."
-    cleanup
-    exit 1
+    echo "[start.sh] web.py (PID $WEB_PID) exited. Restarting web..."
+    python web.py &
+    WEB_PID=$!
+    echo "[start.sh] web.py restarted with PID $WEB_PID"
   fi
+
   sleep 5
 done
+

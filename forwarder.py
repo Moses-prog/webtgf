@@ -911,6 +911,11 @@ async def graceful_shutdown():
 
 async def monitor_users():
     print(f"Starting Multi-Tenant Forwarding Engine [{INSTANCE_ID}]...")
+    try:
+        with open('status.json', 'w') as f:
+            json.dump({"last_seen": time.time(), "status": "starting", "instance_id": INSTANCE_ID}, f)
+    except Exception:
+        pass
     await acquire_or_wait_leader_lock()
     try:
         loop = asyncio.get_running_loop()

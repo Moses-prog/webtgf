@@ -2202,8 +2202,6 @@ async def handle_inline_resume(event):
     await event.edit("✅ **Forwarding Engine Resumed.**")
 
 
-print("Starting WP Relay Control Bot with OTP capabilities...")
-bot.start(bot_token=BOT_TOKEN)
 @bot.on(events.NewMessage(pattern='/admin_logs'))
 async def admin_logs_handler(event):
     chat_id = event.chat_id
@@ -2244,6 +2242,41 @@ async def bot_heartbeat_loop():
             pass
         await asyncio.sleep(15)
 
-bot.loop.create_task(memory_cleanup_loop())
-bot.loop.create_task(bot_heartbeat_loop())
-bot.run_until_disconnected()
+async def main():
+    import json
+    import time
+    from telethon.errors.rpcerrorlist import AccessTokenExpiredError
+
+    print("Starting WP Relay Control Bot...")
+    token = (os.getenv('BOT_TOKEN') or '').strip()
+    if not token:
+        print("[CONTROL BOT] No BOT_TOKEN configured. Standing by...")
+        while True:
+            try:
+                with open('bot_status.json', 'w') as f:
+                    json.dump({"last_seen": time.time(), "status": "idle_no_token"}, f)
+            except Exception:
+                pass
+            await asyncio.sleep(30)
+
+    try:
+        await bot.start(bot_token=token)
+        print("WP Relay Control Bot connected successfully.")
+    except (AccessTokenExpiredError, Exception) as e:
+        print(f"[CONTROL BOT WARNING] Bot authentication failed ({e}). Standing by.")
+        while True:
+            try:
+                with open('bot_status.json', 'w') as f:
+                    json.dump({"last_seen": time.time(), "status": "offline_auth_error", "error": str(e)}, f)
+            except Exception:
+                pass
+            await asyncio.sleep(30)
+        return
+
+    bot.loop.create_task(memory_cleanup_loop())
+    bot.loop.create_task(bot_heartbeat_loop())
+    await bot.run_until_disconnected()
+
+if __name__ == '__main__':
+    bot.loop.run_until_complete(main())
+
