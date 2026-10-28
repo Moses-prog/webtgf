@@ -264,6 +264,89 @@ HTML_TEMPLATE = """
                 </div>
             </div>
 
+            <!-- AI Broadcast Center -->
+            <div class="neumorphic-card p-4 md:p-8 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-300/50 pb-3 gap-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-bullhorn mr-2"></i> AI Broadcast Center</h2>
+                        <p class="text-xs text-gray-500">Generate targeted announcements with Google Gemini and broadcast to specific tenants or all users.</p>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        Google Gemini AI
+                    </span>
+                </div>
+
+                <!-- 1. Select Recipients -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">1. Select Target Recipients</label>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <button type="button" onclick="selectThreeDisconnectedTenants()" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold px-3 py-1.5 rounded-lg transition">
+                            Target 3 Disconnected Tenants (7531221514, 7600806544, 8094046191)
+                        </button>
+                        <button type="button" onclick="selectAllTenants(true)" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-3 py-1.5 rounded-lg transition">
+                            Select All
+                        </button>
+                        <button type="button" onclick="selectAllTenants(false)" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-3 py-1.5 rounded-lg transition">
+                            Clear All
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3 neumorphic-inset rounded-xl max-h-48 overflow-y-auto" id="tenantCheckboxList">
+                        {% for t in tenants %}
+                        <label class="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/40 cursor-pointer text-xs text-gray-700">
+                            <input type="checkbox" name="broadcast_recipient" value="{{ t }}" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4" {% if t in ['7531221514', '7600806544', '8094046191'] %}checked{% endif %}>
+                            <span class="font-mono font-medium">{{ t }}</span>
+                            {% if t == '7531221514' %}<span class="text-gray-500 truncate">(@mrunknown75755)</span>{% endif %}
+                            {% if t == '7600806544' %}<span class="text-gray-500 truncate">(@Coachdora1)</span>{% endif %}
+                            {% if t == '8094046191' %}<span class="text-gray-500 truncate">(@Taskafriksupport1)</span>{% endif %}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 2. AI Generator Prompt -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">2. AI Announcement Generator</label>
+                    <div class="flex flex-col sm:flex-row gap-2 mb-3">
+                        <button type="button" id="btn-quick-reconnect-ai" onclick="generateBroadcastAi('reconnect')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 1-Click Generate Reconnect Alert
+                        </button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="inp-admin-custom-ai-prompt" placeholder="Or enter custom instructions (e.g. explain server upgrade and ask them to test)..." class="flex-1 neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
+                        <button type="button" id="btn-custom-ai-gen" onclick="generateBroadcastAi('custom')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
+                            Generate Custom
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Message Preview & Editing -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">3. Message Text (HTML Supported)</label>
+                    <textarea id="inp-broadcast-message" rows="6" class="w-full neumorphic-inset px-4 py-3 rounded-xl outline-none text-gray-800 font-mono text-xs" placeholder="Message to broadcast to selected recipients..."></textarea>
+                </div>
+
+                <!-- 4. Optional Inline Button -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Button Label (Optional)</label>
+                        <input type="text" id="inp-broadcast-btn-text" value="Reconnect Telegram" placeholder="Button Label (e.g. Reconnect Telegram)" class="w-full neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Button URL (Optional)</label>
+                        <input type="text" id="inp-broadcast-btn-url" value="https://t.me/wprelaybot" placeholder="https://t.me/wprelaybot" class="w-full neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
+                    </div>
+                </div>
+
+                <!-- Send Button & Status -->
+                <div class="pt-4 border-t border-gray-300/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <button type="button" id="btn-send-admin-broadcast" onclick="sendAdminBroadcastFromWeb()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-xl shadow transition text-sm">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Send Broadcast
+                    </button>
+                    <div id="broadcast-status-badge" class="text-xs text-gray-600 font-medium hidden"></div>
+                </div>
+            </div>
+
             <!-- API Config -->
             <form method="POST" action="/update_admin" class="neumorphic-card p-4 md:p-8 space-y-6">
                 <h2 class="text-lg font-bold text-gray-800 mb-4 border-b border-gray-300/50 pb-2"><i class="fa-solid fa-key mr-2"></i> Admin's API Config</h2>
@@ -481,6 +564,163 @@ async function submitFeedback(btn) {
     } catch(e) {
         btn.innerHTML = originalContent;
         alert('Failed to send.');
+    }
+}
+
+function selectThreeDisconnectedTenants() {
+    const targets = ['7531221514', '7600806544', '8094046191'];
+    document.querySelectorAll('input[name="broadcast_recipient"]').forEach(cb => {
+        cb.checked = targets.includes(cb.value);
+    });
+}
+
+function selectAllTenants(status) {
+    document.querySelectorAll('input[name="broadcast_recipient"]').forEach(cb => {
+        cb.checked = status;
+    });
+}
+
+async function generateBroadcastAi(mode) {
+    const promptInput = document.getElementById('inp-admin-custom-ai-prompt');
+    const promptVal = promptInput ? promptInput.value.trim() : '';
+    const statusBadge = document.getElementById('broadcast-status-badge');
+    const btnQuick = document.getElementById('btn-quick-reconnect-ai');
+    const btnCustom = document.getElementById('btn-custom-ai-gen');
+
+    if (mode === 'custom' && !promptVal) {
+        alert('Please enter instructions for the AI generator.');
+        return;
+    }
+
+    if (btnQuick) btnQuick.disabled = true;
+    if (btnCustom) btnCustom.disabled = true;
+    if (statusBadge) {
+        statusBadge.classList.remove('hidden', 'text-red-600', 'text-green-600');
+        statusBadge.classList.add('text-blue-600');
+        statusBadge.innerText = 'Generating message with Gemini...';
+    }
+
+    try {
+        const payload = {
+            intent: mode === 'reconnect' ? 'reconnect' : 'custom',
+            prompt: mode === 'reconnect' ? '' : promptVal
+        };
+        const res = await fetch('/api/admin_ai_generate_broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.generated_message) {
+            document.getElementById('inp-broadcast-message').value = data.generated_message;
+            if (data.suggested_button_text) {
+                document.getElementById('inp-broadcast-btn-text').value = data.suggested_button_text;
+            }
+            if (data.suggested_button_url) {
+                document.getElementById('inp-broadcast-btn-url').value = data.suggested_button_url;
+            }
+            if (mode === 'reconnect') {
+                selectThreeDisconnectedTenants();
+            }
+            if (statusBadge) {
+                statusBadge.classList.remove('text-blue-600');
+                statusBadge.classList.add('text-green-600');
+                statusBadge.innerText = 'AI message generated successfully.';
+            }
+        } else {
+            alert('Failed to generate: ' + (data.error || 'Unknown error'));
+            if (statusBadge) {
+                statusBadge.classList.remove('text-blue-600');
+                statusBadge.classList.add('text-red-600');
+                statusBadge.innerText = 'Generation failed.';
+            }
+        }
+    } catch (e) {
+        alert('Network error while generating message: ' + e);
+        if (statusBadge) {
+            statusBadge.classList.remove('text-blue-600');
+            statusBadge.classList.add('text-red-600');
+            statusBadge.innerText = 'Network error.';
+        }
+    } finally {
+        if (btnQuick) btnQuick.disabled = false;
+        if (btnCustom) btnCustom.disabled = false;
+    }
+}
+
+async function sendAdminBroadcastFromWeb() {
+    const msg = document.getElementById('inp-broadcast-message').value.trim();
+    const btnText = document.getElementById('inp-broadcast-btn-text').value.trim();
+    const btnUrl = document.getElementById('inp-broadcast-btn-url').value.trim();
+    const statusBadge = document.getElementById('broadcast-status-badge');
+    const sendBtn = document.getElementById('btn-send-admin-broadcast');
+
+    const selectedRecipients = [];
+    document.querySelectorAll('input[name="broadcast_recipient"]:checked').forEach(cb => {
+        selectedRecipients.push(cb.value);
+    });
+
+    if (selectedRecipients.length === 0) {
+        alert('Please select at least one recipient.');
+        return;
+    }
+    if (!msg) {
+        alert('Please enter or generate a message to broadcast.');
+        return;
+    }
+    if (btnText && !btnUrl) {
+        alert('Please enter a URL for the button.');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to send this broadcast to ' + selectedRecipients.length + ' recipient(s)?')) {
+        return;
+    }
+
+    if (sendBtn) sendBtn.disabled = true;
+    if (statusBadge) {
+        statusBadge.classList.remove('hidden', 'text-red-600', 'text-green-600');
+        statusBadge.classList.add('text-blue-600');
+        statusBadge.innerText = 'Sending broadcast...';
+    }
+
+    try {
+        const payload = {
+            message: msg,
+            button_text: btnText,
+            button_url: btnUrl,
+            recipients: selectedRecipients
+        };
+        const res = await fetch('/api/admin_broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Broadcast sent successfully: delivered to ' + data.sent + ' of ' + data.total + ' recipients.');
+            if (statusBadge) {
+                statusBadge.classList.remove('text-blue-600');
+                statusBadge.classList.add('text-green-600');
+                statusBadge.innerText = 'Delivered to ' + data.sent + ' / ' + data.total + ' recipients.';
+            }
+        } else {
+            alert('Broadcast failed: ' + (data.error || 'Unknown error'));
+            if (statusBadge) {
+                statusBadge.classList.remove('text-blue-600');
+                statusBadge.classList.add('text-red-600');
+                statusBadge.innerText = 'Broadcast failed.';
+            }
+        }
+    } catch (e) {
+        alert('Network error while sending broadcast: ' + e);
+        if (statusBadge) {
+            statusBadge.classList.remove('text-blue-600');
+            statusBadge.classList.add('text-red-600');
+            statusBadge.innerText = 'Network error.';
+        }
+    } finally {
+        if (sendBtn) sendBtn.disabled = false;
     }
 }
 \n</script>\n</body>
@@ -1350,13 +1590,14 @@ def api_admin_toggle_feature():
 def api_admin_broadcast():
     auth_user = get_authenticated_user()
     admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
-    if auth_user != admin_id:
+    if auth_user != admin_id and session.get('role') != 'admin':
         return jsonify({"error": "Admin privileges required"}), 403
 
     data = request.get_json(silent=True) or {}
     msg_text = str(data.get('message', '')).strip()
     btn_text = str(data.get('button_text', '')).strip()
     btn_url = str(data.get('button_url', '')).strip()
+    recipients = data.get('recipients')
 
     if not msg_text:
         return jsonify({"error": "Message cannot be empty"}), 400
@@ -1366,7 +1607,29 @@ def api_admin_broadcast():
         return jsonify({"error": "BOT_TOKEN not configured"}), 500
 
     from database_manager import get_tenants
-    tenants = get_tenants()
+    all_tenants = get_tenants()
+
+    target_tenants = []
+    if recipients:
+        if isinstance(recipients, list):
+            target_tenants = [str(r).strip() for r in recipients if str(r).strip()]
+        elif isinstance(recipients, str):
+            if recipients.strip().lower() == 'all':
+                target_tenants = [str(t) for t in all_tenants]
+            else:
+                target_tenants = [r.strip() for r in recipients.split(',') if r.strip()]
+
+    if not target_tenants:
+        target_tenants = [str(t) for t in all_tenants]
+
+    # De-duplicate preserving order
+    seen = set()
+    unique_targets = []
+    for t in target_tenants:
+        if t not in seen:
+            seen.add(t)
+            unique_targets.append(t)
+
     import requests, time
 
     payload_base = {
@@ -1384,7 +1647,9 @@ def api_admin_broadcast():
         }
 
     sent = 0
-    for t in tenants:
+    failed = 0
+    details = []
+    for t in unique_targets:
         try:
             p = {**payload_base, "chat_id": t}
             r = requests.post(
@@ -1394,23 +1659,33 @@ def api_admin_broadcast():
             )
             if r.status_code == 200:
                 sent += 1
+                details.append({"chat_id": t, "status": "sent"})
+            else:
+                failed += 1
+                details.append({"chat_id": t, "status": "failed", "error": r.text})
             time.sleep(0.05)
-        except:
-            pass
+        except Exception as e:
+            failed += 1
+            details.append({"chat_id": t, "status": "failed", "error": str(e)})
 
-    return jsonify({"success": True, "sent": sent, "total": len(tenants)})
+    return jsonify({
+        "success": True, 
+        "sent": sent, 
+        "failed": failed, 
+        "total": len(unique_targets), 
+        "details": details
+    })
 
 @app.route('/api/admin_ai_generate_broadcast', methods=['POST'])
 def api_admin_ai_generate_broadcast():
     auth_user = get_authenticated_user()
     admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
-    if auth_user != admin_id:
+    if auth_user != admin_id and session.get('role') != 'admin':
         return jsonify({"error": "Admin privileges required"}), 403
 
     data = request.get_json(silent=True) or {}
     user_prompt = str(data.get('prompt', '')).strip()
-    if not user_prompt:
-        return jsonify({"error": "Prompt cannot be empty"}), 400
+    intent = str(data.get('intent', '')).strip().lower()
 
     gemini_key = os.getenv('GEMINI_API_KEY')
     if not gemini_key:
@@ -1419,12 +1694,33 @@ def api_admin_ai_generate_broadcast():
     try:
         from google import genai
         client = genai.Client(api_key=gemini_key)
-        prompt = (
-            f"You are an expert community manager for a Telegram channel forwarder bot. "
-            f"Write an engaging, professional broadcast announcement based on these instructions: {user_prompt}. "
-            f"Format with clean paragraphs and bullet points. Output ONLY the announcement text itself. "
-            f"Do not include intro or outro commentary."
-        )
+
+        suggested_btn_text = ""
+        suggested_btn_url = ""
+
+        if intent == 'reconnect' or not user_prompt or 'reconnect' in user_prompt.lower():
+            prompt = (
+                "You are an assistant for a Telegram forwarder service. "
+                "Write a clear, direct, and reassuring service alert to tenants. "
+                "Explain that due to an IP and server security upgrade, Telegram paused message routing until they reconnect their session. "
+                "Assure them that all their rules, swaps, channels, and settings are 100% saved and safe. "
+                "Instruct them to tap the Reconnect button below or open @wprelaybot to log in again so message forwarding resumes right away. "
+                "Use simple, plain English words only. No big or complicated words. "
+                "Format using clean HTML with <b> and <code> tags and bullet points. "
+                "IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the message text itself."
+            )
+            suggested_btn_text = "Reconnect Telegram"
+            suggested_btn_url = "https://t.me/wprelaybot"
+        else:
+            prompt = (
+                f"You are an assistant for a Telegram forwarder service. "
+                f"Write a concise, professional broadcast announcement based on these instructions: {user_prompt}. "
+                f"Use simple, plain English words only. No big or complicated words. "
+                f"Format using clean HTML with <b> tags and bullet points. "
+                f"IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the message text itself."
+            )
+            suggested_btn_text = data.get('button_text', '')
+            suggested_btn_url = data.get('button_url', '')
 
         models_to_try = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-1.5-flash']
         generated_text = None
@@ -1445,7 +1741,31 @@ def api_admin_ai_generate_broadcast():
         if not generated_text:
             return jsonify({"error": f"AI generation failed: {last_err}"}), 500
 
-        return jsonify({"success": True, "generated_message": generated_text})
+        # Remove any emojis that might have slipped through
+        import re
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"
+            "\U0001F300-\U0001F5FF"
+            "\U0001F680-\U0001F6FF"
+            "\U0001F1E0-\U0001F1FF"
+            "\U00002702-\U000027B0"
+            "\U000024C2-\U0001F251"
+            "\U0001F900-\U0001F9FF"
+            "\U0001FA00-\U0001FA6F"
+            "\U0001FA70-\U0001FAFF"
+            "\U00002600-\U000026FF"
+            "]+", flags=re.UNICODE
+        )
+        clean_text = emoji_pattern.sub('', generated_text).strip()
+
+        return jsonify({
+            "success": True, 
+            "generated_message": clean_text,
+            "suggested_button_text": suggested_btn_text,
+            "suggested_button_url": suggested_btn_url,
+            "target_recipients": ["7531221514", "7600806544", "8094046191"] if (intent == 'reconnect' or 'reconnect' in user_prompt.lower()) else []
+        })
     except Exception as e:
         return jsonify({"error": f"AI generator error: {e}"}), 500
 

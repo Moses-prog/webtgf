@@ -1344,26 +1344,38 @@
                 `;
             } else if (currentAdminTab === 'broadcast') {
                 tabHtml = `
+                    <!-- Target Recipients Selector -->
+                    <div class="form-card">
+                        <div class="form-label">Target Recipients</div>
+                        <div class="form-hint">Choose who should receive this announcement.</div>
+                        <div style="display:flex; gap:8px; margin-bottom:8px;">
+                            <button class="btn-submit" id="btn-target-3" style="flex:1; margin-top:0; font-size:11px; padding:8px; background:#2563eb; color:#fff;" onclick="setBroadcastTarget('3_disconnected')">3 Disconnected Tenants (7531221514, 7600806544, 8094046191)</button>
+                            <button class="btn-submit" id="btn-target-all" style="flex:1; margin-top:0; font-size:11px; padding:8px; background:var(--border-color); color:var(--text-main);" onclick="setBroadcastTarget('all')">All Tenants</button>
+                        </div>
+                        <div id="target-selection-indicator" style="font-size:11px; color:var(--hint-color); margin-top:4px;">Targeting: 3 Tenants (7531221514, 7600806544, 8094046191)</div>
+                    </div>
+
                     <!-- AI Broadcast Generator -->
                     <div class="form-card">
                         <div class="form-label">AI Announcement Generator</div>
-                        <div class="form-hint">Tell AI what you want to announce (e.g. 'tell tenants our server is upgraded with zero latency').</div>
-                        <input type="text" id="inp-admin-ai-prompt" class="form-input" placeholder="Enter topic or announcement goal..." style="margin-bottom:8px;">
-                        <button class="btn-submit" id="btn-admin-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateAiBroadcast()">Generate with AI</button>
+                        <div class="form-hint">Generate an instant reconnect notice or write custom instructions for Gemini.</div>
+                        <button class="btn-submit" id="btn-admin-ai-reconnect" style="background:#2563eb; color:#fff; margin-top:0; margin-bottom:8px;" onclick="adminGenerateAiBroadcast('reconnect')">1-Click Reconnect Notice (AI)</button>
+                        <input type="text" id="inp-admin-ai-prompt" class="form-input" placeholder="Or enter custom topic (e.g. server update)..." style="margin-bottom:8px;">
+                        <button class="btn-submit" id="btn-admin-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateAiBroadcast('custom')">Generate Custom with AI</button>
                     </div>
 
                     <!-- Broadcast Message -->
                     <div class="form-card">
                         <div class="form-label">Broadcast Message</div>
-                        <textarea id="inp-admin-broadcast-msg" class="form-input" style="height:80px; resize:none; margin-bottom:12px;" placeholder="Message to deliver to all tenants..."></textarea>
+                        <textarea id="inp-admin-broadcast-msg" class="form-input" style="height:100px; resize:none; margin-bottom:12px;" placeholder="Message to deliver..."></textarea>
 
                         <!-- Native Bot Inline Button -->
                         <div class="form-label">Attach Native Telegram Button (Optional)</div>
                         <div class="form-hint">Adds an interactive clickable button with a link below the message.</div>
-                        <input type="text" id="inp-admin-btn-text" class="form-input" placeholder="Button Label (e.g. Open Channel)" style="margin-bottom:8px;">
-                        <input type="text" id="inp-admin-btn-url" class="form-input" placeholder="Button URL (e.g. https://t.me/mychannel)" style="margin-bottom:12px;">
+                        <input type="text" id="inp-admin-btn-text" class="form-input" value="Reconnect Telegram" placeholder="Button Label (e.g. Reconnect Telegram)" style="margin-bottom:8px;">
+                        <input type="text" id="inp-admin-btn-url" class="form-input" value="https://t.me/wprelaybot" placeholder="Button URL (e.g. https://t.me/wprelaybot)" style="margin-bottom:12px;">
 
-                        <button class="btn-submit" onclick="adminSendBroadcast()">Send Broadcast to All Tenants</button>
+                        <button class="btn-submit" id="btn-send-broadcast" onclick="adminSendBroadcast()">Send Broadcast</button>
                     </div>
                 `;
             } else if (currentAdminTab === 'channel') {
@@ -1784,39 +1796,66 @@
             }
         }
 
-        async function adminGenerateAiBroadcast() {
+        let currentBroadcastTargetMode = '3_disconnected';
+        const targetThreeTenants = ['7531221514', '7600806544', '8094046191'];
+
+        function setBroadcastTarget(mode) {
+            currentBroadcastTargetMode = mode;
+            const b3 = document.getElementById('btn-target-3');
+            const bAll = document.getElementById('btn-target-all');
+            const ind = document.getElementById('target-selection-indicator');
+            if (mode === '3_disconnected') {
+                if (b3) { b3.style.background = '#2563eb'; b3.style.color = '#fff'; }
+                if (bAll) { bAll.style.background = 'var(--border-color)'; bAll.style.color = 'var(--text-main)'; }
+                if (ind) ind.innerText = 'Targeting: 3 Tenants (7531221514, 7600806544, 8094046191)';
+            } else {
+                if (b3) { b3.style.background = 'var(--border-color)'; b3.style.color = 'var(--text-main)'; }
+                if (bAll) { bAll.style.background = '#2563eb'; bAll.style.color = '#fff'; }
+                if (ind) ind.innerText = 'Targeting: All Active Tenants';
+            }
+        }
+
+        async function adminGenerateAiBroadcast(intent = 'custom') {
             const promptInput = document.getElementById('inp-admin-ai-prompt');
             const prompt = promptInput ? promptInput.value.trim() : '';
-            if (!prompt) return tg.showAlert("Please describe what to announce.");
+            if (intent === 'custom' && !prompt) return tg.showAlert("Please describe what to announce.");
 
-            const btn = document.getElementById('btn-admin-ai-gen');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerText = "Generating announcement with Gemini...";
-            }
+            const btnGen = document.getElementById('btn-admin-ai-gen');
+            const btnRec = document.getElementById('btn-admin-ai-reconnect');
+            if (btnGen) btnGen.disabled = true;
+            if (btnRec) { btnRec.disabled = true; btnRec.innerText = "Generating with Gemini..."; }
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
                 const res = await fetch('/api/admin_ai_generate_broadcast', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ prompt: prompt })
+                    body: JSON.stringify({ prompt: prompt, intent: intent })
                 });
                 const d = await res.json();
                 if (d.success && d.generated_message) {
                     const msgArea = document.getElementById('inp-admin-broadcast-msg');
                     if (msgArea) msgArea.value = d.generated_message;
-                    tg.showAlert("AI announcement generated!");
+                    if (d.suggested_button_text) {
+                        const bText = document.getElementById('inp-admin-btn-text');
+                        if (bText) bText.value = d.suggested_button_text;
+                    }
+                    if (d.suggested_button_url) {
+                        const bUrl = document.getElementById('inp-admin-btn-url');
+                        if (bUrl) bUrl.value = d.suggested_button_url;
+                    }
+                    if (intent === 'reconnect') {
+                        setBroadcastTarget('3_disconnected');
+                    }
+                    tg.showAlert("AI announcement generated successfully!");
                 } else {
                     tg.showAlert(d.error || "Failed to generate announcement");
                 }
             } catch(e) {
                 tg.showAlert("Network error during AI generation");
             } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = "Generate with AI";
-                }
+                if (btnGen) btnGen.disabled = false;
+                if (btnRec) { btnRec.disabled = false; btnRec.innerText = "1-Click Reconnect Notice (AI)"; }
             }
         }
 
@@ -1827,26 +1866,37 @@
 
             if (!txt) return tg.showAlert("Please enter a message to broadcast.");
             if (btnText && !btnUrl) return tg.showAlert("Please provide a URL for the button.");
-            if (!confirm("Send broadcast announcement to all active tenants?")) return;
+
+            const recipients = (currentBroadcastTargetMode === '3_disconnected') ? targetThreeTenants : 'all';
+            const label = (currentBroadcastTargetMode === '3_disconnected') ? 'the 3 disconnected tenants' : 'all active tenants';
+
+            if (!confirm(`Send broadcast announcement to ${label}?`)) return;
+
+            const sendBtn = document.getElementById('btn-send-broadcast');
+            if (sendBtn) { sendBtn.disabled = true; sendBtn.innerText = "Sending broadcast..."; }
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
                 const res = await fetch('/api/admin_broadcast', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ message: txt, button_text: btnText, button_url: btnUrl })
+                    body: JSON.stringify({
+                        message: txt,
+                        button_text: btnText,
+                        button_url: btnUrl,
+                        recipients: recipients
+                    })
                 });
                 const d = await res.json();
                 if (d.success) {
                     tg.showAlert(`Broadcast delivered to ${d.sent}/${d.total} tenants.`);
-                    document.getElementById('inp-admin-broadcast-msg').value = '';
-                    document.getElementById('inp-admin-btn-text').value = '';
-                    document.getElementById('inp-admin-btn-url').value = '';
                 } else {
                     tg.showAlert(d.error || "Failed to broadcast");
                 }
             } catch(e) {
                 tg.showAlert("Network error");
+            } finally {
+                if (sendBtn) { sendBtn.disabled = false; sendBtn.innerText = "Send Broadcast"; }
             }
         }
 

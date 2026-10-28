@@ -1222,16 +1222,97 @@ async def callback(event):
 
         elif data == "admin_ai_broadcast" and is_admin(chat_id):
             if not os.getenv('GEMINI_API_KEY'):
-                await event.answer("⚠️ API Key not found in .env!", alert=True)
+                await event.answer("API Key not found in environment.", alert=True)
                 return
+            await event.edit(
+                "**AI Broadcast Assistant**\n\n"
+                "Choose a broadcast action below:\n\n"
+                "• **1-Click Reconnect Alert** -> Writes a clear reconnect notice with Gemini and targets the 3 disconnected tenants (7531221514, 7600806544, 8094046191).\n"
+                "• **Custom AI Prompt** -> Prompt Gemini with your custom instructions.\n",
+                buttons=[
+                    [Button.inline("1-Click Reconnect Alert (3 Tenants)", b"ai_quick_reconnect_3")],
+                    [Button.inline("Custom AI Prompt", b"ai_prompt_mode")],
+                    [Button.inline("Back to Admin Panel", b"admin_panel")]
+                ]
+            )
+
+        elif data == "ai_prompt_mode" and is_admin(chat_id):
             user_states[chat_id] = "waiting_for_ai_prompt"
             await event.edit(
-                "✨ **AI Broadcast Generator**\n\n"
-                "What feature or update do you want to announce?\n"
-                "*(e.g., 'tell them we now support custom image branding')*\n\n"
+                "**AI Broadcast Generator**\n\n"
+                "What announcement or notice do you want to generate?\n"
+                "(e.g., 'tell tenants our server is upgraded with lower latency')\n\n"
                 "Send /cancel to abort.",
-                buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]]
+                buttons=[[Button.inline("Cancel", b"admin_panel")]]
             )
+
+        elif data == "ai_quick_reconnect_3" and is_admin(chat_id):
+            await event.edit("Generating service reconnect notice with Gemini...")
+            try:
+                from google import genai
+                client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+                prompt = (
+                    "You are an assistant for a Telegram forwarder service. "
+                    "Write a clear, direct, and reassuring service alert to tenants. "
+                    "Explain that due to an IP and server security upgrade, Telegram paused message routing until they reconnect their session. "
+                    "Assure them that all their rules, swaps, channels, and settings are 100% saved and safe. "
+                    "Instruct them to tap the Reconnect button below or open @wprelaybot to log in again so message forwarding resumes right away. "
+                    "Use simple, plain English words only. No big or complicated words. "
+                    "Format using clean Telegram HTML with <b> and <code> tags and bullet points. "
+                    "IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the message text itself."
+                )
+                response = None
+                for m in ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-1.5-flash']:
+                    try:
+                        resp = client.models.generate_content(model=m, contents=prompt)
+                        if resp and resp.text:
+                            response = resp
+                            break
+                    except Exception:
+                        pass
+
+                if not response or not response.text:
+                    gen_text = (
+                        "<b>Service Notice: One-Time Session Reconnect Required</b>\n\n"
+                        "Our servers were upgraded to new dedicated infrastructure for enhanced reliability. "
+                        "Because our server IP address changed, Telegram temporarily suspended active sessions as a security precaution.\n\n"
+                        "<b>Current Status:</b>\n"
+                        "• All your channel sources and targets are completely safe\n"
+                        "• All your text swaps, filters, and settings are preserved\n"
+                        "• Message forwarding is paused until you reconnect\n\n"
+                        "Please tap the <b>Reconnect Telegram</b> button below or send /start to @wprelaybot to log in. "
+                        "Forwarding will resume immediately upon login."
+                    )
+                else:
+                    import re
+                    gen_text = re.sub(r'[\U00010000-\U0010ffff]', '', response.text).strip()
+
+                target_uids = ["7531221514", "7600806544", "8094046191"]
+                user_states[chat_id] = {
+                    "step": "waiting_for_ai_approval",
+                    "message": gen_text,
+                    "targets": target_uids,
+                    "btn_text": "Reconnect Telegram",
+                    "btn_url": "https://t.me/wprelaybot"
+                }
+
+                preview = (
+                    "**Generated Broadcast Preview:**\n\n"
+                    f"{gen_text}\n\n"
+                    "**Action Button:** [Reconnect Telegram] -> https://t.me/wprelaybot\n"
+                    f"**Target Recipients (3):** {', '.join(target_uids)}\n\n"
+                    "Do you want to send this broadcast now?"
+                )
+                await event.edit(
+                    preview,
+                    buttons=[
+                        [Button.inline("Approve and Send to 3 Tenants", b"ai_send_targets")],
+                        [Button.inline("Regenerate with AI", b"ai_quick_reconnect_3")],
+                        [Button.inline("Cancel", b"admin_panel")]
+                    ]
+                )
+            except Exception as e:
+                await event.edit(f"Failed to generate: {e}", buttons=[[Button.inline("Back", b"admin_panel")]])
             
         elif data == "admin_broadcast" and is_admin(chat_id):
             user_states[chat_id] = "waiting_for_broadcast"
@@ -1392,28 +1473,47 @@ async def callback(event):
             user_states[chat_id] = "waiting_for_remove_tenant"
             await event.edit("➖ **Remove Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to revoke access from.", buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]])
 
-        elif data == "ai_approve" and is_admin(chat_id):
+        elif data in ["ai_approve", "ai_send_targets", "ai_send_custom_3", "ai_send_custom_all"] and is_admin(chat_id):
             state = user_states.get(chat_id)
             if not isinstance(state, dict) or state.get("step") != "waiting_for_ai_approval":
                 await event.answer("Session expired.", alert=True)
                 return
-                
+
             generated_message = state.get("message")
-            tenants = get_tenants()
+            if data == "ai_send_custom_3":
+                targets = ["7531221514", "7600806544", "8094046191"]
+            elif data == "ai_send_custom_all":
+                targets = get_tenants()
+            else:
+                targets = state.get("targets") or get_tenants()
+
+            btn_text = state.get("btn_text")
+            btn_url = state.get("btn_url")
+            buttons = None
+            if btn_text and btn_url:
+                buttons = [[Button.url(btn_text, btn_url)]]
+
             sent_count = 0
-            
-            await event.edit(f"⏳ Broadcasting AI message to {len(tenants)} tenants...")
-            
-            for tenant_id in tenants:
+            await event.edit(f"Broadcasting message to {len(targets)} recipient(s)...")
+
+            for t_id in targets:
                 try:
-                    await bot.send_message(int(tenant_id), generated_message)
+                    await bot.send_message(int(t_id), generated_message, buttons=buttons, parse_mode='html')
                     sent_count += 1
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.3)
                 except Exception:
-                    pass
-                    
+                    try:
+                        await bot.send_message(int(t_id), generated_message, buttons=buttons)
+                        sent_count += 1
+                        await asyncio.sleep(0.3)
+                    except Exception:
+                        pass
+
             user_states[chat_id] = None
-            await event.edit(f"✅ **Broadcast Complete!**\n\nAI message successfully delivered to {sent_count}/{len(tenants)} tenants.", buttons=[[Button.inline("🔙 Admin Panel", b"admin_panel")]])
+            await event.edit(
+                f"**Broadcast Complete**\n\nDelivered to {sent_count}/{len(targets)} recipient(s).",
+                buttons=[[Button.inline("Back to Admin Panel", b"admin_panel")]]
+            )
 
         else:
             await event.answer("Coming soon!", alert=True)
@@ -2094,41 +2194,53 @@ async def text_handler(event):
             
     elif state == "waiting_for_ai_prompt":
         if is_admin(chat_id):
-            status_msg = await event.respond("⏳ Generating professional announcement with Google Gemini...")
+            status_msg = await event.respond("Generating announcement with Google Gemini...")
             try:
-                import time
+                import time, re
                 from google import genai
                 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-                prompt = f"You are an expert community manager. Write exactly ONE highly engaging broadcast message based on these exact instructions: {text}. Keep the tone natural and use appropriate emojis. IMPORTANT: Output ONLY the final message itself. Do not provide options, do not include introductory text, and do not wrap it in quotes."
-                
+                prompt = (
+                    f"You are an assistant for a Telegram forwarder service. "
+                    f"Write a concise, professional broadcast announcement based on these instructions: {text}. "
+                    f"Use simple, plain English words only. No big or complicated words. "
+                    f"Format with clean paragraphs and bullet points. "
+                    f"IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the final message itself."
+                )
+
                 response = None
                 last_error = None
-                for attempt in range(3):
+                for m in ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-1.5-flash']:
                     try:
-                        response = client.models.generate_content(
-                            model='gemini-2.5-flash',
+                        resp = client.models.generate_content(
+                            model=m,
                             contents=prompt,
                         )
-                        break
+                        if resp and resp.text:
+                            response = resp
+                            break
                     except Exception as e:
                         last_error = e
-                        time.sleep(2)
-                
-                if not response:
-                    raise last_error
-                
-                # Save the generated message in the state so they can approve it
-                user_states[chat_id] = {"step": "waiting_for_ai_approval", "message": response.text}
-                
+
+                if not response or not response.text:
+                    raise last_error or Exception("No response from Gemini")
+
+                clean_text = re.sub(r'[\U00010000-\U0010ffff]', '', response.text).strip()
+
+                user_states[chat_id] = {
+                    "step": "waiting_for_ai_approval",
+                    "message": clean_text
+                }
+
                 await status_msg.edit(
-                    f"**Here is your generated broadcast:**\n\n{response.text}\n\n**Do you want to send this to all tenants?**",
+                    f"**Generated Broadcast Preview:**\n\n{clean_text}\n\n**Select recipients to deliver:**",
                     buttons=[
-                        [Button.inline("✅ Approve & Send", b"ai_approve")],
-                        [Button.inline("❌ Cancel", b"admin_panel")]
+                        [Button.inline("Send to 3 Disconnected Tenants", b"ai_send_custom_3")],
+                        [Button.inline("Send to All Tenants", b"ai_send_custom_all")],
+                        [Button.inline("Cancel", b"admin_panel")]
                     ]
                 )
             except Exception as e:
-                await status_msg.edit(f"❌ Failed to generate: {e}", buttons=[[Button.inline("🔙 Back", b"admin_panel")]])
+                await status_msg.edit(f"Failed to generate: {e}", buttons=[[Button.inline("Back", b"admin_panel")]])
             
     elif state == "waiting_for_remove_tenant":
         if is_admin(chat_id):
@@ -2218,6 +2330,23 @@ async def admin_logs_handler(event):
                 await event.respond(f"**Latest Logs:**\n{log_text[-3500:]}")
     except Exception as e:
         await event.respond(f"Failed to read logs: {e}")
+
+@bot.on(events.NewMessage(pattern=r'^/(ai_)?broadcast'))
+async def ai_broadcast_cmd_handler(event):
+    chat_id = event.chat_id
+    if not is_admin(chat_id):
+        return
+    await event.respond(
+        "**AI Broadcast Assistant**\n\n"
+        "Choose a broadcast action below:\n\n"
+        "• **1-Click Reconnect Alert** -> Writes a clear reconnect notice with Gemini and targets the 3 disconnected tenants (7531221514, 7600806544, 8094046191).\n"
+        "• **Custom AI Prompt** -> Prompt Gemini with your custom instructions.\n",
+        buttons=[
+            [Button.inline("1-Click Reconnect Alert (3 Tenants)", b"ai_quick_reconnect_3")],
+            [Button.inline("Custom AI Prompt", b"ai_prompt_mode")],
+            [Button.inline("Back to Admin Panel", b"admin_panel")]
+        ]
+    )
 
 async def memory_cleanup_loop():
     import gc
