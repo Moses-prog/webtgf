@@ -2233,5 +2233,17 @@ async def memory_cleanup_loop():
         except Exception:
             pass
 
+async def bot_heartbeat_loop():
+    import json
+    import time
+    while True:
+        try:
+            with open('bot_status.json', 'w') as f:
+                json.dump({"last_seen": time.time(), "status": "online"}, f)
+        except Exception:
+            pass
+        await asyncio.sleep(15)
+
 bot.loop.create_task(memory_cleanup_loop())
+bot.loop.create_task(bot_heartbeat_loop())
 bot.run_until_disconnected()
