@@ -212,65 +212,71 @@ async def ai_process_image(client, message, chat_id, user_data):
     import re
     from PIL import Image, ImageDraw, ImageFilter, ImageFont
     from google import genai
+    if not getattr(message, 'photo', None):
+        return message.media
+
+    file_size = getattr(message.file, 'size', 0)
+    if file_size > 8 * 1024 * 1024:
+        print(f"[Tenant {chat_id}] Photo exceeds 8MB ({file_size} bytes). Forwarding as-is to preserve memory.")
+        return message.media
+
     from dotenv import load_dotenv
-    
     load_dotenv('.env')
     api_key = os.getenv('GEMINI_API_KEY')
     if not api_key:
         print("No GEMINI_API_KEY found, skipping AI watermark.")
         return message.media
         
+    temp_path = None
+    out_path = None
+    img = None
+    preview = None
     try:
-        # Download media
         print(f"[Tenant {chat_id}] Downloading image for AI watermark processing...")
         temp_path = await client.download_media(message, file=f"temp_{message.id}_{chat_id}.png")
-        if not temp_path:
+        if not temp_path or not os.path.exists(temp_path):
             return message.media
             
         img = Image.open(temp_path).convert("RGB")
         width, height = img.size
         
-        # FIX MEMORY LEAK: Use global client instead of instantiating per-request
         global _shared_genai_client
-        if '_shared_genai_client' not in globals():
+        if '_shared_genai_client' not in globals() or _shared_genai_client is None:
             _shared_genai_client = genai.Client(api_key=api_key)
         genai_client = _shared_genai_client
         
         prompt = f"Find the exact bounding box for the text block '{target}'. Return the coordinates as a JSON array [ymin, xmin, ymax, xmax] normalized to 1000 (where ymin is top, xmin is left, ymax is bottom, xmax is right). For horizontal text, xmax-xmin is usually much larger than ymax-ymin."
         
+        # Downscale a copy to 768px for Gemini text detection to save 95% RAM
+        preview = img.copy()
+        preview.thumbnail((768, 768), Image.Resampling.LANCZOS)
+
         import asyncio
         response = await asyncio.to_thread(
             genai_client.models.generate_content,
-            model='gemini-3.5-flash',
-            contents=[img, prompt],
+            model='gemini-2.5-flash',
+            contents=[preview, prompt],
             config={
                 "response_mime_type": "application/json"
             }
         )
+        del preview
+        preview = None
         
         try:
             import json
             raw_text = response.text.strip()
+            del response
             if raw_text.startswith("```"):
-                # Strip ```json and ```
                 raw_text = raw_text.strip("`").removeprefix("json").strip()
                 
             box = json.loads(raw_text)
             
-            # Handle list of dicts: [{"box_2d": [ymin, xmin, ymax, xmax]}]
             if isinstance(box, list) and len(box) > 0 and isinstance(box[0], dict) and "box_2d" in box[0]:
                 box = box[0]["box_2d"]
                 
-            # Sometimes Gemini swaps coordinates if confused, let's enforce ymin < ymax and xmin < xmax
-            # And if height > width (vertical stripe), swap them back!
             if isinstance(box, list) and len(box) == 4:
-                # box is [a, b, c, d]. We expect [ymin, xmin, ymax, xmax]
-                # To be completely safe:
-                # The text is horizontal, so width (x) > height (y)
                 val1, val2, val3, val4 = box
-                
-                # Sort values to find the actual dimensions
-                # If val3 - val1 (height) > val4 - val2 (width), it likely swapped x and y.
                 if (val3 - val1) > (val4 - val2):
                     ymin, xmin, ymax, xmax = val2, val1, val4, val3
                 else:
@@ -280,20 +286,13 @@ async def ai_process_image(client, message, chat_id, user_data):
                 xmin, xmax = min(xmin, xmax), max(xmin, xmax)
             else:
                 print(f"[Tenant {chat_id}] Invalid box format from Gemini: {box}")
-                try:
-                    await client.send_message(message.chat_id, f"❌ AI Error: Could not find the exact text block in the image.")
-                except:
-                    pass
                 return message.media
-                
-                # Now we know ymin, xmin, ymax, xmax are correct!
             
             top = int(ymin * height / 1000)
             left = int(xmin * width / 1000)
             bottom = int(ymax * height / 1000)
             right = int(xmax * width / 1000)
             
-            # Add extra generous padding to catch hallucinated coordinates
             padding = 15
             left = max(0, left - padding)
             top = max(0, top - padding)
@@ -301,63 +300,52 @@ async def ai_process_image(client, message, chat_id, user_data):
             bottom = min(height, bottom + padding)
             
             if mode == "remove" or mode == "replace":
-                # Sample the background color from the edge to completely paint over the old text
                 sample_color = img.getpixel((max(0, left-2), max(0, top-2)))
                 draw = ImageDraw.Draw(img)
                 draw.rectangle([left, top, right, bottom], fill=sample_color)
                 
             if mode == "replace":
                 replacement_text = user_data.get("ai_watermark_replace", "")
-                
-                # Try to pick a solid background color from the edge of the box
                 sample_color = img.getpixel((max(0, left-2), max(0, top-2)))
-                
                 draw = ImageDraw.Draw(img)
                 draw.rectangle([left, top, right, bottom], fill=sample_color)
                 
                 if replacement_text:
-                    # Draw text in the middle
-                    # We just use default font as it scales better than nothing
-                    # Or try loading a truetype if available
                     font = None
                     try:
                         font = ImageFont.truetype("arial.ttf", size=int((bottom-top)*0.6))
                     except:
                         font = ImageFont.load_default()
                         
-                    # Calculate center
                     text_x = left + (right - left) // 2
                     text_y = top + (bottom - top) // 2
-                    
-                    # Ensure text is visible (white on dark, black on light)
                     brightness = sum(sample_color) / 3
                     text_color = (0,0,0) if brightness > 128 else (255,255,255)
-                    
                     draw.text((text_x, text_y), replacement_text, fill=text_color, font=font, anchor="mm")
         except Exception as ex:
             print(f"[Tenant {chat_id}] Failed to parse Gemini response: {ex}")
-            if 'img' in locals(): img.close()
             return message.media
                     
         out_path = f"processed_{message.id}_{chat_id}.png"
         img.save(out_path)
-        img.close()
-        
-        # Cleanup temp
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-            
         print(f"[Tenant {chat_id}] AI Watermark processing complete.")
         return out_path
         
     except Exception as e:
         print(f"[Tenant {chat_id}] AI Watermark error: {e}")
-        if 'img' in locals(): img.close()
-        if 'temp_path' in locals() and os.path.exists(temp_path):
-            try:
-                os.remove(temp_path)
-            except: pass
         return message.media
+    finally:
+        if img:
+            try: img.close()
+            except: pass
+        if preview:
+            try: preview.close()
+            except: pass
+        if temp_path and os.path.exists(temp_path):
+            try: os.remove(temp_path)
+            except: pass
+        trim_memory()
+
 
 
 async def resolve_target_entity(client, target_raw):
@@ -1258,8 +1246,8 @@ async def monitor_users():
                         except Exception as notify_err:
                             print(f"[Tenant {chat_id}] Failed to notify: {notify_err}")
                         continue
-                    except Exception:
-                        pass  # Other ping errors (network etc) are non-fatal
+                    except (asyncio.CancelledError, Exception):
+                        pass  # Other ping errors (network, timeout, cancellation) are non-fatal
 
                 if not user_data.get("session_string"):
                     print(f"Shutting down Engine for Tenant {chat_id}...")

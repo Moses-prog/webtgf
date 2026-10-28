@@ -2112,14 +2112,21 @@ def start_autopilot_worker():
 
     def loop():
         import time
-        time.sleep(30)  # initial delay after startup to let server settle
+        import gc
+        time.sleep(120)  # initial delay to let server & telethon settle
         while True:
             try:
                 import channel_engine
                 channel_engine.run_autopilot_tick()
+                gc.collect()
+                try:
+                    import ctypes
+                    ctypes.CDLL("libc.so.6").malloc_trim(0)
+                except Exception:
+                    pass
             except Exception as e:
-                print(f"[AUTOPILOT WORKER ERROR] {e}")
-            time.sleep(300) # check every 5 minutes
+                print(f"[AUTOPILOT WORKER ERROR] {e}", flush=True)
+            time.sleep(900) # check every 15 minutes to prevent memory cascades
 
     import threading
     t = threading.Thread(target=loop, daemon=True)
@@ -2175,7 +2182,7 @@ def api_engine_status():
 
     return jsonify({
         "success": True,
-        "version": "unified-v2",
+        "version": "unified-v3",
         "forwarder_status": fwd_status,
         "forwarder_heartbeat_age_sec": round(fwd_age, 1) if fwd_age is not None else None,
         "bot_status": bot_status,
@@ -2186,24 +2193,35 @@ def start_unified_background_engine():
     import threading
     import asyncio
     import sys
+    import time
 
     def run_forwarder():
-        try:
-            from forwarder import monitor_users
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(monitor_users())
-        except Exception as e:
-            print(f"[FORWARDER ENGINE ERROR] {e}", flush=True)
+        while True:
+            try:
+                from forwarder import monitor_users
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(monitor_users())
+            except (asyncio.CancelledError, Exception) as e:
+                print(f"[FORWARDER ENGINE RESTART] Forwarder loop exited ({e}). Restarting in 5s...", flush=True)
+                time.sleep(5)
+            except BaseException as be:
+                print(f"[FORWARDER CRITICAL] {be}. Restarting in 5s...", flush=True)
+                time.sleep(5)
 
     def run_control_bot():
-        try:
-            from control_bot import main as control_bot_main
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(control_bot_main())
-        except Exception as e:
-            print(f"[CONTROL BOT ERROR] {e}", flush=True)
+        while True:
+            try:
+                from control_bot import main as control_bot_main
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(control_bot_main())
+            except Exception as e:
+                print(f"[CONTROL BOT RESTART] Bot loop exited ({e}). Restarting in 5s...", flush=True)
+                time.sleep(5)
+            except BaseException as be:
+                print(f"[CONTROL BOT CRITICAL] {be}. Restarting in 5s...", flush=True)
+                time.sleep(5)
 
     fwd_thread = threading.Thread(target=run_forwarder, daemon=True, name="UnifiedForwarderThread")
     bot_thread = threading.Thread(target=run_control_bot, daemon=True, name="UnifiedBotThread")
