@@ -251,7 +251,6 @@ async def ai_process_image(client, message, chat_id, user_data):
         preview = img.copy()
         preview.thumbnail((768, 768), Image.Resampling.LANCZOS)
 
-        import asyncio
         response = await asyncio.to_thread(
             genai_client.models.generate_content,
             model='gemini-2.5-flash',
@@ -503,8 +502,6 @@ async def _do_execute_forward(message, chat_id, user_data):
     
     smart_delay = user_data.get("smart_delay_enabled", False)
     if smart_delay:
-        import random
-        import asyncio
         delay_seconds = random.randint(60, 180)
         print(f"[Tenant {chat_id}] Smart Delay: Waiting {delay_seconds} seconds before forwarding...")
         await asyncio.sleep(delay_seconds)
