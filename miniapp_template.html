@@ -556,17 +556,34 @@
     </div>
 
     <!-- Optional Official Channel Card (Non-Compulsory) -->
-    <div id="banner-official-channel" style="display:none; margin: 0 16px 16px 16px; background: rgba(10, 132, 255, 0.08); border: 1px solid rgba(10, 132, 255, 0.25); border-radius: 14px; padding: 13px 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-            <div>
-                <div style="font-weight:700; font-size:13px; color:var(--text-main);" id="official-ch-title">📢 Official Channel (@webtgfv1)</div>
-                <div style="font-size:12px; color:var(--text-muted); margin-top:3px; line-height:1.4;">Optional updates, tips, and feature releases. Everything works even if you skip it.</div>
+    <div id="banner-official-channel" style="display:none; margin: 0 16px 14px 16px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+            <div style="display:flex; align-items:flex-start; gap:12px; min-width:0;">
+                <div class="icon-box" style="margin-top:2px; flex-shrink:0;">
+                    <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                </div>
+                <div style="min-width:0;">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <span style="font-weight:600; font-size:14px; color:var(--text-main);" id="official-ch-title">Official Channel</span>
+                        <span id="official-ch-badge" style="font-size:11px; font-weight:600; color:var(--text-muted); background:var(--border-color); padding:2px 8px; border-radius:999px;">@webtgfv1</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:3px; line-height:1.4;">Follow updates, automation tips, and status notices (optional).</div>
+                </div>
             </div>
-            <button onclick="dismissOfficialChannelCard()" style="background:none; border:none; color:var(--text-muted); font-size:15px; line-height:1; cursor:pointer; padding:2px 4px;" title="Dismiss">✕</button>
+            <button onclick="dismissOfficialChannelCard()" aria-label="Dismiss" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
-        <div style="display:flex; gap:8px; margin-top:10px;">
-            <a id="official-ch-link" href="https://t.me/webtgfv1" target="_blank" class="btn-sm-action" style="flex:1; text-align:center; text-decoration:none; background:#0a84ff; color:#fff; padding:8px 10px; font-size:12px; border-radius:8px;">Join Channel ↗</a>
-            <button id="btn-verify-official-join" class="btn-sm-action" onclick="verifyOfficialJoin()" style="flex:1; text-align:center; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); padding:8px 10px; font-size:12px; border-radius:8px;">✅ I've Joined</button>
+        <div id="official-ch-feedback" style="display:none; font-size:12px; margin-top:10px; padding:8px 10px; border-radius:8px; background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-main); line-height:1.35;"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
+            <a id="official-ch-link" href="https://t.me/webtgfv1" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:6px; text-decoration:none; background:var(--accent); color:#ffffff; padding:9px 10px; font-size:12px; font-weight:600; border-radius:8px;">
+                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <span>Join Channel</span>
+            </a>
+            <button id="btn-verify-official-join" onclick="verifyOfficialJoin()" style="display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-color); color:var(--text-main); border:1px solid var(--border-color); padding:9px 10px; font-size:12px; font-weight:600; border-radius:8px; cursor:pointer;">
+                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span id="btn-verify-official-label">I've Joined</span>
+            </button>
         </div>
     </div>
 
@@ -1465,11 +1482,25 @@
                         <div class="form-label">Broadcast Message</div>
                         <textarea id="inp-admin-broadcast-msg" class="form-input" style="height:100px; resize:none; margin-bottom:12px;" placeholder="Message to deliver..."></textarea>
 
+                        <!-- Optional Promotional Image -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span class="form-label" style="margin-bottom:0;">Attach Image (Optional)</span>
+                            <button type="button" id="btn-miniapp-clear-img" class="btn-sm-action" style="display:none; color:#ff453a;" onclick="clearMiniAppBroadcastImage()">Remove</button>
+                        </div>
+                        <input type="file" id="inp-admin-broadcast-image" accept="image/*" style="display:none;" onchange="previewMiniAppBroadcastImage(this)">
+                        <div style="display:flex; gap:6px; margin-bottom:8px;">
+                            <button type="button" class="btn-sm-action" style="padding:8px 12px; white-space:nowrap;" onclick="document.getElementById('inp-admin-broadcast-image').click()">Choose Photo</button>
+                            <input type="text" id="inp-admin-broadcast-image-url" class="form-input" placeholder="Or paste image URL (optional)..." style="flex:1;">
+                        </div>
+                        <div id="miniapp-broadcast-img-box" style="display:none; margin-bottom:12px; border:1px solid var(--border-color); border-radius:10px; overflow:hidden; background:var(--bg-color);">
+                            <img id="miniapp-broadcast-img-preview" style="width:100%; max-height:180px; object-fit:cover; display:block;" alt="Broadcast photo preview">
+                        </div>
+
                         <!-- Native Bot Inline Button -->
-                        <div class="form-label">Attach Native Telegram Button (Optional)</div>
-                        <div class="form-hint">Adds an interactive clickable button with a link below the message.</div>
-                        <input type="text" id="inp-admin-btn-text" class="form-input" value="Reconnect Telegram" placeholder="Button Label (e.g. Reconnect Telegram)" style="margin-bottom:8px;">
-                        <input type="text" id="inp-admin-btn-url" class="form-input" value="https://t.me/wprelaybot" placeholder="Button URL (e.g. https://t.me/wprelaybot)" style="margin-bottom:12px;">
+                        <div class="form-label">Bot Button (Opens Bot Directly)</div>
+                        <div class="form-hint">Shown as a clickable Telegram button under your post or image (no URL shown in the text).</div>
+                        <input type="text" id="inp-admin-btn-text" class="form-input" value="Reconnect Telegram" placeholder="Button Label (e.g. Open WP Studio)" style="margin-bottom:8px;">
+                        <input type="text" id="inp-admin-btn-url" class="form-input" value="https://t.me/wprelaybot" placeholder="@BotHandle or https://t.me/..." style="margin-bottom:12px;">
 
                         <div style="display:flex; gap:8px;">
                             <button class="btn-submit" id="btn-preview-broadcast" style="flex:1; margin-top:0; background:var(--border-color); color:var(--text-main);" onclick="adminSendBroadcast(true)">Preview to Me</button>
@@ -1535,7 +1566,7 @@
                         
                         <div style="margin-bottom:8px;">
                             <div style="display:flex; gap:6px;">
-                                <input type="text" id="inp-channel-btn1-text" class="form-input" value="⚡ Open WP Relay Bot" placeholder="Button 1 Label" style="flex:2;">
+                                <input type="text" id="inp-channel-btn1-text" class="form-input" value="Open WP Relay Bot" placeholder="Button 1 Label" style="flex:2;">
                                 <select id="sel-channel-btn1-style" class="form-input" style="flex:1;">
                                     <option value="primary" selected>Solid Blue</option>
                                     <option value="success">Solid Green</option>
@@ -1548,7 +1579,7 @@
 
                         <div style="margin-bottom:12px;">
                             <div style="display:flex; gap:6px;">
-                                <input type="text" id="inp-channel-btn2-text" class="form-input" value="💎 Try PRO Plan" placeholder="Button 2 Label" style="flex:2;">
+                                <input type="text" id="inp-channel-btn2-text" class="form-input" value="Try PRO Plan" placeholder="Button 2 Label" style="flex:2;">
                                 <select id="sel-channel-btn2-style" class="form-input" style="flex:1;">
                                     <option value="success" selected>Solid Green</option>
                                     <option value="primary">Solid Blue</option>
@@ -2128,10 +2159,43 @@
             }
         }
 
+        function previewMiniAppBroadcastImage(input) {
+            const file = input && input.files && input.files[0];
+            const box = document.getElementById('miniapp-broadcast-img-box');
+            const img = document.getElementById('miniapp-broadcast-img-preview');
+            const clr = document.getElementById('btn-miniapp-clear-img');
+            if (file && box && img) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                    box.style.display = 'block';
+                    if (clr) clr.style.display = 'inline-block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                clearMiniAppBroadcastImage();
+            }
+        }
+
+        function clearMiniAppBroadcastImage() {
+            const inp = document.getElementById('inp-admin-broadcast-image');
+            const urlInp = document.getElementById('inp-admin-broadcast-image-url');
+            const box = document.getElementById('miniapp-broadcast-img-box');
+            const img = document.getElementById('miniapp-broadcast-img-preview');
+            const clr = document.getElementById('btn-miniapp-clear-img');
+            if (inp) inp.value = '';
+            if (urlInp) urlInp.value = '';
+            if (img) img.src = '';
+            if (box) box.style.display = 'none';
+            if (clr) clr.style.display = 'none';
+        }
+
         async function adminSendBroadcast(previewOnly = false) {
             const txt = document.getElementById('inp-admin-broadcast-msg').value.trim();
             const btnText = document.getElementById('inp-admin-btn-text').value.trim();
             const btnUrl = document.getElementById('inp-admin-btn-url').value.trim();
+            const imgFile = document.getElementById('inp-admin-broadcast-image')?.files?.[0] || null;
+            const imgUrl = document.getElementById('inp-admin-broadcast-image-url')?.value.trim() || '';
 
             if (!txt) return tg.showAlert("Please enter a message to broadcast.");
             if (btnText && !btnUrl) return tg.showAlert("Please provide a URL for the button.");
@@ -2150,17 +2214,34 @@
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
-                const res = await fetch('/api/admin_broadcast', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({
-                        message: txt,
-                        button_text: btnText,
-                        button_url: btnUrl,
-                        recipients: recipients,
-                        preview: !!previewOnly
-                    })
-                });
+                let fetchOpts;
+                if (imgFile) {
+                    const hdrs = getAuthHeaders();
+                    delete hdrs['Content-Type'];
+                    const fd = new FormData();
+                    fd.append('message', txt);
+                    fd.append('button_text', btnText);
+                    fd.append('button_url', btnUrl);
+                    fd.append('recipients', Array.isArray(recipients) ? JSON.stringify(recipients) : recipients);
+                    fd.append('preview', previewOnly ? 'true' : 'false');
+                    fd.append('image_url', imgUrl);
+                    fd.append('image', imgFile);
+                    fetchOpts = { method: 'POST', headers: hdrs, body: fd };
+                } else {
+                    fetchOpts = {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({
+                            message: txt,
+                            button_text: btnText,
+                            button_url: btnUrl,
+                            image_url: imgUrl,
+                            recipients: recipients,
+                            preview: !!previewOnly
+                        })
+                    };
+                }
+                const res = await fetch('/api/admin_broadcast', fetchOpts);
                 const d = await res.json();
                 if (d.success) {
                     tg.showAlert(previewOnly
@@ -2491,39 +2572,73 @@
             if (card) card.style.display = 'none';
         }
 
+        function showOfficialFeedback(msg, isSuccess) {
+            const box = document.getElementById('official-ch-feedback');
+            if (!box) return;
+            box.style.display = 'block';
+            box.style.color = isSuccess ? 'var(--success)' : 'var(--text-muted)';
+            box.style.borderColor = isSuccess ? 'rgba(48, 209, 88, 0.35)' : 'var(--border-color)';
+            box.innerText = msg;
+        }
+
+        function safeNotify(msg) {
+            try {
+                if (window.Telegram?.WebApp?.showAlert) {
+                    window.Telegram.WebApp.showAlert(msg);
+                    return;
+                }
+            } catch(e) {}
+            try { alert(msg); } catch(e) {}
+        }
+
         async function verifyOfficialJoin() {
             const btn = document.getElementById('btn-verify-official-join');
-            const origText = btn ? btn.innerText : "✅ I've Joined";
-            if (btn) {
-                btn.disabled = true;
-                btn.innerText = 'Checking...';
-            }
+            const lbl = document.getElementById('btn-verify-official-label');
+            const origText = lbl ? lbl.innerText : "I've Joined";
+            if (btn) btn.disabled = true;
+            if (lbl) lbl.innerText = 'Checking...';
             try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
             try {
+                const effUid = getEffectiveUserId();
                 const res = await fetch('/api/verify_official_channel', {
                     method: 'POST',
                     credentials: 'include',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ user_id: inspectedTenantId || getUserId() })
+                    body: JSON.stringify({ user_id: effUid })
                 });
-                const d = await res.json();
+                const d = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const errMsg = d.error || `Verification check failed (HTTP ${res.status}).`;
+                    showOfficialFeedback(errMsg, false);
+                    safeNotify(errMsg);
+                    return;
+                }
+                const chHandle = d.official_channel_handle || '@webtgfv1';
                 if (d.success && d.joined === true) {
                     try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
-                    const card = document.getElementById('banner-official-channel');
-                    if (card) card.style.display = 'none';
-                    tg.showAlert(`Thanks for joining ${d.official_channel_handle || '@webtgfv1'}!`);
+                    if (currentUserData) currentUserData.official_channel_joined = true;
+                    showOfficialFeedback(`Joined! Thanks for following ${chHandle}.`, true);
+                    safeNotify(`Thanks for joining ${chHandle}!`);
+                    setTimeout(() => {
+                        const card = document.getElementById('banner-official-channel');
+                        if (card) card.style.display = 'none';
+                    }, 900);
                 } else if (d.success && d.joined === false) {
-                    tg.showAlert(`It looks like you haven't joined ${d.official_channel_handle || '@webtgfv1'} yet. Joining is optional anytime!`);
+                    const msg = `Not a member of ${chHandle} yet. Tap Join Channel first if you'd like (optional).`;
+                    showOfficialFeedback(msg, false);
+                    safeNotify(msg);
                 } else {
-                    tg.showAlert(d.error || 'Could not verify membership right now. Please try again shortly.');
+                    const msg = d.error || 'Could not verify membership right now. Please try again shortly.';
+                    showOfficialFeedback(msg, false);
+                    safeNotify(msg);
                 }
             } catch(e) {
-                tg.showAlert('Network error verifying channel membership.');
+                const msg = 'Could not reach server to check membership.';
+                showOfficialFeedback(msg, false);
+                safeNotify(msg);
             } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = origText;
-                }
+                if (btn) btn.disabled = false;
+                if (lbl) lbl.innerText = origText;
             }
         }
 
@@ -2708,9 +2823,9 @@
                 if (chBanner) {
                     const chHandle = data.official_channel_handle || '@webtgfv1';
                     const chUrl = data.official_channel_url || 'https://t.me/webtgfv1';
-                    const titleEl = document.getElementById('official-ch-title');
+                    const badgeEl = document.getElementById('official-ch-badge');
                     const linkEl = document.getElementById('official-ch-link');
-                    if (titleEl) titleEl.innerText = `📢 Official Channel (${chHandle})`;
+                    if (badgeEl) badgeEl.innerText = chHandle;
                     if (linkEl) linkEl.href = chUrl;
                     const hidden = sessionStorage.getItem('hide_official_channel_card') === '1';
                     chBanner.style.display = (!data.official_channel_joined && !hidden) ? 'block' : 'none';

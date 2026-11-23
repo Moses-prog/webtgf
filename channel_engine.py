@@ -109,7 +109,7 @@ EDITORIAL_FORMATS = [
         "name": "Quick Before/After",
         "instruction": """
 Write a short, realistic BEFORE & AFTER story in everyday words:
-- Start with a bold plain hook: 📊 <b>Real Example: [Short relatable situation]</b>
+- Start with a bold plain hook: <b>Real Example: [Short relatable situation]</b>
 - 1-2 short sentences on what used to waste time or hurt views.
 - 1-2 short sentences on what changed once they set up WP Relay.
 - 1 crisp closing line telling readers they can set it up in @wprelaybot.
@@ -120,7 +120,7 @@ Write a short, realistic BEFORE & AFTER story in everyday words:
         "name": "Quick Reality Check",
         "instruction": """
 Write a quick REALITY CHECK that clears up a bad habit:
-- Start with: ⚡ <b>Quick Tip: [Plain surprising fact]</b>
+- Start with: <b>Quick Tip: [Plain surprising fact]</b>
 - What most people do wrong (1 short sentence).
 - Why it backfires and what works better instead (1-2 short sentences).
 - 1 friendly closing line pointing to @wprelaybot.
@@ -131,7 +131,7 @@ Write a quick REALITY CHECK that clears up a bad habit:
         "name": "3 Quick Steps",
         "instruction": """
 Write a super clear 3-STEP CHECKLIST people can copy right now:
-- Start with: ✅ <b>3 Quick Steps: [Clear outcome]</b>
+- Start with: <b>3 Quick Steps: [Clear outcome]</b>
 - 1 short line saying why this helps.
 - Bullet list with plain language:
   • <b>1.</b> [Simple action]
@@ -145,7 +145,7 @@ Write a super clear 3-STEP CHECKLIST people can copy right now:
         "name": "Account Safety Heads-Up",
         "instruction": """
 Write a helpful SAFETY HEADS-UP (not dramatic fake urgency, just real advice):
-- Start with: 🚨 <b>Heads-Up: [Common risk or ban trigger]</b>
+- Start with: <b>Heads-Up: [Common risk or ban trigger]</b>
 - What gets accounts flagged or channels muted (1-2 simple sentences).
 - The easy setting inside WP Relay that stops it (1-2 simple sentences).
 - 1 crisp line pointing to @wprelaybot.
@@ -156,13 +156,39 @@ Write a helpful SAFETY HEADS-UP (not dramatic fake urgency, just real advice):
         "name": "One Smart Fix",
         "instruction": """
 Write a straight-to-the-point TIP ABOUT ONE FIX:
-- Start with: 💡 <b>[Plain Useful Title in 4-6 Words]</b>
+- Start with: <b>[Plain Useful Title in 4-6 Words]</b>
 - Name the exact headache channel owners deal with (1 short sentence).
 - Show the simple automated setup that solves it (2 short sentences or bullets).
 - 1 natural closing line pointing to @wprelaybot.
 """
     }
 ]
+
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001F600-\U0001F64F"
+    "\U0001F300-\U0001F5FF"
+    "\U0001F680-\U0001F6FF"
+    "\U0001F1E0-\U0001F1FF"
+    "\U00002700-\U000027BF"
+    "\U000024C2-\U0001F251"
+    "\U0001F900-\U0001F9FF"
+    "\U0001FA00-\U0001FA6F"
+    "\U0001FA70-\U0001FAFF"
+    "\U00002600-\U000026FF"
+    "\u200d\ufe0f"
+    "]+",
+    flags=re.UNICODE,
+)
+
+
+def strip_emojis_text(text):
+    """Strip emojis while preserving line breaks cleanly."""
+    if not text:
+        return ""
+    cleaned = _EMOJI_RE.sub("", str(text))
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    return "\n".join(line.strip() for line in cleaned.splitlines()).strip()
 
 def sanitize_telegram_html(text):
     """Ensure text only contains Telegram-supported HTML tags and has balanced entities."""
@@ -305,7 +331,8 @@ WRITING RULES (VERY IMPORTANT):
    - "royal_purple": PRO plan features or hands-free speed.
    - "sunset_amber": Getting more views or growing engagement.
    - "stealth_mono": Running multiple channels or syncing edits/deletes.
-6. CLEAR SHORT CARD TEXT & BUTTONS (keep card titles & buttons simple too, max 3-4 words).
+6. ZERO EMOJIS: Do NOT use any emojis anywhere in the text, headlines, card titles, or button labels.
+7. CLEAR SHORT CARD TEXT & BUTTONS (keep card titles & buttons simple too, max 3-4 words).
 
 OUTPUT FORMAT:
 Return a strict JSON object with these EXACT keys:
@@ -318,8 +345,8 @@ Return a strict JSON object with these EXACT keys:
   "should_pin": false,
   "text": "Short, human Telegram post with clean <b>bold</b> highlights and spacing",
   "buttons": [
-    {{"text": "⚡ Open WP Relay Bot", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"}},
-    {{"text": "💎 Try PRO Plan", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}}
+    {{"text": "Open WP Relay Bot", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"}},
+    {{"text": "Try PRO Plan", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}}
   ]
 }}
 """
@@ -347,17 +374,21 @@ Return a strict JSON object with these EXACT keys:
 
                 parsed = json.loads(raw_text)
 
-                post_text = sanitize_telegram_html(parsed.get("text", ""))
-                card_title = parsed.get("card_title", "WP RELAY").strip()
-                card_subtitle = parsed.get("card_subtitle", "SIMPLE TELEGRAM CHANNEL AUTOMATION").strip()
-                category_badge = parsed.get("category_badge", chosen_format["name"]).strip()
+                post_text = strip_emojis_text(sanitize_telegram_html(parsed.get("text", "")))
+                card_title = strip_emojis_text(parsed.get("card_title", "WP RELAY"))
+                card_subtitle = strip_emojis_text(parsed.get("card_subtitle", "SIMPLE TELEGRAM CHANNEL AUTOMATION"))
+                category_badge = strip_emojis_text(parsed.get("category_badge", chosen_format["name"]))
                 theme = parsed.get("theme", "cyber_cyan").strip()
-                feature_pills = parsed.get("feature_pills", ["SAFE DELAY", "POST SPACING", "BAN-SAFE"])
+                feature_pills = [strip_emojis_text(p) for p in (parsed.get("feature_pills") or ["SAFE DELAY", "POST SPACING", "BAN-SAFE"])]
                 should_pin = bool(parsed.get("should_pin", False))
 
-                buttons = parsed.get("buttons") or [
-                    {"text": "⚡ Open WP Relay Bot", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"},
-                    {"text": "💎 Try PRO Plan", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
+                raw_buttons = parsed.get("buttons") or [
+                    {"text": "Open WP Relay Bot", "url": "https://t.me/wprelaybot?start=channel_tip", "style": "primary"},
+                    {"text": "Try PRO Plan", "url": "https://t.me/wprelaybot?start=pro_upgrade", "style": "success"}
+                ]
+                buttons = [
+                    {**b, "text": strip_emojis_text(b.get("text", ""))}
+                    for b in raw_buttons if isinstance(b, dict)
                 ]
 
                 # Generate Dynamic Multi-Theme Visual Card
@@ -662,18 +693,18 @@ def generate_broadcast_message(intent="custom", user_prompt="", bot_name="", bot
         prompt = (
             "You are writing a friendly message from WP Relay (@wprelaybot) to its active Telegram users to introduce another useful bot.\n"
             f"Bot Name: {clean_name}\n"
-            f"Bot Handle or Link: {norm_handle}\n"
             f"What it does / Admin pitch: {pitch}\n\n"
             "Rules:\n"
             "- Write in simple, everyday conversational English (no big buzzwords, no hype, no corporate speak).\n"
             "- Open with 1 warm, clear sentence explaining why you are sharing it.\n"
             "- Add 3 short bullet points showing what users can do with it.\n"
-            f"- End by inviting them to tap the button below or open {norm_handle}.\n"
-            "- Keep it concise (55 to 90 words total).\n"
+            "- NEVER write any URL or link (no https://, http://, or t.me/ links) anywhere in the message text.\n"
+            "- End by inviting them to tap the button below.\n"
+            "- Keep it short (45 to 75 words total so it fits cleanly under an image).\n"
             "- Format using clean Telegram HTML with <b> and <code> tags only (no <ul>, <li>, <p>, markdown, or emojis).\n"
             "- Output ONLY the final message text."
         )
-        suggested_btn_text = f"Try {clean_name}"
+        suggested_btn_text = f"Open {clean_name}"
         suggested_btn_url = norm_url
     elif intent == "reconnect" or (not intent and (not user_prompt or "reconnect" in user_prompt.lower())):
         prompt = (
@@ -713,23 +744,11 @@ def generate_broadcast_message(intent="custom", user_prompt="", bot_name="", bot
         raise RuntimeError(f"AI generation failed: {last_err}")
 
     clean_text = sanitize_telegram_html(generated_text)
+    if intent == "promote_bot":
+        clean_text = re.sub(r"https?://\S+|(?:t\.me|telegram\.me)/\S+", "", clean_text, flags=re.IGNORECASE)
+        clean_text = re.sub(r"[ \t]{2,}", " ", clean_text).strip()
     if strip_emojis:
-        emoji_pattern = re.compile(
-            "["
-            "\U0001F600-\U0001F64F"
-            "\U0001F300-\U0001F5FF"
-            "\U0001F680-\U0001F6FF"
-            "\U0001F1E0-\U0001F1FF"
-            "\U00002702-\U000027B0"
-            "\U000024C2-\U0001F251"
-            "\U0001F900-\U0001F9FF"
-            "\U0001FA00-\U0001FA6F"
-            "\U0001FA70-\U0001FAFF"
-            "\U00002600-\U000026FF"
-            "]+",
-            flags=re.UNICODE,
-        )
-        clean_text = emoji_pattern.sub("", clean_text).strip()
+        clean_text = strip_emojis_text(clean_text)
 
     return {
         "generated_message": clean_text,
@@ -817,8 +836,8 @@ def send_official_channel_reminder(user_id, bot_token=None, channel_handle=None,
         "disable_notification": True,
         "reply_markup": {
             "inline_keyboard": [
-                [{"text": "📢 Join Official Channel", "url": ch_url}],
-                [{"text": "✅ I've Joined", "callback_data": "check_official_join"}],
+                [{"text": "Join Official Channel", "url": ch_url}],
+                [{"text": "I've Joined", "callback_data": "check_official_join"}],
             ]
         },
     }

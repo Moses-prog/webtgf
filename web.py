@@ -346,15 +346,28 @@ HTML_TEMPLATE = """
                     <textarea id="inp-broadcast-message" rows="6" class="w-full neumorphic-inset px-4 py-3 rounded-xl outline-none text-gray-800 font-mono text-xs" placeholder="Message to broadcast to selected recipients..."></textarea>
                 </div>
 
-                <!-- 4. Optional Inline Button -->
+                <!-- 4. Optional Promotional Image -->
+                <div class="p-4 neumorphic-inset rounded-xl space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">4. Promotional Image (Optional)</label>
+                        <button type="button" id="btn-clear-web-broadcast-img" onclick="clearWebBroadcastImage()" class="hidden text-[11px] text-red-600 font-semibold hover:underline">Remove Image</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                        <input type="file" id="inp-broadcast-image-file" accept="image/*" onchange="previewWebBroadcastImage(this)" class="text-xs text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700">
+                        <input type="text" id="inp-broadcast-image-url" placeholder="Or paste direct https image URL (optional)..." class="w-full neumorphic-inset px-3 py-2 rounded-lg outline-none text-xs text-gray-700 bg-white/50">
+                    </div>
+                    <img id="web-broadcast-img-preview" class="hidden max-h-40 rounded-lg border border-gray-300 mt-2" alt="Broadcast image preview">
+                </div>
+
+                <!-- 5. Bot Inline Button (Opens bot directly, no link shown in text) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Button Label (Optional)</label>
-                        <input type="text" id="inp-broadcast-btn-text" value="Reconnect Telegram" placeholder="Button Label (e.g. Reconnect Telegram)" class="w-full neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Bot Button Label (Optional)</label>
+                        <input type="text" id="inp-broadcast-btn-text" value="Reconnect Telegram" placeholder="Button Label (e.g. Open WP Studio)" class="w-full neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Button URL (Optional)</label>
-                        <input type="text" id="inp-broadcast-btn-url" value="https://t.me/wprelaybot" placeholder="https://t.me/wprelaybot" class="w-full neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Target Bot URL / @Handle (Attached to Button)</label>
+                        <input type="text" id="inp-broadcast-btn-url" value="https://t.me/wprelaybot" placeholder="https://t.me/wpstudiobot or @wpstudiobot" class="w-full neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
                     </div>
                 </div>
 
@@ -693,10 +706,42 @@ async function generateBroadcastAi(mode) {
     }
 }
 
+function previewWebBroadcastImage(input) {
+    const file = input && input.files && input.files[0];
+    const prev = document.getElementById('web-broadcast-img-preview');
+    const clearBtn = document.getElementById('btn-clear-web-broadcast-img');
+    if (file && prev) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            prev.src = e.target.result;
+            prev.classList.remove('hidden');
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    } else if (prev) {
+        prev.src = '';
+        prev.classList.add('hidden');
+        if (clearBtn) clearBtn.classList.add('hidden');
+    }
+}
+
+function clearWebBroadcastImage() {
+    const inp = document.getElementById('inp-broadcast-image-file');
+    const urlInp = document.getElementById('inp-broadcast-image-url');
+    const prev = document.getElementById('web-broadcast-img-preview');
+    const clearBtn = document.getElementById('btn-clear-web-broadcast-img');
+    if (inp) inp.value = '';
+    if (urlInp) urlInp.value = '';
+    if (prev) { prev.src = ''; prev.classList.add('hidden'); }
+    if (clearBtn) clearBtn.classList.add('hidden');
+}
+
 async function sendAdminBroadcastFromWeb(previewOnly = false) {
     const msg = document.getElementById('inp-broadcast-message').value.trim();
     const btnText = document.getElementById('inp-broadcast-btn-text').value.trim();
     const btnUrl = document.getElementById('inp-broadcast-btn-url').value.trim();
+    const imageFile = document.getElementById('inp-broadcast-image-file')?.files?.[0] || null;
+    const imageUrl = document.getElementById('inp-broadcast-image-url')?.value.trim() || '';
     const statusBadge = document.getElementById('broadcast-status-badge');
     const sendBtn = document.getElementById('btn-send-admin-broadcast');
     const prevBtn = document.getElementById('btn-preview-admin-broadcast');
@@ -735,18 +780,32 @@ async function sendAdminBroadcastFromWeb(previewOnly = false) {
     }
 
     try {
-        const payload = {
-            message: msg,
-            button_text: btnText,
-            button_url: btnUrl,
-            recipients: previewOnly ? 'preview_admin' : selectedRecipients,
-            preview: !!previewOnly
-        };
-        const res = await fetch('/api/admin_broadcast', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        let fetchOpts;
+        if (imageFile) {
+            const fd = new FormData();
+            fd.append('message', msg);
+            fd.append('button_text', btnText);
+            fd.append('button_url', btnUrl);
+            fd.append('recipients', previewOnly ? 'preview_admin' : JSON.stringify(selectedRecipients));
+            fd.append('preview', previewOnly ? 'true' : 'false');
+            fd.append('image_url', imageUrl);
+            fd.append('image', imageFile);
+            fetchOpts = { method: 'POST', body: fd };
+        } else {
+            fetchOpts = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: msg,
+                    button_text: btnText,
+                    button_url: btnUrl,
+                    image_url: imageUrl,
+                    recipients: previewOnly ? 'preview_admin' : selectedRecipients,
+                    preview: !!previewOnly
+                })
+            };
+        }
+        const res = await fetch('/api/admin_broadcast', fetchOpts);
         const data = await res.json();
         if (data.success) {
             alert(previewOnly
@@ -1575,11 +1634,11 @@ def api_admin_update_pro_subscription():
         new_expiry = now + datetime.timedelta(days=days)
         ud['pro_expiry'] = new_expiry.isoformat()
         msg_to_send = (
-            f"🎉 <b>WP Relay PRO Activated!</b>\n\n"
+            f"<b>WP Relay PRO Activated</b>\n\n"
             f"The Administrator has granted you <b>{days} day(s)</b> of PRO access.\n"
-            f"📅 <b>Expires On:</b> <code>{new_expiry.strftime('%B %d, %Y')}</code>\n\n"
-            f"⚡ <b>All channel forwarders and automation features are active!</b>\n\n"
-            f"Thank you for powering your channels with WP Relay!"
+            f"<b>Expires On:</b> <code>{new_expiry.strftime('%B %d, %Y')}</code>\n\n"
+            f"<b>All channel forwarders and automation features are active.</b>\n\n"
+            f"Thank you for powering your channels with WP Relay."
         )
 
     elif action == 'add_days':
@@ -1680,6 +1739,82 @@ def api_admin_toggle_feature():
     save_feature_toggles(toggles)
     return jsonify({"success": True, "toggles": toggles})
 
+def _post_telegram_broadcast_target(bot_token, target_id, msg_text, reply_markup=None, image_bytes=None, image_filename="promo.png", image_mime="image/png", image_url=""):
+    """Deliver a broadcast message (text or photo+caption+inline button) to one Telegram chat."""
+    import io
+
+    def _call_with_retry(send_fn):
+        r = send_fn()
+        if r.status_code == 429:
+            try:
+                retry_after = int((r.json().get("parameters") or {}).get("retry_after", 3) or 3)
+            except Exception:
+                retry_after = 3
+            time.sleep(min(retry_after + 1, 20))
+            r = send_fn()
+        return r
+
+    has_file = bool(image_bytes)
+    has_url = bool(image_url and image_url.startswith(("http://", "https://")))
+
+    if not has_file and not has_url:
+        payload = {"chat_id": target_id, "text": msg_text, "parse_mode": "HTML"}
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        return _call_with_retry(
+            lambda: requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage", json=payload, timeout=10)
+        )
+
+    # Telegram sendPhoto enforces a 1024-character caption limit; split cleanly if longer
+    if len(msg_text) <= 1024:
+        if has_file:
+            form_data = {"chat_id": target_id, "caption": msg_text, "parse_mode": "HTML"}
+            if reply_markup:
+                form_data["reply_markup"] = json.dumps(reply_markup)
+            return _call_with_retry(
+                lambda: requests.post(
+                    f"https://api.telegram.org/bot{bot_token}/sendPhoto",
+                    data=form_data,
+                    files={"photo": (image_filename, io.BytesIO(image_bytes), image_mime)},
+                    timeout=18,
+                )
+            )
+        payload = {"chat_id": target_id, "photo": image_url, "caption": msg_text, "parse_mode": "HTML"}
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        return _call_with_retry(
+            lambda: requests.post(f"https://api.telegram.org/bot{bot_token}/sendPhoto", json=payload, timeout=12)
+        )
+
+    # >1024 chars: send photo first, then full HTML text with attached inline button
+    if has_file:
+        photo_resp = _call_with_retry(
+            lambda: requests.post(
+                f"https://api.telegram.org/bot{bot_token}/sendPhoto",
+                data={"chat_id": target_id},
+                files={"photo": (image_filename, io.BytesIO(image_bytes), image_mime)},
+                timeout=18,
+            )
+        )
+    else:
+        photo_resp = _call_with_retry(
+            lambda: requests.post(
+                f"https://api.telegram.org/bot{bot_token}/sendPhoto",
+                json={"chat_id": target_id, "photo": image_url},
+                timeout=12,
+            )
+        )
+    if photo_resp.status_code != 200:
+        return photo_resp
+
+    text_payload = {"chat_id": target_id, "text": msg_text, "parse_mode": "HTML"}
+    if reply_markup:
+        text_payload["reply_markup"] = reply_markup
+    return _call_with_retry(
+        lambda: requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage", json=text_payload, timeout=10)
+    )
+
+
 @app.route('/api/admin_broadcast', methods=['POST'])
 def api_admin_broadcast():
     auth_user = get_authenticated_user()
@@ -1687,12 +1822,35 @@ def api_admin_broadcast():
     if auth_user != admin_id and session.get('role') != 'admin':
         return jsonify({"error": "Admin privileges required"}), 403
 
-    data = request.get_json(silent=True) or {}
+    image_bytes = None
+    image_filename = "promo.png"
+    image_mime = "image/png"
+    if request.files or request.form:
+        data = request.form.to_dict()
+        uploaded = request.files.get('image')
+        if uploaded and uploaded.filename:
+            image_bytes = uploaded.read()
+            image_filename = secure_filename(uploaded.filename) or "promo.png"
+            image_mime = uploaded.mimetype or "image/png"
+        recipients_raw = data.get('recipients', '')
+        if isinstance(recipients_raw, str) and recipients_raw.strip().startswith('['):
+            try:
+                recipients = json.loads(recipients_raw)
+            except Exception:
+                recipients = recipients_raw
+        else:
+            recipients = recipients_raw
+    else:
+        data = request.get_json(silent=True) or {}
+        recipients = data.get('recipients')
+
     msg_text = str(data.get('message', '')).strip()
     btn_text = str(data.get('button_text', '')).strip()
     btn_url = str(data.get('button_url', '')).strip()
-    recipients = data.get('recipients')
-    preview_only = bool(data.get('preview', False)) or (isinstance(recipients, str) and recipients.strip().lower() == 'preview_admin')
+    image_url = str(data.get('image_url', '')).strip()
+    raw_preview = data.get('preview', False)
+    is_preview_flag = raw_preview if isinstance(raw_preview, bool) else str(raw_preview).strip().lower() in ('true', '1', 'yes')
+    preview_only = is_preview_flag or (isinstance(recipients, str) and recipients.strip().lower() == 'preview_admin')
 
     if not msg_text:
         return jsonify({"error": "Message cannot be empty"}), 400
@@ -1720,7 +1878,6 @@ def api_admin_broadcast():
     if not target_tenants:
         target_tenants = [str(t) for t in all_tenants]
 
-    # De-duplicate preserving order
     seen = set()
     unique_targets = []
     for t in target_tenants:
@@ -1728,31 +1885,26 @@ def api_admin_broadcast():
             seen.add(t)
             unique_targets.append(t)
 
-    import requests, time
-
-    payload_base = {
-        "text": msg_text,
-        "parse_mode": "HTML"
-    }
-
+    reply_markup = None
     if btn_text and btn_url:
-        btn_url = normalize_telegram_url(btn_url)
-        payload_base["reply_markup"] = {
-            "inline_keyboard": [
-                [{"text": btn_text, "url": btn_url}]
-            ]
-        }
+        norm_url = normalize_telegram_url(btn_url)
+        if norm_url:
+            reply_markup = {"inline_keyboard": [[{"text": btn_text, "url": norm_url}]]}
 
     sent = 0
     failed = 0
     details = []
     for t in unique_targets:
         try:
-            p = {**payload_base, "chat_id": t}
-            r = requests.post(
-                f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                json=p,
-                timeout=8
+            r = _post_telegram_broadcast_target(
+                bot_token=bot_token,
+                target_id=t,
+                msg_text=msg_text,
+                reply_markup=reply_markup,
+                image_bytes=image_bytes,
+                image_filename=image_filename,
+                image_mime=image_mime,
+                image_url=image_url,
             )
             if r.status_code == 200:
                 sent += 1
@@ -1766,10 +1918,10 @@ def api_admin_broadcast():
             details.append({"chat_id": t, "status": "failed", "error": str(e)})
 
     return jsonify({
-        "success": True, 
-        "sent": sent, 
-        "failed": failed, 
-        "total": len(unique_targets), 
+        "success": True,
+        "sent": sent,
+        "failed": failed,
+        "total": len(unique_targets),
         "details": details
     })
 
@@ -2059,6 +2211,8 @@ def api_verify_official_channel():
     from database_manager import get_user_data, save_user_data
 
     res = channel_engine.check_user_channel_membership(user_id)
+    if res.get("fatal_channel_error") or (not res.get("checked") and res.get("error")):
+        print(f"[VERIFY OFFICIAL CHANNEL] user={user_id} status={res.get('status')} error={res.get('error')}", flush=True)
     ud = get_user_data(user_id, force_refresh=True) or {}
     if res.get("joined") is True:
         ud["official_channel_joined"] = True

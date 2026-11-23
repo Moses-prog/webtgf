@@ -68,7 +68,7 @@ def get_main_keyboard(chat_id):
     try:
         from channel_engine import OFFICIAL_CHANNEL_URL
         if not user_data.get("official_channel_joined", False):
-            buttons.append([Button.url("📢 Join Official Channel", OFFICIAL_CHANNEL_URL)])
+            buttons.append([Button.url("Join Official Channel", OFFICIAL_CHANNEL_URL)])
     except Exception:
         pass
 
@@ -76,6 +76,35 @@ def get_main_keyboard(chat_id):
         buttons.append([Button.inline("👑 Admin Panel", b"admin_panel")])
         
     return buttons
+
+
+async def send_promo_broadcast_message(target_chat_id, message, buttons=None, image_path=None, image_url=None):
+    """Send a broadcast item (optional image + HTML text + bot inline button) safely via Telethon."""
+    media = None
+    if image_path and os.path.exists(image_path):
+        media = image_path
+    elif image_url and str(image_url).startswith(("http://", "https://")):
+        media = str(image_url).strip()
+
+    try:
+        if media and len(message or "") <= 1024:
+            await bot.send_file(int(target_chat_id), media, caption=message, buttons=buttons, parse_mode='html')
+            return True
+        if media:
+            await bot.send_file(int(target_chat_id), media)
+        await bot.send_message(int(target_chat_id), message, buttons=buttons, parse_mode='html')
+        return True
+    except Exception:
+        try:
+            if media and len(message or "") <= 1024:
+                await bot.send_file(int(target_chat_id), media, caption=message, buttons=buttons)
+                return True
+            if media:
+                await bot.send_file(int(target_chat_id), media)
+            await bot.send_message(int(target_chat_id), message, buttons=buttons)
+            return True
+        except Exception:
+            return False
     
 async def wait_for_qr_login_task(chat_id, tmp_client, qr_login, msg, api_id, api_hash):
     try:
@@ -1248,7 +1277,7 @@ async def callback(event):
         elif data == "ai_promote_bot_mode" and is_admin(chat_id):
             user_states[chat_id] = {"step": "waiting_for_promo_bot_handle"}
             await event.edit(
-                "🤖 **Promote Another Bot**\n\n"
+                "**Promote Another Bot**\n\n"
                 "Send the bot `@username` or `https://t.me/...` link you want to share with tenants.\n\n"
                 "Example: `@wpstudiobot` or `https://t.me/wpstudiobot`\n"
                 "Send /cancel to abort.",
@@ -1492,6 +1521,39 @@ async def callback(event):
             user_states[chat_id] = "waiting_for_remove_tenant"
             await event.edit("➖ **Remove Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to revoke access from.", buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]])
 
+        elif data == "ai_attach_promo_image" and is_admin(chat_id):
+            state = user_states.get(chat_id)
+            if not isinstance(state, dict) or state.get("step") != "waiting_for_ai_approval":
+                await event.answer("Session expired.", alert=True)
+                return
+            state["step"] = "waiting_for_promo_image"
+            await event.edit(
+                "**Attach Promotional Image**\n\n"
+                "Send a photo in this chat right now (or paste a direct `https://` image URL).\n\n"
+                "Send `SKIP` to continue without an image, or /cancel to abort.",
+                buttons=[[Button.inline("Cancel", b"admin_panel")]]
+            )
+
+        elif data == "ai_remove_promo_image" and is_admin(chat_id):
+            state = user_states.get(chat_id)
+            if not isinstance(state, dict) or state.get("step") != "waiting_for_ai_approval":
+                await event.answer("Session expired.", alert=True)
+                return
+            state.pop("image_path", None)
+            state.pop("image_url", None)
+            btn_text = state.get("btn_text") or "None"
+            btn_url = state.get("btn_url") or ""
+            await event.edit(
+                f"<b>Bot Promo Preview (Image Removed):</b>\n\n{state.get('message', '')}\n\n<b>Button:</b> [{btn_text}] -> {btn_url}",
+                buttons=[
+                    [Button.inline("Attach Image (Optional)", b"ai_attach_promo_image")],
+                    [Button.inline("Test Preview to Me Only", b"ai_send_preview_self")],
+                    [Button.inline("Send to All Tenants", b"ai_send_targets")],
+                    [Button.inline("Cancel", b"admin_panel")],
+                ],
+                parse_mode='html'
+            )
+
         elif data == "ai_send_preview_self" and is_admin(chat_id):
             state = user_states.get(chat_id)
             if not isinstance(state, dict) or state.get("step") != "waiting_for_ai_approval":
@@ -1500,11 +1562,19 @@ async def callback(event):
             generated_message = state.get("message", "")
             btn_text = state.get("btn_text")
             btn_url = state.get("btn_url")
-            buttons = [[Button.url(btn_text, btn_url)]] if (btn_text and btn_url) else None
-            try:
-                await bot.send_message(chat_id, generated_message, buttons=buttons, parse_mode='html')
-            except Exception:
-                await bot.send_message(chat_id, generated_message, buttons=buttons)
+            buttons = None
+            if btn_text and btn_url:
+                from channel_engine import normalize_telegram_url
+                norm_url = normalize_telegram_url(btn_url)
+                if norm_url:
+                    buttons = [[Button.url(btn_text, norm_url)]]
+            await send_promo_broadcast_message(
+                chat_id,
+                generated_message,
+                buttons=buttons,
+                image_path=state.get("image_path"),
+                image_url=state.get("image_url"),
+            )
             await event.answer("Test preview sent to your DM!", alert=False)
 
         elif data in ["ai_approve", "ai_send_targets", "ai_send_custom_3", "ai_send_custom_all"] and is_admin(chat_id):
@@ -1530,22 +1600,28 @@ async def callback(event):
                 if norm_url:
                     buttons = [[Button.url(btn_text, norm_url)]]
 
+            image_path = state.get("image_path")
+            image_url = state.get("image_url")
             sent_count = 0
             await event.edit(f"Broadcasting message to {len(targets)} recipient(s)...")
 
             for t_id in targets:
-                try:
-                    await bot.send_message(int(t_id), generated_message, buttons=buttons, parse_mode='html')
+                ok = await send_promo_broadcast_message(
+                    int(t_id),
+                    generated_message,
+                    buttons=buttons,
+                    image_path=image_path,
+                    image_url=image_url,
+                )
+                if ok:
                     sent_count += 1
                     await asyncio.sleep(0.3)
-                except Exception:
-                    try:
-                        await bot.send_message(int(t_id), generated_message, buttons=buttons)
-                        sent_count += 1
-                        await asyncio.sleep(0.3)
-                    except Exception:
-                        pass
 
+            if image_path and os.path.exists(image_path):
+                try:
+                    os.remove(image_path)
+                except Exception:
+                    pass
             user_states[chat_id] = None
             await event.edit(
                 f"**Broadcast Complete**\n\nDelivered to {sent_count}/{len(targets)} recipient(s).",
@@ -1564,7 +1640,7 @@ async def callback(event):
                 save_user_data(chat_id, ud)
                 try:
                     await event.edit(
-                        f"✅ **Thanks for joining {DEFAULT_CHANNEL}!**\n\n"
+                        f"**Thanks for joining {DEFAULT_CHANNEL}.**\n\n"
                         "You're all set — you won't receive any more join reminders.",
                         buttons=get_main_keyboard(chat_id),
                     )
@@ -2298,7 +2374,7 @@ async def text_handler(event):
                 "bot_url": url
             }
             await event.respond(
-                f"✅ Target set to **{handle}** ({url}).\n\n"
+                f"Target set to **{handle}** ({url}).\n\n"
                 "Now send a short name and 1-2 line pitch for what this bot does.\n"
                 "Format example: `WP Studio - generate scripts, scenes, and web projects fast from Telegram.`",
                 buttons=[[Button.inline("Cancel", b"admin_panel")]]
@@ -2336,8 +2412,9 @@ async def text_handler(event):
                     "targets": get_tenants()
                 }
                 await status_msg.edit(
-                    f"<b>Bot Promo Preview:</b>\n\n{clean_text}\n\n<b>Button:</b> [{btn_text}] -> {btn_url}",
+                    f"<b>Bot Promo Preview:</b>\n\n{clean_text}\n\n<b>Bot Button:</b> [{btn_text}] (opens {btn_url})",
                     buttons=[
+                        [Button.inline("Attach Image (Optional)", b"ai_attach_promo_image")],
                         [Button.inline("Test Preview to Me Only", b"ai_send_preview_self")],
                         [Button.inline("Send to All Tenants", b"ai_send_targets")],
                         [Button.inline("Cancel", b"admin_panel")]
@@ -2346,6 +2423,49 @@ async def text_handler(event):
                 )
             except Exception as e:
                 await status_msg.edit(f"Failed to generate bot promo: {e}", buttons=[[Button.inline("Back", b"admin_panel")]])
+
+    elif isinstance(state, dict) and state.get("step") == "waiting_for_promo_image":
+        if is_admin(chat_id):
+            upper_txt = (text or "").strip().upper()
+            media_src = None
+            if upper_txt == "SKIP":
+                state["step"] = "waiting_for_ai_approval"
+            elif getattr(event, "photo", None):
+                os.makedirs(os.path.join("database", "images"), exist_ok=True)
+                path = os.path.join("database", "images", f"promo_{chat_id}.jpg")
+                await event.download_media(file=path)
+                state["image_path"] = path
+                state.pop("image_url", None)
+                state["step"] = "waiting_for_ai_approval"
+                media_src = path
+            elif (text or "").strip().startswith(("http://", "https://")):
+                state["image_url"] = text.strip()
+                state.pop("image_path", None)
+                state["step"] = "waiting_for_ai_approval"
+                media_src = state["image_url"]
+            else:
+                await event.respond("Please send a photo or a valid https image URL (or send SKIP).")
+                return
+
+            btn_text = state.get("btn_text") or "Open Bot"
+            btn_url = state.get("btn_url") or ""
+            img_label = "Attached" if (state.get("image_path") or state.get("image_url")) else "None"
+            preview_btns = [
+                [Button.inline("Change Image" if img_label == "Attached" else "Attach Image (Optional)", b"ai_attach_promo_image")],
+            ]
+            if img_label == "Attached":
+                preview_btns.append([Button.inline("Remove Image", b"ai_remove_promo_image")])
+            preview_btns.extend([
+                [Button.inline("Test Preview to Me Only", b"ai_send_preview_self")],
+                [Button.inline("Send to All Tenants", b"ai_send_targets")],
+                [Button.inline("Cancel", b"admin_panel")],
+            ])
+            await event.respond(
+                f"<b>Bot Promo Ready (Image: {img_label}):</b>\n\n{state.get('message', '')}\n\n<b>Bot Button:</b> [{btn_text}] (opens {btn_url})",
+                file=media_src,
+                buttons=preview_btns,
+                parse_mode='html'
+            )
             
     elif state == "waiting_for_remove_tenant":
         if is_admin(chat_id):
