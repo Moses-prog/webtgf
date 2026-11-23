@@ -65,6 +65,13 @@ def get_main_keyboard(chat_id):
             [Button.inline("💡 Suggest a Feature", b"suggest_feature")]
         ])
     
+    try:
+        from channel_engine import OFFICIAL_CHANNEL_URL
+        if not user_data.get("official_channel_joined", False):
+            buttons.append([Button.url("📢 Join Official Channel", OFFICIAL_CHANNEL_URL)])
+    except Exception:
+        pass
+
     if is_admin(chat_id):
         buttons.append([Button.inline("👑 Admin Panel", b"admin_panel")])
         
@@ -1227,13 +1234,25 @@ async def callback(event):
             await event.edit(
                 "**AI Broadcast Assistant**\n\n"
                 "Choose a broadcast action below:\n\n"
-                "• **1-Click Reconnect Alert** -> Writes a clear reconnect notice with Gemini and targets the 3 disconnected tenants (7531221514, 7600806544, 8094046191).\n"
+                "• **1-Click Reconnect Alert** -> Writes a clear reconnect notice and targets the 3 disconnected tenants.\n"
+                "• **Promote Another Bot** -> Introduces another bot (e.g. WP Studio) with a direct clickable button.\n"
                 "• **Custom AI Prompt** -> Prompt Gemini with your custom instructions.\n",
                 buttons=[
                     [Button.inline("1-Click Reconnect Alert (3 Tenants)", b"ai_quick_reconnect_3")],
+                    [Button.inline("Promote Another Bot (AI)", b"ai_promote_bot_mode")],
                     [Button.inline("Custom AI Prompt", b"ai_prompt_mode")],
                     [Button.inline("Back to Admin Panel", b"admin_panel")]
                 ]
+            )
+
+        elif data == "ai_promote_bot_mode" and is_admin(chat_id):
+            user_states[chat_id] = {"step": "waiting_for_promo_bot_handle"}
+            await event.edit(
+                "🤖 **Promote Another Bot**\n\n"
+                "Send the bot `@username` or `https://t.me/...` link you want to share with tenants.\n\n"
+                "Example: `@wpstudiobot` or `https://t.me/wpstudiobot`\n"
+                "Send /cancel to abort.",
+                buttons=[[Button.inline("Cancel", b"admin_panel")]]
             )
 
         elif data == "ai_prompt_mode" and is_admin(chat_id):
@@ -1473,6 +1492,21 @@ async def callback(event):
             user_states[chat_id] = "waiting_for_remove_tenant"
             await event.edit("➖ **Remove Tenant**\n\nPlease reply with the Telegram Chat ID of the user you want to revoke access from.", buttons=[[Button.inline("🔙 Cancel", b"admin_panel")]])
 
+        elif data == "ai_send_preview_self" and is_admin(chat_id):
+            state = user_states.get(chat_id)
+            if not isinstance(state, dict) or state.get("step") != "waiting_for_ai_approval":
+                await event.answer("Session expired.", alert=True)
+                return
+            generated_message = state.get("message", "")
+            btn_text = state.get("btn_text")
+            btn_url = state.get("btn_url")
+            buttons = [[Button.url(btn_text, btn_url)]] if (btn_text and btn_url) else None
+            try:
+                await bot.send_message(chat_id, generated_message, buttons=buttons, parse_mode='html')
+            except Exception:
+                await bot.send_message(chat_id, generated_message, buttons=buttons)
+            await event.answer("Test preview sent to your DM!", alert=False)
+
         elif data in ["ai_approve", "ai_send_targets", "ai_send_custom_3", "ai_send_custom_all"] and is_admin(chat_id):
             state = user_states.get(chat_id)
             if not isinstance(state, dict) or state.get("step") != "waiting_for_ai_approval":
@@ -1491,7 +1525,10 @@ async def callback(event):
             btn_url = state.get("btn_url")
             buttons = None
             if btn_text and btn_url:
-                buttons = [[Button.url(btn_text, btn_url)]]
+                from channel_engine import normalize_telegram_url
+                norm_url = normalize_telegram_url(btn_url)
+                if norm_url:
+                    buttons = [[Button.url(btn_text, norm_url)]]
 
             sent_count = 0
             await event.edit(f"Broadcasting message to {len(targets)} recipient(s)...")
@@ -1514,6 +1551,36 @@ async def callback(event):
                 f"**Broadcast Complete**\n\nDelivered to {sent_count}/{len(targets)} recipient(s).",
                 buttons=[[Button.inline("Back to Admin Panel", b"admin_panel")]]
             )
+
+        elif data == "check_official_join":
+            import time
+            from channel_engine import check_user_channel_membership, DEFAULT_CHANNEL
+            loop = asyncio.get_running_loop()
+            res = await loop.run_in_executor(None, check_user_channel_membership, chat_id)
+            if res.get("joined") is True:
+                ud = get_user_data(chat_id, force_refresh=True)
+                ud["official_channel_joined"] = True
+                ud["official_channel_checked_at"] = int(time.time())
+                save_user_data(chat_id, ud)
+                try:
+                    await event.edit(
+                        f"✅ **Thanks for joining {DEFAULT_CHANNEL}!**\n\n"
+                        "You're all set — you won't receive any more join reminders.",
+                        buttons=get_main_keyboard(chat_id),
+                    )
+                except Exception:
+                    await event.answer(f"Verified! Thanks for joining {DEFAULT_CHANNEL}.", alert=True)
+            elif res.get("joined") is False:
+                ud = get_user_data(chat_id, force_refresh=True)
+                ud["official_channel_joined"] = False
+                ud["official_channel_checked_at"] = int(time.time())
+                save_user_data(chat_id, ud)
+                await event.answer(
+                    f"It looks like you haven't joined {DEFAULT_CHANNEL} yet. Tap Join anytime — totally optional!",
+                    alert=True,
+                )
+            else:
+                await event.answer("Couldn't verify right now — please try again in a moment.", alert=True)
 
         else:
             await event.answer("Coming soon!", alert=True)
@@ -2196,35 +2263,9 @@ async def text_handler(event):
         if is_admin(chat_id):
             status_msg = await event.respond("Generating announcement with Google Gemini...")
             try:
-                import time, re
-                from google import genai
-                client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-                prompt = (
-                    f"You are an assistant for a Telegram forwarder service. "
-                    f"Write a concise, professional broadcast announcement based on these instructions: {text}. "
-                    f"Use simple, plain English words only. No big or complicated words. "
-                    f"Format with clean paragraphs and bullet points. "
-                    f"IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the final message itself."
-                )
-
-                response = None
-                last_error = None
-                for m in ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-1.5-flash']:
-                    try:
-                        resp = client.models.generate_content(
-                            model=m,
-                            contents=prompt,
-                        )
-                        if resp and resp.text:
-                            response = resp
-                            break
-                    except Exception as e:
-                        last_error = e
-
-                if not response or not response.text:
-                    raise last_error or Exception("No response from Gemini")
-
-                clean_text = re.sub(r'[\U00010000-\U0010ffff]', '', response.text).strip()
+                from channel_engine import generate_broadcast_message
+                res = generate_broadcast_message(intent="custom", user_prompt=text, strip_emojis=True)
+                clean_text = res["generated_message"]
 
                 user_states[chat_id] = {
                     "step": "waiting_for_ai_approval",
@@ -2234,13 +2275,77 @@ async def text_handler(event):
                 await status_msg.edit(
                     f"**Generated Broadcast Preview:**\n\n{clean_text}\n\n**Select recipients to deliver:**",
                     buttons=[
+                        [Button.inline("Test Preview to Me Only", b"ai_send_preview_self")],
                         [Button.inline("Send to 3 Disconnected Tenants", b"ai_send_custom_3")],
                         [Button.inline("Send to All Tenants", b"ai_send_custom_all")],
                         [Button.inline("Cancel", b"admin_panel")]
-                    ]
+                    ],
+                    parse_mode='html'
                 )
             except Exception as e:
                 await status_msg.edit(f"Failed to generate: {e}", buttons=[[Button.inline("Back", b"admin_panel")]])
+
+    elif isinstance(state, dict) and state.get("step") == "waiting_for_promo_bot_handle":
+        if is_admin(chat_id):
+            from channel_engine import extract_bot_handle_and_url
+            handle, url = extract_bot_handle_and_url(text)
+            if not handle or not url:
+                await event.respond("Please send a valid bot `@username` or `https://t.me/...` link (or /cancel).")
+                return
+            user_states[chat_id] = {
+                "step": "waiting_for_promo_bot_pitch",
+                "bot_handle": handle,
+                "bot_url": url
+            }
+            await event.respond(
+                f"✅ Target set to **{handle}** ({url}).\n\n"
+                "Now send a short name and 1-2 line pitch for what this bot does.\n"
+                "Format example: `WP Studio - generate scripts, scenes, and web projects fast from Telegram.`",
+                buttons=[[Button.inline("Cancel", b"admin_panel")]]
+            )
+
+    elif isinstance(state, dict) and state.get("step") == "waiting_for_promo_bot_pitch":
+        if is_admin(chat_id):
+            bot_handle = state.get("bot_handle", "")
+            bot_url = state.get("bot_url", "")
+            bot_name = ""
+            pitch = text.strip()
+            if " - " in pitch:
+                parts = pitch.split(" - ", 1)
+                bot_name = parts[0].strip()
+                pitch = parts[1].strip()
+            status_msg = await event.respond("Writing bot promotion message with Gemini...")
+            try:
+                from channel_engine import generate_broadcast_message
+                res = generate_broadcast_message(
+                    intent="promote_bot",
+                    user_prompt=pitch,
+                    bot_name=bot_name,
+                    bot_handle=bot_url or bot_handle,
+                    strip_emojis=True
+                )
+                clean_text = res["generated_message"]
+                btn_text = res.get("suggested_button_text") or f"Try {bot_name or bot_handle}"
+                btn_url = res.get("suggested_button_url") or bot_url
+
+                user_states[chat_id] = {
+                    "step": "waiting_for_ai_approval",
+                    "message": clean_text,
+                    "btn_text": btn_text,
+                    "btn_url": btn_url,
+                    "targets": get_tenants()
+                }
+                await status_msg.edit(
+                    f"<b>Bot Promo Preview:</b>\n\n{clean_text}\n\n<b>Button:</b> [{btn_text}] -> {btn_url}",
+                    buttons=[
+                        [Button.inline("Test Preview to Me Only", b"ai_send_preview_self")],
+                        [Button.inline("Send to All Tenants", b"ai_send_targets")],
+                        [Button.inline("Cancel", b"admin_panel")]
+                    ],
+                    parse_mode='html'
+                )
+            except Exception as e:
+                await status_msg.edit(f"Failed to generate bot promo: {e}", buttons=[[Button.inline("Back", b"admin_panel")]])
             
     elif state == "waiting_for_remove_tenant":
         if is_admin(chat_id):
@@ -2339,10 +2444,12 @@ async def ai_broadcast_cmd_handler(event):
     await event.respond(
         "**AI Broadcast Assistant**\n\n"
         "Choose a broadcast action below:\n\n"
-        "• **1-Click Reconnect Alert** -> Writes a clear reconnect notice with Gemini and targets the 3 disconnected tenants (7531221514, 7600806544, 8094046191).\n"
+        "• **1-Click Reconnect Alert** -> Writes a clear reconnect notice and targets the 3 disconnected tenants.\n"
+        "• **Promote Another Bot** -> Introduces another bot (e.g. WP Studio) with a direct clickable button.\n"
         "• **Custom AI Prompt** -> Prompt Gemini with your custom instructions.\n",
         buttons=[
             [Button.inline("1-Click Reconnect Alert (3 Tenants)", b"ai_quick_reconnect_3")],
+            [Button.inline("Promote Another Bot (AI)", b"ai_promote_bot_mode")],
             [Button.inline("Custom AI Prompt", b"ai_prompt_mode")],
             [Button.inline("Back to Admin Panel", b"admin_panel")]
         ]

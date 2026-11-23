@@ -555,6 +555,21 @@
         </a>
     </div>
 
+    <!-- Optional Official Channel Card (Non-Compulsory) -->
+    <div id="banner-official-channel" style="display:none; margin: 0 16px 16px 16px; background: rgba(10, 132, 255, 0.08); border: 1px solid rgba(10, 132, 255, 0.25); border-radius: 14px; padding: 13px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+            <div>
+                <div style="font-weight:700; font-size:13px; color:var(--text-main);" id="official-ch-title">📢 Official Channel (@webtgfv1)</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:3px; line-height:1.4;">Optional updates, tips, and feature releases. Everything works even if you skip it.</div>
+            </div>
+            <button onclick="dismissOfficialChannelCard()" style="background:none; border:none; color:var(--text-muted); font-size:15px; line-height:1; cursor:pointer; padding:2px 4px;" title="Dismiss">✕</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+            <a id="official-ch-link" href="https://t.me/webtgfv1" target="_blank" class="btn-sm-action" style="flex:1; text-align:center; text-decoration:none; background:#0a84ff; color:#fff; padding:8px 10px; font-size:12px; border-radius:8px;">Join Channel ↗</a>
+            <button id="btn-verify-official-join" class="btn-sm-action" onclick="verifyOfficialJoin()" style="flex:1; text-align:center; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); padding:8px 10px; font-size:12px; border-radius:8px;">✅ I've Joined</button>
+        </div>
+    </div>
+
     <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card" onclick="openModal('sources')">
@@ -826,6 +841,54 @@
         </div>
     </div>
 
+    <!-- PRO DURATION PICKER MODAL (SITS ABOVE ADMIN MODAL) -->
+    <div class="modal-overlay" id="pro-duration-overlay" style="z-index: 200;" onclick="closeProDurationModal()"></div>
+    <div class="modal" id="pro-duration-modal" style="z-index: 201;">
+        <div class="modal-drag"></div>
+        <div class="modal-header">
+            <div class="modal-header-top">
+                <div class="modal-title" id="pro-dur-title">Manage PRO Duration</div>
+                <button class="modal-close" onclick="closeProDurationModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal-subtitle" id="pro-dur-subtitle">Select subscription duration</div>
+        </div>
+        <div class="modal-body">
+            <div id="pro-dur-mode-wrap" style="display:none; margin-bottom:12px;">
+                <div class="segmented-control" style="margin-bottom:0;">
+                    <button class="seg-btn active" id="pro-mode-add" onclick="setProDurationMode('add_days')">Add (+ Days)</button>
+                    <button class="seg-btn" id="pro-mode-set" onclick="setProDurationMode('set_days')">Set Fresh From Today</button>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <div class="form-label">Quick Presets</div>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:12px;">
+                    <button class="filter-pill pro-preset-btn" data-days="7" style="justify-content:center; padding:8px 6px;" onclick="selectProPreset(7)">7 Days</button>
+                    <button class="filter-pill pro-preset-btn" data-days="14" style="justify-content:center; padding:8px 6px;" onclick="selectProPreset(14)">14 Days</button>
+                    <button class="filter-pill pro-preset-btn active" data-days="30" style="justify-content:center; padding:8px 6px;" onclick="selectProPreset(30)">30 Days</button>
+                    <button class="filter-pill pro-preset-btn" data-days="90" style="justify-content:center; padding:8px 6px;" onclick="selectProPreset(90)">90 Days</button>
+                    <button class="filter-pill pro-preset-btn" data-days="365" style="justify-content:center; padding:8px 6px;" onclick="selectProPreset(365)">1 Year</button>
+                    <button class="filter-pill pro-preset-btn" data-days="lifetime" style="justify-content:center; padding:8px 6px; border-color:rgba(10,132,255,0.4); color:#0a84ff;" onclick="selectProPreset('lifetime')">Lifetime VIP</button>
+                </div>
+
+                <div id="pro-dur-custom-wrap">
+                    <div class="form-label">Duration (Days)</div>
+                    <input type="number" id="pro-dur-days" class="form-input" min="1" max="3650" value="30" oninput="onProCustomDaysInput()" placeholder="Enter days (e.g. 30)">
+                </div>
+
+                <div id="pro-dur-preview" style="font-size:12px; color:var(--accent); font-weight:600; margin-top:8px;">Expires in 30 days</div>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12px; color:var(--text-main); cursor:pointer;">
+                    <input type="checkbox" id="pro-dur-notify" checked style="width:16px; height:16px; accent-color:var(--accent);">
+                    <span>Notify tenant on Telegram</span>
+                </label>
+
+                <button class="btn-submit" id="pro-dur-submit-btn" onclick="submitProDuration()">Apply PRO Duration</button>
+                <button class="btn-sm-action" id="pro-dur-revoke-btn" onclick="submitProRevoke()" style="display:none; width:100%; margin-top:8px; padding:10px; background:rgba(255,69,58,0.12); color:#ff453a; border:1px solid rgba(255,69,58,0.3); border-radius:8px; font-size:13px;">Revoke PRO Access (Set Free)</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SECURITY LOCK SCREEN -->
     <div id="lock-screen" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px;">
         <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; width: 100%; max-width: 360px; text-align: center;">
@@ -1086,6 +1149,13 @@
             const stats = d.stats || { total: 0, today: 0 };
             const tenants = d.tenants || [];
             const toggles = d.toggles || {};
+            window._adminTenantMeta = {};
+            tenants.forEach(t => { window._adminTenantMeta[t.tenant_id] = t; });
+            if (adminProData && Array.isArray(adminProData.pro_tenants)) {
+                adminProData.pro_tenants.forEach(p => {
+                    window._adminTenantMeta[p.tenant_id] = Object.assign({}, window._adminTenantMeta[p.tenant_id] || {}, p);
+                });
+            }
 
             let tabHtml = '';
 
@@ -1172,6 +1242,16 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
+                        <div class="list-item">
+                            <div class="item-text">
+                                <div class="item-title">Official Channel Reminders (48h)</div>
+                                <div class="item-subtitle">Gently remind unjoined users every 48 hours</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${toggles.official_channel_reminders_enabled !== false ? 'checked' : ''} onchange="adminToggleGlobalFeature('official_channel_reminders_enabled', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                 `;
             } else if (currentAdminTab === 'subscriptions') {
@@ -1250,7 +1330,7 @@
                                     <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); text-align:center;" onclick="adminPromptCustomNotice('${p.tenant_id}')">Custom</button>
                                 </div>
                                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:rgba(10, 132, 255, 0.12); color:#0a84ff; border:1px solid rgba(10, 132, 255, 0.3); text-align:center;" onclick="adminPromptExtendPro('${p.tenant_id}')">Extend +30d</button>
+                                    <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:rgba(10, 132, 255, 0.12); color:#0a84ff; border:1px solid rgba(10, 132, 255, 0.3); text-align:center;" onclick="openProDurationModal('${p.tenant_id}', true)">Manage Duration</button>
                                     <button class="btn-sm-action" style="padding:7px 4px; font-size:11px; font-weight:600; background:var(--card-bg); color:var(--text-muted); border:1px solid var(--border-color); text-align:center;" onclick="inspectTenant('${p.tenant_id}')">Inspect Studio</button>
                                 </div>
                             </div>
@@ -1320,8 +1400,11 @@
 
                             <!-- BOTTOM ROW: FULL WIDTH ACTION BUTTONS -->
                             <div style="display:flex; gap:6px; margin-top:10px; padding-top:8px; border-top:1px solid var(--border-color);">
-                                <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; text-align:center;" onclick="adminTogglePro('${t.tenant_id}')">${t.is_pro ? 'Set Free' : 'Give Pro'}</button>
-                                ${t.is_pro ? `<button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; color:#0a84ff; background:rgba(10, 132, 255, 0.1); border:1px solid rgba(10, 132, 255, 0.25); text-align:center;" onclick="adminPromptExtendPro('${t.tenant_id}')">Extend +30d</button>` : ''}
+                                ${t.is_pro
+                                    ? `<button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; color:#0a84ff; background:rgba(10, 132, 255, 0.1); border:1px solid rgba(10, 132, 255, 0.25); text-align:center;" onclick="openProDurationModal('${t.tenant_id}', true)">Set Duration</button>
+                                       <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; text-align:center;" onclick="quickRevokePro('${t.tenant_id}')">Set Free</button>`
+                                    : `<button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; color:#30d158; background:rgba(48, 209, 88, 0.12); border:1px solid rgba(48, 209, 88, 0.3); text-align:center;" onclick="openProDurationModal('${t.tenant_id}', false)">Give Pro</button>`
+                                }
                                 <button class="btn-sm-action" style="flex:1; padding:7px 4px; font-size:11px; font-weight:600; text-align:center;" onclick="inspectTenant('${t.tenant_id}')">Inspect</button>
                             </div>
                         </div>
@@ -1364,6 +1447,19 @@
                         <button class="btn-submit" id="btn-admin-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateAiBroadcast('custom')">Generate Custom with AI</button>
                     </div>
 
+                    <!-- Promote Another Bot -->
+                    <div class="form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span class="form-label" style="margin-bottom:0;">Promote Another Bot</span>
+                            <button class="btn-sm-action" style="color:#0a84ff; background:rgba(10,132,255,0.12);" onclick="fillMiniAppWpStudioPreset()">WP Studio Preset</button>
+                        </div>
+                        <div class="form-hint">Write a clean promo post with a direct clickable button for another Telegram bot.</div>
+                        <input type="text" id="inp-promo-bot-name" class="form-input" placeholder="Bot Name (e.g. WP Studio)" style="margin-bottom:8px;">
+                        <input type="text" id="inp-promo-bot-handle" class="form-input" placeholder="@AnotherBot or https://t.me/..." style="margin-bottom:8px;">
+                        <input type="text" id="inp-promo-bot-pitch" class="form-input" placeholder="What does this bot help users do?" style="margin-bottom:8px;">
+                        <button class="btn-submit" id="btn-admin-ai-promo" style="background:var(--accent); color:#fff; margin-top:0;" onclick="adminGenerateAiBroadcast('promote_bot')">Write Bot Promo with AI</button>
+                    </div>
+
                     <!-- Broadcast Message -->
                     <div class="form-card">
                         <div class="form-label">Broadcast Message</div>
@@ -1375,7 +1471,10 @@
                         <input type="text" id="inp-admin-btn-text" class="form-input" value="Reconnect Telegram" placeholder="Button Label (e.g. Reconnect Telegram)" style="margin-bottom:8px;">
                         <input type="text" id="inp-admin-btn-url" class="form-input" value="https://t.me/wprelaybot" placeholder="Button URL (e.g. https://t.me/wprelaybot)" style="margin-bottom:12px;">
 
-                        <button class="btn-submit" id="btn-send-broadcast" onclick="adminSendBroadcast()">Send Broadcast</button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-submit" id="btn-preview-broadcast" style="flex:1; margin-top:0; background:var(--border-color); color:var(--text-main);" onclick="adminSendBroadcast(true)">Preview to Me</button>
+                            <button class="btn-submit" id="btn-send-broadcast" style="flex:1; margin-top:0;" onclick="adminSendBroadcast(false)">Send Broadcast</button>
+                        </div>
                     </div>
                 `;
             } else if (currentAdminTab === 'channel') {
@@ -1393,25 +1492,25 @@
 
                     <!-- AI CHANNEL CONTENT GENERATOR -->
                     <div class="form-card">
-                        <div class="form-label">AI Channel Content Generator</div>
-                        <div class="form-hint">WP Relay Knowledge Engine writes specialized, high-impact channel tips ready for publication.</div>
+                        <div class="form-label">AI Channel Post Writer</div>
+                        <div class="form-hint">Writes short, clear, everyday channel posts that people actually read.</div>
                         <select id="sel-channel-category" class="form-input" style="margin-bottom:8px;">
-                            <option value="" selected>Autonomous Selection (AI Dynamic Angle)</option>
-                            <option value="anti_ban">Anti-Ban & Stealth Jitter Delay</option>
-                            <option value="link_rewriting">Link Arbitrage & Competitor Poaching</option>
-                            <option value="auto_delete">Ephemeral Drops & VIP Scarcity</option>
-                            <option value="watermarking">Dynamic Watermarking & Brand Defense</option>
-                            <option value="drip_pacer">Drip Pacing & Feed Hygiene</option>
-                            <option value="cta_buttons">Interactive CTA Conversion Funnels</option>
-                            <option value="multi_channel">Multi-Channel Syndication Network</option>
-                            <option value="live_sync">Live Message Sync & Mirror Deletion</option>
-                            <option value="algo_hacks">Telegram Search & Discovery Algorithms</option>
-                            <option value="pro_workers">PRO Concurrency & Enterprise Scale</option>
-                            <option value="case_study">Real Operator Case Study</option>
-                            <option value="myth_busters">Telegram Growth Myths Debunked</option>
+                            <option value="" selected>Auto Pick (Fresh Topic)</option>
+                            <option value="anti_ban">Safe Delay & Anti-Ban</option>
+                            <option value="link_rewriting">Auto Link & @Name Swapping</option>
+                            <option value="auto_delete">Auto-Delete & Clean Feeds</option>
+                            <option value="watermarking">Photo Watermarks & Branding</option>
+                            <option value="drip_pacer">Spacing Posts Out (No Spam)</option>
+                            <option value="cta_buttons">Clickable Buttons Under Posts</option>
+                            <option value="multi_channel">Run Multiple Channels At Once</option>
+                            <option value="live_sync">Auto-Update Edits & Deletes</option>
+                            <option value="algo_hacks">Getting More Organic Views</option>
+                            <option value="pro_workers">Hands-Free PRO Automation</option>
+                            <option value="case_study">Real Channel Example</option>
+                            <option value="myth_busters">Common Forwarding Mistakes</option>
                         </select>
-                        <input type="text" id="inp-channel-custom-prompt" class="form-input" placeholder="Custom topic instructions (optional)..." style="margin-bottom:8px;">
-                        <button class="btn-submit" id="btn-channel-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateChannelPost()">Generate Smart Tip with AI</button>
+                        <input type="text" id="inp-channel-custom-prompt" class="form-input" placeholder="Custom topic note (optional)..." style="margin-bottom:8px;">
+                        <button class="btn-submit" id="btn-channel-ai-gen" style="background:var(--border-color); color:var(--text-main); margin-top:0;" onclick="adminGenerateChannelPost()">Write Short Post with AI</button>
                     </div>
 
                     <!-- CHANNEL MESSAGE EDITOR -->
@@ -1436,7 +1535,7 @@
                         
                         <div style="margin-bottom:8px;">
                             <div style="display:flex; gap:6px;">
-                                <input type="text" id="inp-channel-btn1-text" class="form-input" value="⭐ LAUNCH WP RELAY BOT ⚡" placeholder="Button 1 Label" style="flex:2;">
+                                <input type="text" id="inp-channel-btn1-text" class="form-input" value="⚡ Open WP Relay Bot" placeholder="Button 1 Label" style="flex:2;">
                                 <select id="sel-channel-btn1-style" class="form-input" style="flex:1;">
                                     <option value="primary" selected>Solid Blue</option>
                                     <option value="success">Solid Green</option>
@@ -1449,7 +1548,7 @@
 
                         <div style="margin-bottom:12px;">
                             <div style="display:flex; gap:6px;">
-                                <input type="text" id="inp-channel-btn2-text" class="form-input" value="💎 UPGRADE TO PRO (VIP) ✅" placeholder="Button 2 Label" style="flex:2;">
+                                <input type="text" id="inp-channel-btn2-text" class="form-input" value="💎 Try PRO Plan" placeholder="Button 2 Label" style="flex:2;">
                                 <select id="sel-channel-btn2-style" class="form-input" style="flex:1;">
                                     <option value="success" selected>Solid Green</option>
                                     <option value="primary">Solid Blue</option>
@@ -1510,6 +1609,17 @@
                         </div>
 
                         <button class="btn-sm-action" style="width:100%; padding:8px; text-align:center;" onclick="adminTriggerAutopilotNow()">Trigger Autopilot Run Now</button>
+                    </div>
+
+                    <!-- OFFICIAL CHANNEL JOIN REMINDERS -->
+                    <div class="form-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="form-label" style="margin-bottom:0;">Gentle Join Reminders (@webtgfv1)</span>
+                            <input type="checkbox" id="chk-channel-reminders-enabled" checked style="width:18px; height:18px; accent-color:var(--text-main);" onchange="adminToggleChannelReminders(this.checked)">
+                        </div>
+                        <div class="form-hint">Sends a polite, non-compulsory reminder at most once every 48h to users who have not joined @webtgfv1 yet.</div>
+                        <div id="channel-reminder-result" style="font-size:11px; color:var(--text-muted); margin-bottom:8px; display:none;"></div>
+                        <button class="btn-sm-action" id="btn-run-channel-reminders" style="width:100%; padding:8px; text-align:center;" onclick="adminTriggerChannelRemindersNow()">Run Reminder Check Now</button>
                     </div>
 
                     <!-- MESSAGE CLEANUP -->
@@ -1622,22 +1732,206 @@
             }
         }
 
-        async function adminTogglePro(tenantId) {
+        let proDurationState = {
+            tenantId: null,
+            isPro: false,
+            mode: 'set_days',
+            isLifetime: false,
+            days: 30
+        };
+
+        function openProDurationModal(tenantId, isAlreadyPro) {
             try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
+            const meta = (window._adminTenantMeta && window._adminTenantMeta[tenantId]) || {};
+            const displayName = meta.display_name || tenantId;
+            const currentExp = meta.pro_expiry ? `Expires ${meta.pro_expiry.slice(0, 10)}` : (isAlreadyPro ? 'Lifetime VIP' : 'FREE plan');
+
+            proDurationState = {
+                tenantId: tenantId,
+                isPro: !!isAlreadyPro,
+                mode: isAlreadyPro ? 'add_days' : 'set_days',
+                isLifetime: false,
+                days: 30
+            };
+
+            document.getElementById('pro-dur-title').innerText = isAlreadyPro ? 'Manage PRO Duration' : 'Give PRO Access';
+            document.getElementById('pro-dur-subtitle').innerText = `${displayName} • Current: ${currentExp}`;
+            document.getElementById('pro-dur-mode-wrap').style.display = isAlreadyPro ? 'block' : 'none';
+            document.getElementById('pro-dur-revoke-btn').style.display = isAlreadyPro ? 'block' : 'none';
+            document.getElementById('pro-dur-notify').checked = true;
+            document.getElementById('pro-dur-days').value = '30';
+
+            setProDurationMode(proDurationState.mode);
+            selectProPreset(30);
+
+            const overlay = document.getElementById('pro-duration-overlay');
+            const modal = document.getElementById('pro-duration-modal');
+            overlay.style.display = 'block';
+            setTimeout(() => { overlay.classList.add('active'); modal.classList.add('active'); }, 10);
+        }
+
+        function closeProDurationModal() {
+            const overlay = document.getElementById('pro-duration-overlay');
+            const modal = document.getElementById('pro-duration-modal');
+            modal.classList.remove('active');
+            overlay.classList.remove('active');
+            setTimeout(() => { overlay.style.display = 'none'; }, 280);
+        }
+
+        function setProDurationMode(mode) {
+            proDurationState.mode = mode;
+            const addBtn = document.getElementById('pro-mode-add');
+            const setBtn = document.getElementById('pro-mode-set');
+            if (addBtn) addBtn.classList.toggle('active', mode === 'add_days');
+            if (setBtn) setBtn.classList.toggle('active', mode === 'set_days');
+            updateProDurationPreview();
+        }
+
+        function selectProPreset(val) {
+            document.querySelectorAll('.pro-preset-btn').forEach(btn => {
+                btn.classList.toggle('active', String(btn.dataset.days) === String(val));
+            });
+            if (val === 'lifetime') {
+                proDurationState.isLifetime = true;
+                document.getElementById('pro-dur-custom-wrap').style.display = 'none';
+            } else {
+                proDurationState.isLifetime = false;
+                proDurationState.days = parseInt(val, 10) || 30;
+                document.getElementById('pro-dur-custom-wrap').style.display = 'block';
+                document.getElementById('pro-dur-days').value = String(proDurationState.days);
+            }
+            updateProDurationPreview();
+        }
+
+        function onProCustomDaysInput() {
+            const raw = document.getElementById('pro-dur-days').value;
+            const parsed = parseInt(raw, 10);
+            proDurationState.isLifetime = false;
+            proDurationState.days = isNaN(parsed) ? 0 : parsed;
+            document.querySelectorAll('.pro-preset-btn').forEach(btn => {
+                btn.classList.toggle('active', String(btn.dataset.days) === String(proDurationState.days));
+            });
+            updateProDurationPreview();
+        }
+
+        function updateProDurationPreview() {
+            const prevEl = document.getElementById('pro-dur-preview');
+            const btnEl = document.getElementById('pro-dur-submit-btn');
+            if (!prevEl || !btnEl) return;
+
+            if (proDurationState.isLifetime) {
+                prevEl.innerText = 'Permanent Lifetime VIP (no expiry date)';
+                btnEl.innerText = 'Grant Lifetime VIP PRO';
+                return;
+            }
+            const d = proDurationState.days;
+            if (!d || d < 1 || d > 3650) {
+                prevEl.innerText = 'Enter a valid number of days (1 - 3650)';
+                btnEl.innerText = 'Apply PRO Duration';
+                return;
+            }
+            const meta = (window._adminTenantMeta && window._adminTenantMeta[proDurationState.tenantId]) || {};
+            let baseDate = new Date();
+            if (proDurationState.mode === 'add_days' && meta.pro_expiry) {
+                const parsedExp = new Date(meta.pro_expiry);
+                if (!isNaN(parsedExp.getTime()) && parsedExp > baseDate) {
+                    baseDate = parsedExp;
+                }
+            }
+            const targetDate = new Date(baseDate.getTime() + d * 86400000);
+            const dateStr = targetDate.toISOString().slice(0, 10);
+            const verb = proDurationState.mode === 'add_days' ? `Add +${d} day(s)` : `Set ${d} day(s) from today`;
+            prevEl.innerText = `${verb} • New expiry: ${dateStr}`;
+            btnEl.innerText = proDurationState.isPro
+                ? (proDurationState.mode === 'add_days' ? `Extend PRO (+${d}d)` : `Set PRO (${d}d)`)
+                : `Activate PRO (${d}d)`;
+        }
+
+        async function submitProDuration() {
+            const tenantId = proDurationState.tenantId;
+            if (!tenantId) return;
+            const notifyUser = document.getElementById('pro-dur-notify').checked;
+            let action = proDurationState.isLifetime ? 'set_lifetime' : proDurationState.mode;
+            let days = proDurationState.days || 30;
+
+            if (!proDurationState.isLifetime && (days < 1 || days > 3650)) {
+                return tg.showAlert('Please enter between 1 and 3650 days.');
+            }
+
+            const btn = document.getElementById('pro-dur-submit-btn');
+            const origText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
-                const res = await fetch('/api/admin_manage_tenant', {
+                const res = await fetch('/api/admin_update_pro_subscription', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ action: 'toggle_pro', tenant_id: tenantId })
+                    body: JSON.stringify({
+                        tenant_id: tenantId,
+                        action: action,
+                        days: days,
+                        notify_user: notifyUser
+                    })
                 });
                 const d = await res.json();
                 if (d.success) {
-                    openAdminModal();
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    closeProDurationModal();
+                    tg.showAlert(action === 'set_lifetime'
+                        ? `Lifetime VIP granted for ${tenantId}.`
+                        : `PRO updated for ${tenantId}. Expiry: ${(d.pro_expiry || '').slice(0, 10) || 'Lifetime'}`);
+                    await adminLoadProData();
+                    await openAdminModal();
                 } else {
-                    tg.showAlert(d.error || "Failed to update PRO status");
+                    tg.showAlert(d.error || 'Failed to update PRO duration');
                 }
             } catch(e) {
-                tg.showAlert("Network error");
+                tg.showAlert('Network error updating PRO duration');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = origText;
+            }
+        }
+
+        async function submitProRevoke() {
+            const tenantId = proDurationState.tenantId;
+            if (!tenantId) return;
+            if (!confirm(`Revoke PRO access and downgrade ${tenantId} to FREE?`)) return;
+            const notifyUser = document.getElementById('pro-dur-notify').checked;
+            await executeRevokePro(tenantId, notifyUser, true);
+        }
+
+        async function quickRevokePro(tenantId) {
+            if (!confirm(`Downgrade ${tenantId} from PRO to FREE?`)) return;
+            await executeRevokePro(tenantId, true, false);
+        }
+
+        async function executeRevokePro(tenantId, notifyUser, fromModal) {
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_update_pro_subscription', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        tenant_id: tenantId,
+                        action: 'revoke',
+                        notify_user: !!notifyUser
+                    })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    if (fromModal) closeProDurationModal();
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    tg.showAlert(`PRO revoked for ${tenantId}.`);
+                    await adminLoadProData();
+                    await openAdminModal();
+                } else {
+                    tg.showAlert(d.error || 'Failed to revoke PRO status');
+                }
+            } catch(e) {
+                tg.showAlert('Network error');
             }
         }
 
@@ -1697,56 +1991,8 @@
             }
         }
 
-        async function adminPromptExtendPro(tenantId) {
-            const choice = prompt(
-                `Manage PRO Subscription for ${tenantId}:\n\n` +
-                `Type one of the options below:\n` +
-                `• '7'   -> Add +7 Days Trial\n` +
-                `• '30'  -> Add +30 Days (1 Month)\n` +
-                `• '90'  -> Add +90 Days (3 Months)\n` +
-                `• 'vip' -> Set to Lifetime VIP\n` +
-                `• 'del' -> Revoke PRO Status`,
-                '30'
-            );
-            if (!choice) return;
-
-            const c = choice.trim().toLowerCase();
-            let action = 'add_days';
-            let days = 30;
-
-            if (c === 'vip' || c === 'lifetime') {
-                action = 'set_lifetime';
-            } else if (c === 'del' || c === 'revoke' || c === '0') {
-                action = 'revoke';
-            } else {
-                days = parseInt(c) || 30;
-                action = 'add_days';
-            }
-
-            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
-            try {
-                const res = await fetch('/api/admin_update_pro_subscription', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({
-                        tenant_id: tenantId,
-                        action: action,
-                        days: days,
-                        notify_user: true
-                    })
-                });
-                const d = await res.json();
-                if (d.success) {
-                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
-                    tg.showAlert(`Updated subscription for ${tenantId}!`);
-                    await adminLoadProData();
-                    openAdminModal();
-                } else {
-                    tg.showAlert(d.error || 'Failed to update subscription');
-                }
-            } catch(e) {
-                tg.showAlert('Network error updating subscription');
-            }
+        function adminPromptExtendPro(tenantId) {
+            openProDurationModal(tenantId, true);
         }
 
         async function adminPromptRenameTenant(tenantId, currentName) {
@@ -1815,22 +2061,42 @@
             }
         }
 
+        function fillMiniAppWpStudioPreset() {
+            const nameEl = document.getElementById('inp-promo-bot-name');
+            const pitchEl = document.getElementById('inp-promo-bot-pitch');
+            const handleEl = document.getElementById('inp-promo-bot-handle');
+            if (nameEl) nameEl.value = 'WP Studio';
+            if (pitchEl) pitchEl.value = 'Generate scripts, storyboards, visual scenes, and ready-to-build projects fast right from Telegram.';
+            if (handleEl && !handleEl.value.trim()) handleEl.focus();
+            try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
+        }
+
         async function adminGenerateAiBroadcast(intent = 'custom') {
             const promptInput = document.getElementById('inp-admin-ai-prompt');
             const prompt = promptInput ? promptInput.value.trim() : '';
+            const botName = document.getElementById('inp-promo-bot-name')?.value.trim() || '';
+            const botHandle = document.getElementById('inp-promo-bot-handle')?.value.trim() || '';
+            const botPitch = document.getElementById('inp-promo-bot-pitch')?.value.trim() || '';
+
             if (intent === 'custom' && !prompt) return tg.showAlert("Please describe what to announce.");
+            if (intent === 'promote_bot' && !botHandle) return tg.showAlert("Please enter the bot @username or https://t.me/... link.");
 
             const btnGen = document.getElementById('btn-admin-ai-gen');
             const btnRec = document.getElementById('btn-admin-ai-reconnect');
+            const btnPromo = document.getElementById('btn-admin-ai-promo');
             if (btnGen) btnGen.disabled = true;
             if (btnRec) { btnRec.disabled = true; btnRec.innerText = "Generating with Gemini..."; }
+            if (btnPromo) { btnPromo.disabled = true; btnPromo.innerText = "Writing Promo..."; }
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
+                const bodyPayload = intent === 'promote_bot'
+                    ? { intent: 'promote_bot', bot_name: botName, bot_handle: botHandle, prompt: botPitch }
+                    : { prompt: prompt, intent: intent };
                 const res = await fetch('/api/admin_ai_generate_broadcast', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ prompt: prompt, intent: intent })
+                    body: JSON.stringify(bodyPayload)
                 });
                 const d = await res.json();
                 if (d.success && d.generated_message) {
@@ -1846,6 +2112,8 @@
                     }
                     if (intent === 'reconnect') {
                         setBroadcastTarget('3_disconnected');
+                    } else if (intent === 'promote_bot') {
+                        setBroadcastTarget('all');
                     }
                     tg.showAlert("AI announcement generated successfully!");
                 } else {
@@ -1856,10 +2124,11 @@
             } finally {
                 if (btnGen) btnGen.disabled = false;
                 if (btnRec) { btnRec.disabled = false; btnRec.innerText = "1-Click Reconnect Notice (AI)"; }
+                if (btnPromo) { btnPromo.disabled = false; btnPromo.innerText = "Write Bot Promo with AI"; }
             }
         }
 
-        async function adminSendBroadcast() {
+        async function adminSendBroadcast(previewOnly = false) {
             const txt = document.getElementById('inp-admin-broadcast-msg').value.trim();
             const btnText = document.getElementById('inp-admin-btn-text').value.trim();
             const btnUrl = document.getElementById('inp-admin-btn-url').value.trim();
@@ -1867,13 +2136,17 @@
             if (!txt) return tg.showAlert("Please enter a message to broadcast.");
             if (btnText && !btnUrl) return tg.showAlert("Please provide a URL for the button.");
 
-            const recipients = (currentBroadcastTargetMode === '3_disconnected') ? targetThreeTenants : 'all';
-            const label = (currentBroadcastTargetMode === '3_disconnected') ? 'the 3 disconnected tenants' : 'all active tenants';
+            const recipients = previewOnly ? 'preview_admin' : ((currentBroadcastTargetMode === '3_disconnected') ? targetThreeTenants : 'all');
+            const label = previewOnly
+                ? 'your Admin Telegram DM (Test Preview)'
+                : ((currentBroadcastTargetMode === '3_disconnected') ? 'the 3 disconnected tenants' : 'all active tenants');
 
-            if (!confirm(`Send broadcast announcement to ${label}?`)) return;
+            if (!confirm(`Send message to ${label}?`)) return;
 
             const sendBtn = document.getElementById('btn-send-broadcast');
-            if (sendBtn) { sendBtn.disabled = true; sendBtn.innerText = "Sending broadcast..."; }
+            const prevBtn = document.getElementById('btn-preview-broadcast');
+            if (sendBtn) { sendBtn.disabled = true; if (!previewOnly) sendBtn.innerText = "Sending..."; }
+            if (prevBtn) { prevBtn.disabled = true; if (previewOnly) prevBtn.innerText = "Sending Preview..."; }
 
             try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
             try {
@@ -1884,12 +2157,15 @@
                         message: txt,
                         button_text: btnText,
                         button_url: btnUrl,
-                        recipients: recipients
+                        recipients: recipients,
+                        preview: !!previewOnly
                     })
                 });
                 const d = await res.json();
                 if (d.success) {
-                    tg.showAlert(`Broadcast delivered to ${d.sent}/${d.total} tenants.`);
+                    tg.showAlert(previewOnly
+                        ? "Test preview sent to your Telegram DM."
+                        : `Broadcast delivered to ${d.sent}/${d.total} tenants.`);
                 } else {
                     tg.showAlert(d.error || "Failed to broadcast");
                 }
@@ -1897,6 +2173,7 @@
                 tg.showAlert("Network error");
             } finally {
                 if (sendBtn) { sendBtn.disabled = false; sendBtn.innerText = "Send Broadcast"; }
+                if (prevBtn) { prevBtn.disabled = false; prevBtn.innerText = "Preview to Me"; }
             }
         }
 
@@ -1992,6 +2269,10 @@
                     const autoChk = document.getElementById('chk-autopilot-enabled');
                     if (autoChk && d.autopilot) {
                         autoChk.checked = Boolean(d.autopilot.enabled);
+                    }
+                    const remChk = document.getElementById('chk-channel-reminders-enabled');
+                    if (remChk && typeof d.reminders_enabled === 'boolean') {
+                        remChk.checked = d.reminders_enabled;
                     }
                     const autoFreq = document.getElementById('sel-autopilot-freq');
                     if (autoFreq && d.autopilot && d.autopilot.frequency_hours) {
@@ -2204,6 +2485,95 @@
             }
         }
 
+        function dismissOfficialChannelCard() {
+            sessionStorage.setItem('hide_official_channel_card', '1');
+            const card = document.getElementById('banner-official-channel');
+            if (card) card.style.display = 'none';
+        }
+
+        async function verifyOfficialJoin() {
+            const btn = document.getElementById('btn-verify-official-join');
+            const origText = btn ? btn.innerText : "✅ I've Joined";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Checking...';
+            }
+            try { tg.HapticFeedback?.impactOccurred('light'); } catch(e){}
+            try {
+                const res = await fetch('/api/verify_official_channel', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ user_id: inspectedTenantId || getUserId() })
+                });
+                const d = await res.json();
+                if (d.success && d.joined === true) {
+                    try { tg.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+                    const card = document.getElementById('banner-official-channel');
+                    if (card) card.style.display = 'none';
+                    tg.showAlert(`Thanks for joining ${d.official_channel_handle || '@webtgfv1'}!`);
+                } else if (d.success && d.joined === false) {
+                    tg.showAlert(`It looks like you haven't joined ${d.official_channel_handle || '@webtgfv1'} yet. Joining is optional anytime!`);
+                } else {
+                    tg.showAlert(d.error || 'Could not verify membership right now. Please try again shortly.');
+                }
+            } catch(e) {
+                tg.showAlert('Network error verifying channel membership.');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = origText;
+                }
+            }
+        }
+
+        async function adminToggleChannelReminders(val) {
+            await adminToggleGlobalFeature('official_channel_reminders_enabled', Boolean(val));
+        }
+
+        async function adminTriggerChannelRemindersNow() {
+            if (!confirm('Check registered users and send gentle 48h reminders to those who have not joined @webtgfv1 yet?')) return;
+            const btn = document.getElementById('btn-run-channel-reminders');
+            const resBox = document.getElementById('channel-reminder-result');
+            const origText = btn ? btn.innerText : 'Run Reminder Check Now';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Checking Members...';
+            }
+            try { tg.HapticFeedback?.impactOccurred('medium'); } catch(e){}
+            try {
+                const res = await fetch('/api/admin_trigger_channel_reminders', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({})
+                });
+                const d = await res.json();
+                if (d.success && d.summary) {
+                    const s = d.summary;
+                    const txt = s.skipped
+                        ? `Skipped: ${s.reason || s.abort_reason || 'paused'}`
+                        : (s.aborted
+                            ? `Stopped safely: ${s.abort_reason}`
+                            : `Checked: ${s.checked} • Already Joined: ${s.already_joined} • Reminded: ${s.reminded} • Cooldown: ${s.skipped_cooldown}`);
+                    if (resBox) {
+                        resBox.innerText = txt;
+                        resBox.style.display = 'block';
+                    }
+                    tg.showAlert(txt);
+                } else {
+                    tg.showAlert(d.error || 'Failed to run reminder check');
+                }
+            } catch(e) {
+                tg.showAlert('Network error triggering reminder sweep');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = origText;
+                }
+            }
+        }
+
         async function adminDeleteChannelPost() {
             const inp = document.getElementById('inp-channel-del-id');
             const msgId = inp ? inp.value.trim() : '';
@@ -2331,6 +2701,19 @@
                     }
                 } else {
                     if (banner) banner.style.display = 'none';
+                }
+
+                // Non-Compulsory Official Channel Card
+                const chBanner = document.getElementById('banner-official-channel');
+                if (chBanner) {
+                    const chHandle = data.official_channel_handle || '@webtgfv1';
+                    const chUrl = data.official_channel_url || 'https://t.me/webtgfv1';
+                    const titleEl = document.getElementById('official-ch-title');
+                    const linkEl = document.getElementById('official-ch-link');
+                    if (titleEl) titleEl.innerText = `📢 Official Channel (${chHandle})`;
+                    if (linkEl) linkEl.href = chUrl;
+                    const hidden = sessionStorage.getItem('hide_official_channel_card') === '1';
+                    chBanner.style.display = (!data.official_channel_joined && !hidden) ? 'block' : 'none';
                 }
 
                 if (data.has_session) {

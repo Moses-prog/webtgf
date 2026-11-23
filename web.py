@@ -305,18 +305,38 @@ HTML_TEMPLATE = """
                 </div>
 
                 <!-- 2. AI Generator Prompt -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">2. AI Announcement Generator</label>
-                    <div class="flex flex-col sm:flex-row gap-2 mb-3">
-                        <button type="button" id="btn-quick-reconnect-ai" onclick="generateBroadcastAi('reconnect')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center">
-                            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 1-Click Generate Reconnect Alert
-                        </button>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">2. AI Announcement Generator</label>
+                        <div class="flex flex-col sm:flex-row gap-2 mb-3">
+                            <button type="button" id="btn-quick-reconnect-ai" onclick="generateBroadcastAi('reconnect')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center justify-center">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 1-Click Generate Reconnect Alert
+                            </button>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text" id="inp-admin-custom-ai-prompt" placeholder="Or enter custom instructions (e.g. explain server upgrade and ask them to test)..." class="flex-1 neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
+                            <button type="button" id="btn-custom-ai-gen" onclick="generateBroadcastAi('custom')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
+                                Generate Custom
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="inp-admin-custom-ai-prompt" placeholder="Or enter custom instructions (e.g. explain server upgrade and ask them to test)..." class="flex-1 neumorphic-inset px-4 py-2.5 rounded-xl outline-none text-xs text-gray-700">
-                        <button type="button" id="btn-custom-ai-gen" onclick="generateBroadcastAi('custom')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition">
-                            Generate Custom
-                        </button>
+
+                    <!-- Promote Another Bot -->
+                    <div class="p-4 neumorphic-inset rounded-xl space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-gray-700 uppercase tracking-wider"><i class="fa-solid fa-robot mr-1 text-indigo-600"></i> Promote Another Bot</span>
+                            <button type="button" onclick="fillWpStudioPromoPreset()" class="text-[11px] bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold px-2.5 py-1 rounded-lg transition">Use WP Studio Preset</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <input type="text" id="inp-web-promo-bot-name" placeholder="Bot Name (e.g. WP Studio)" class="neumorphic-inset px-3 py-2 rounded-lg outline-none text-xs text-gray-700 bg-white/50">
+                            <input type="text" id="inp-web-promo-bot-handle" placeholder="@AnotherBot or https://t.me/..." class="neumorphic-inset px-3 py-2 rounded-lg outline-none text-xs text-gray-700 bg-white/50">
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text" id="inp-web-promo-bot-pitch" placeholder="What does this bot do? (short pitch for users)..." class="flex-1 neumorphic-inset px-3 py-2 rounded-lg outline-none text-xs text-gray-700 bg-white/50">
+                            <button type="button" id="btn-web-promo-ai" onclick="generateBroadcastAi('promote_bot')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow transition">
+                                Generate Bot Promo
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -340,9 +360,14 @@ HTML_TEMPLATE = """
 
                 <!-- Send Button & Status -->
                 <div class="pt-4 border-t border-gray-300/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <button type="button" id="btn-send-admin-broadcast" onclick="sendAdminBroadcastFromWeb()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-xl shadow transition text-sm">
-                        <i class="fa-solid fa-paper-plane mr-2"></i> Send Broadcast
-                    </button>
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <button type="button" id="btn-preview-admin-broadcast" onclick="sendAdminBroadcastFromWeb(true)" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl shadow transition text-sm">
+                            <i class="fa-solid fa-eye mr-2"></i> Test Preview to Me
+                        </button>
+                        <button type="button" id="btn-send-admin-broadcast" onclick="sendAdminBroadcastFromWeb(false)" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-xl shadow transition text-sm">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Send Broadcast
+                        </button>
+                    </div>
                     <div id="broadcast-status-badge" class="text-xs text-gray-600 font-medium hidden"></div>
                 </div>
             </div>
@@ -580,20 +605,38 @@ function selectAllTenants(status) {
     });
 }
 
+function fillWpStudioPromoPreset() {
+    const nameEl = document.getElementById('inp-web-promo-bot-name');
+    const pitchEl = document.getElementById('inp-web-promo-bot-pitch');
+    const handleEl = document.getElementById('inp-web-promo-bot-handle');
+    if (nameEl) nameEl.value = 'WP Studio';
+    if (pitchEl) pitchEl.value = 'Generate scripts, storyboards, visual scenes, and ready-to-build creative projects fast right from Telegram.';
+    if (handleEl && !handleEl.value.trim()) handleEl.focus();
+}
+
 async function generateBroadcastAi(mode) {
     const promptInput = document.getElementById('inp-admin-custom-ai-prompt');
     const promptVal = promptInput ? promptInput.value.trim() : '';
+    const botName = document.getElementById('inp-web-promo-bot-name')?.value.trim() || '';
+    const botHandle = document.getElementById('inp-web-promo-bot-handle')?.value.trim() || '';
+    const botPitch = document.getElementById('inp-web-promo-bot-pitch')?.value.trim() || '';
     const statusBadge = document.getElementById('broadcast-status-badge');
     const btnQuick = document.getElementById('btn-quick-reconnect-ai');
     const btnCustom = document.getElementById('btn-custom-ai-gen');
+    const btnPromo = document.getElementById('btn-web-promo-ai');
 
     if (mode === 'custom' && !promptVal) {
         alert('Please enter instructions for the AI generator.');
         return;
     }
+    if (mode === 'promote_bot' && !botHandle) {
+        alert('Please enter the bot @username or t.me link you want to promote.');
+        return;
+    }
 
     if (btnQuick) btnQuick.disabled = true;
     if (btnCustom) btnCustom.disabled = true;
+    if (btnPromo) btnPromo.disabled = true;
     if (statusBadge) {
         statusBadge.classList.remove('hidden', 'text-red-600', 'text-green-600');
         statusBadge.classList.add('text-blue-600');
@@ -601,10 +644,9 @@ async function generateBroadcastAi(mode) {
     }
 
     try {
-        const payload = {
-            intent: mode === 'reconnect' ? 'reconnect' : 'custom',
-            prompt: mode === 'reconnect' ? '' : promptVal
-        };
+        const payload = mode === 'promote_bot'
+            ? { intent: 'promote_bot', bot_name: botName, bot_handle: botHandle, prompt: botPitch }
+            : { intent: mode === 'reconnect' ? 'reconnect' : 'custom', prompt: mode === 'reconnect' ? '' : promptVal };
         const res = await fetch('/api/admin_ai_generate_broadcast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -621,6 +663,8 @@ async function generateBroadcastAi(mode) {
             }
             if (mode === 'reconnect') {
                 selectThreeDisconnectedTenants();
+            } else if (mode === 'promote_bot') {
+                selectAllTenants(true);
             }
             if (statusBadge) {
                 statusBadge.classList.remove('text-blue-600');
@@ -645,22 +689,24 @@ async function generateBroadcastAi(mode) {
     } finally {
         if (btnQuick) btnQuick.disabled = false;
         if (btnCustom) btnCustom.disabled = false;
+        if (btnPromo) btnPromo.disabled = false;
     }
 }
 
-async function sendAdminBroadcastFromWeb() {
+async function sendAdminBroadcastFromWeb(previewOnly = false) {
     const msg = document.getElementById('inp-broadcast-message').value.trim();
     const btnText = document.getElementById('inp-broadcast-btn-text').value.trim();
     const btnUrl = document.getElementById('inp-broadcast-btn-url').value.trim();
     const statusBadge = document.getElementById('broadcast-status-badge');
     const sendBtn = document.getElementById('btn-send-admin-broadcast');
+    const prevBtn = document.getElementById('btn-preview-admin-broadcast');
 
     const selectedRecipients = [];
     document.querySelectorAll('input[name="broadcast_recipient"]:checked').forEach(cb => {
         selectedRecipients.push(cb.value);
     });
 
-    if (selectedRecipients.length === 0) {
+    if (!previewOnly && selectedRecipients.length === 0) {
         alert('Please select at least one recipient.');
         return;
     }
@@ -673,15 +719,19 @@ async function sendAdminBroadcastFromWeb() {
         return;
     }
 
-    if (!confirm('Are you sure you want to send this broadcast to ' + selectedRecipients.length + ' recipient(s)?')) {
+    const confirmText = previewOnly
+        ? 'Send a private test preview of this message to your Admin Telegram DM?'
+        : ('Are you sure you want to send this broadcast to ' + selectedRecipients.length + ' recipient(s)?');
+    if (!confirm(confirmText)) {
         return;
     }
 
     if (sendBtn) sendBtn.disabled = true;
+    if (prevBtn) prevBtn.disabled = true;
     if (statusBadge) {
         statusBadge.classList.remove('hidden', 'text-red-600', 'text-green-600');
         statusBadge.classList.add('text-blue-600');
-        statusBadge.innerText = 'Sending broadcast...';
+        statusBadge.innerText = previewOnly ? 'Sending preview to Admin...' : 'Sending broadcast...';
     }
 
     try {
@@ -689,7 +739,8 @@ async function sendAdminBroadcastFromWeb() {
             message: msg,
             button_text: btnText,
             button_url: btnUrl,
-            recipients: selectedRecipients
+            recipients: previewOnly ? 'preview_admin' : selectedRecipients,
+            preview: !!previewOnly
         };
         const res = await fetch('/api/admin_broadcast', {
             method: 'POST',
@@ -698,11 +749,13 @@ async function sendAdminBroadcastFromWeb() {
         });
         const data = await res.json();
         if (data.success) {
-            alert('Broadcast sent successfully: delivered to ' + data.sent + ' of ' + data.total + ' recipients.');
+            alert(previewOnly
+                ? 'Test preview delivered to Admin DM.'
+                : ('Broadcast sent successfully: delivered to ' + data.sent + ' of ' + data.total + ' recipients.'));
             if (statusBadge) {
                 statusBadge.classList.remove('text-blue-600');
                 statusBadge.classList.add('text-green-600');
-                statusBadge.innerText = 'Delivered to ' + data.sent + ' / ' + data.total + ' recipients.';
+                statusBadge.innerText = previewOnly ? 'Preview delivered to Admin.' : ('Delivered to ' + data.sent + ' / ' + data.total + ' recipients.');
             }
         } else {
             alert('Broadcast failed: ' + (data.error || 'Unknown error'));
@@ -721,6 +774,7 @@ async function sendAdminBroadcastFromWeb() {
         }
     } finally {
         if (sendBtn) sendBtn.disabled = false;
+        if (prevBtn) prevBtn.disabled = false;
     }
 }
 \n</script>\n</body>
@@ -1205,19 +1259,38 @@ def api_admin_manage_tenant():
     elif action == 'toggle_pro':
         ud = get_user_data(tenant_id)
         current_pro = ud.get('is_pro', False)
+        now = datetime.datetime.now()
         ud['is_pro'] = not current_pro
         if ud['is_pro']:
+            lifetime = bool(data.get('lifetime', False))
+            if not lifetime:
+                try:
+                    days = int(data.get('days', 30))
+                except (TypeError, ValueError):
+                    return jsonify({"error": "Invalid days value"}), 400
+                if days < 1 or days > 3650:
+                    return jsonify({"error": "Days must be between 1 and 3650"}), 400
+                ud['pro_expiry'] = (now + datetime.timedelta(days=days)).isoformat()
+            else:
+                ud['pro_expiry'] = None
             ud['pro_paused'] = False
             ud.pop('pro_expired_at', None)
             ud.pop('expiry_notified', None)
             ud.pop('expiry_warning_24h_notified', None)
             if not ud.get('pro_since'):
-                ud['pro_since'] = datetime.datetime.now().isoformat()
+                ud['pro_since'] = now.isoformat()
         else:
             ud['pro_paused'] = True
-            ud['pro_expired_at'] = datetime.datetime.now().isoformat()
+            ud['pro_expired_at'] = now.isoformat()
+            ud['pro_expiry'] = None
         save_user_data(tenant_id, ud)
-        return jsonify({"success": True, "tenant_id": tenant_id, "is_pro": ud['is_pro'], "pro_paused": ud.get('pro_paused', False)})
+        return jsonify({
+            "success": True,
+            "tenant_id": tenant_id,
+            "is_pro": ud['is_pro'],
+            "pro_paused": ud.get('pro_paused', False),
+            "pro_expiry": ud.get('pro_expiry')
+        })
     elif action == 'set_name':
         new_name = str(data.get('name', '')).strip()
         if new_name:
@@ -1473,22 +1546,43 @@ def api_admin_update_pro_subscription():
     data = request.get_json(silent=True) or {}
     tenant_id = str(data.get('tenant_id', '')).strip()
     action = str(data.get('action', '')).strip()
-    days = int(data.get('days', 30))
+    try:
+        days = int(data.get('days', 30))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Invalid days value"}), 400
     notify = bool(data.get('notify_user', True))
 
-    if not tenant_id or action not in ['add_days', 'set_lifetime', 'revoke']:
+    if not tenant_id or action not in ['add_days', 'set_days', 'set_lifetime', 'revoke']:
         return jsonify({"error": "Invalid action or tenant_id"}), 400
+    if action in ['add_days', 'set_days'] and (days < 1 or days > 3650):
+        return jsonify({"error": "Days must be between 1 and 3650"}), 400
 
     from database_manager import get_user_data, save_user_data
     ud = get_user_data(tenant_id)
     now = datetime.datetime.now()
 
-    if not ud.get('pro_since'):
+    if not ud.get('pro_since') and action != 'revoke':
         ud['pro_since'] = now.isoformat()
 
     msg_to_send = None
 
-    if action == 'add_days':
+    if action == 'set_days':
+        ud['is_pro'] = True
+        ud['pro_paused'] = False
+        ud.pop('pro_expired_at', None)
+        ud.pop('expiry_notified', None)
+        ud.pop('expiry_warning_24h_notified', None)
+        new_expiry = now + datetime.timedelta(days=days)
+        ud['pro_expiry'] = new_expiry.isoformat()
+        msg_to_send = (
+            f"🎉 <b>WP Relay PRO Activated!</b>\n\n"
+            f"The Administrator has granted you <b>{days} day(s)</b> of PRO access.\n"
+            f"📅 <b>Expires On:</b> <code>{new_expiry.strftime('%B %d, %Y')}</code>\n\n"
+            f"⚡ <b>All channel forwarders and automation features are active!</b>\n\n"
+            f"Thank you for powering your channels with WP Relay!"
+        )
+
+    elif action == 'add_days':
         ud['is_pro'] = True
         ud['pro_paused'] = False
         ud.pop('pro_expired_at', None)
@@ -1598,6 +1692,7 @@ def api_admin_broadcast():
     btn_text = str(data.get('button_text', '')).strip()
     btn_url = str(data.get('button_url', '')).strip()
     recipients = data.get('recipients')
+    preview_only = bool(data.get('preview', False)) or (isinstance(recipients, str) and recipients.strip().lower() == 'preview_admin')
 
     if not msg_text:
         return jsonify({"error": "Message cannot be empty"}), 400
@@ -1607,10 +1702,13 @@ def api_admin_broadcast():
         return jsonify({"error": "BOT_TOKEN not configured"}), 500
 
     from database_manager import get_tenants
+    from channel_engine import normalize_telegram_url
     all_tenants = get_tenants()
 
     target_tenants = []
-    if recipients:
+    if preview_only:
+        target_tenants = [admin_id]
+    elif recipients:
         if isinstance(recipients, list):
             target_tenants = [str(r).strip() for r in recipients if str(r).strip()]
         elif isinstance(recipients, str):
@@ -1638,8 +1736,7 @@ def api_admin_broadcast():
     }
 
     if btn_text and btn_url:
-        if not btn_url.startswith(('http://', 'https://', 't.me/')):
-            btn_url = 'https://' + btn_url
+        btn_url = normalize_telegram_url(btn_url)
         payload_base["reply_markup"] = {
             "inline_keyboard": [
                 [{"text": btn_text, "url": btn_url}]
@@ -1686,86 +1783,27 @@ def api_admin_ai_generate_broadcast():
     data = request.get_json(silent=True) or {}
     user_prompt = str(data.get('prompt', '')).strip()
     intent = str(data.get('intent', '')).strip().lower()
-
-    gemini_key = os.getenv('GEMINI_API_KEY')
-    if not gemini_key:
-        return jsonify({"error": "GEMINI_API_KEY not found in environment"}), 500
+    bot_name = str(data.get('bot_name', '')).strip()
+    bot_handle = str(data.get('bot_handle', '')).strip()
 
     try:
-        from google import genai
-        client = genai.Client(api_key=gemini_key)
-
-        suggested_btn_text = ""
-        suggested_btn_url = ""
-
-        if intent == 'reconnect' or not user_prompt or 'reconnect' in user_prompt.lower():
-            prompt = (
-                "You are an assistant for a Telegram forwarder service. "
-                "Write a clear, direct, and reassuring service alert to tenants. "
-                "Explain that due to an IP and server security upgrade, Telegram paused message routing until they reconnect their session. "
-                "Assure them that all their rules, swaps, channels, and settings are 100% saved and safe. "
-                "Instruct them to tap the Reconnect button below or open @wprelaybot to log in again so message forwarding resumes right away. "
-                "Use simple, plain English words only. No big or complicated words. "
-                "Format using clean HTML with <b> and <code> tags and bullet points. "
-                "IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the message text itself."
-            )
-            suggested_btn_text = "Reconnect Telegram"
-            suggested_btn_url = "https://t.me/wprelaybot"
-        else:
-            prompt = (
-                f"You are an assistant for a Telegram forwarder service. "
-                f"Write a concise, professional broadcast announcement based on these instructions: {user_prompt}. "
-                f"Use simple, plain English words only. No big or complicated words. "
-                f"Format using clean HTML with <b> tags and bullet points. "
-                f"IMPORTANT: Do NOT use any emojis whatsoever. Zero emojis. Output ONLY the message text itself."
-            )
-            suggested_btn_text = data.get('button_text', '')
-            suggested_btn_url = data.get('button_url', '')
-
-        models_to_try = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-1.5-flash']
-        generated_text = None
-        last_err = None
-
-        for m in models_to_try:
-            try:
-                resp = client.models.generate_content(
-                    model=m,
-                    contents=prompt
-                )
-                if resp and resp.text:
-                    generated_text = resp.text.strip()
-                    break
-            except Exception as e:
-                last_err = e
-
-        if not generated_text:
-            return jsonify({"error": f"AI generation failed: {last_err}"}), 500
-
-        # Remove any emojis that might have slipped through
-        import re
-        emoji_pattern = re.compile(
-            "["
-            "\U0001F600-\U0001F64F"
-            "\U0001F300-\U0001F5FF"
-            "\U0001F680-\U0001F6FF"
-            "\U0001F1E0-\U0001F1FF"
-            "\U00002702-\U000027B0"
-            "\U000024C2-\U0001F251"
-            "\U0001F900-\U0001F9FF"
-            "\U0001FA00-\U0001FA6F"
-            "\U0001FA70-\U0001FAFF"
-            "\U00002600-\U000026FF"
-            "]+", flags=re.UNICODE
+        from channel_engine import generate_broadcast_message
+        res = generate_broadcast_message(
+            intent=intent,
+            user_prompt=user_prompt,
+            bot_name=bot_name,
+            bot_handle=bot_handle,
+            strip_emojis=True
         )
-        clean_text = emoji_pattern.sub('', generated_text).strip()
-
         return jsonify({
-            "success": True, 
-            "generated_message": clean_text,
-            "suggested_button_text": suggested_btn_text,
-            "suggested_button_url": suggested_btn_url,
-            "target_recipients": ["7531221514", "7600806544", "8094046191"] if (intent == 'reconnect' or 'reconnect' in user_prompt.lower()) else []
+            "success": True,
+            "generated_message": res["generated_message"],
+            "suggested_button_text": res.get("suggested_button_text") or str(data.get('button_text', '')).strip(),
+            "suggested_button_url": res.get("suggested_button_url") or str(data.get('button_url', '')).strip(),
+            "target_recipients": ["7531221514", "7600806544", "8094046191"] if (intent == 'reconnect' or (not intent and 'reconnect' in user_prompt.lower())) else []
         })
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
     except Exception as e:
         return jsonify({"error": f"AI generator error: {e}"}), 500
 
@@ -1839,14 +1877,18 @@ def api_admin_channel_info():
         return jsonify({"error": "Admin privileges required"}), 403
 
     import channel_engine
+    from database_manager import get_feature_toggles
     bot_st = channel_engine.get_bot_status()
     auto_cfg = channel_engine.get_autopilot_config()
+    toggles = get_feature_toggles() or {}
     return jsonify({
         "success": True,
         "bot_status": bot_st,
         "autopilot": auto_cfg,
+        "reminders_enabled": bool(toggles.get("official_channel_reminders_enabled", True)),
         "categories": channel_engine.TOPIC_CATEGORIES,
         "default_channel": channel_engine.DEFAULT_CHANNEL,
+        "channel_url": channel_engine.OFFICIAL_CHANNEL_URL,
         "bot_username": channel_engine.DEFAULT_BOT_USERNAME,
         "has_card": os.path.exists("visual_card.png")
     })
@@ -2003,6 +2045,55 @@ def api_admin_channel_delete_post():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+@app.route('/api/verify_official_channel', methods=['POST'])
+def api_verify_official_channel():
+    data = request.get_json(silent=True) or {}
+    requested_user = data.get('user_id') or request.args.get('user_id')
+    user_id, err = check_permission(requested_user, allow_paused=True)
+    if err:
+        return err
+
+    import time
+    import channel_engine
+    from database_manager import get_user_data, save_user_data
+
+    res = channel_engine.check_user_channel_membership(user_id)
+    ud = get_user_data(user_id, force_refresh=True) or {}
+    if res.get("joined") is True:
+        ud["official_channel_joined"] = True
+        ud["official_channel_checked_at"] = int(time.time())
+        save_user_data(user_id, ud)
+    elif res.get("joined") is False:
+        ud["official_channel_joined"] = False
+        ud["official_channel_checked_at"] = int(time.time())
+        save_user_data(user_id, ud)
+
+    return jsonify({
+        "success": True,
+        "joined": res.get("joined"),
+        "checked": res.get("checked", False),
+        "status": res.get("status"),
+        "official_channel_handle": channel_engine.DEFAULT_CHANNEL,
+        "official_channel_url": channel_engine.OFFICIAL_CHANNEL_URL,
+        "error": res.get("error")
+    })
+
+
+@app.route('/api/admin_trigger_channel_reminders', methods=['POST'])
+def api_admin_trigger_channel_reminders():
+    auth_user = get_authenticated_user()
+    admin_id = str(os.getenv("ADMIN_ID", "5628105961"))
+    if auth_user != admin_id and session.get('role') != 'admin':
+        return jsonify({"error": "Admin privileges required"}), 403
+
+    try:
+        import channel_engine
+        summary = channel_engine.run_official_channel_reminder_sweep()
+        return jsonify({"success": True, "summary": summary})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/admin_logs', methods=['GET'])
 def api_admin_logs():
     auth_user = get_authenticated_user()
@@ -2073,6 +2164,7 @@ def api_user_status():
     ADMIN_ID = os.getenv("ADMIN_ID", "")
     is_admin = (str(user_id) == str(ADMIN_ID))
     from database_manager import get_user_data, get_feature_toggles
+    import channel_engine
     user_data = get_user_data(user_id)
     toggles = get_feature_toggles() or {}
     
@@ -2096,6 +2188,9 @@ def api_user_status():
         "pro_expired_at": user_data.get('pro_expired_at'),
         "pro_paused": is_paused,
         "has_session": has_session,
+        "official_channel_joined": bool(user_data.get('official_channel_joined', False)),
+        "official_channel_handle": channel_engine.DEFAULT_CHANNEL,
+        "official_channel_url": channel_engine.OFFICIAL_CHANNEL_URL,
         "feature_toggles": toggles,
         "sources_count": len(user_data.get('sources', [])),
         "targets_count": len(user_data.get('targets', [])),
@@ -2452,7 +2547,41 @@ def start_autopilot_worker():
     t = threading.Thread(target=loop, daemon=True)
     t.start()
 
-start_autopilot_worker()
+if os.getenv("WPRELAY_SKIP_WORKERS") != "1":
+    start_autopilot_worker()
+
+
+def start_official_channel_reminder_worker():
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "false":
+        return
+
+    def loop():
+        import time
+        import gc
+        time.sleep(180)
+        while True:
+            try:
+                import channel_engine
+                summary = channel_engine.run_official_channel_reminder_sweep()
+                if not summary.get("skipped"):
+                    print(
+                        f"[CHANNEL REMINDER SWEEP] checked={summary.get('checked')} "
+                        f"joined={summary.get('already_joined')} reminded={summary.get('reminded')} "
+                        f"cooldown={summary.get('skipped_cooldown')} blocked={summary.get('blocked')}",
+                        flush=True,
+                    )
+                gc.collect()
+            except Exception as e:
+                print(f"[CHANNEL REMINDER WORKER ERROR] {e}", flush=True)
+            time.sleep(3600)
+
+    import threading
+    t = threading.Thread(target=loop, daemon=True, name="OfficialChannelReminderThread")
+    t.start()
+
+
+if os.getenv("WPRELAY_SKIP_WORKERS") != "1":
+    start_official_channel_reminder_worker()
 
 def start_memory_cleanup_worker():
     def loop():
@@ -2471,7 +2600,8 @@ def start_memory_cleanup_worker():
     t = threading.Thread(target=loop, daemon=True)
     t.start()
 
-start_memory_cleanup_worker()
+if os.getenv("WPRELAY_SKIP_WORKERS") != "1":
+    start_memory_cleanup_worker()
 
 @app.route('/api/engine_status', methods=['GET'])
 def api_engine_status():
@@ -2550,7 +2680,8 @@ def start_unified_background_engine():
     bot_thread.start()
     print("[UNIFIED ENGINE] Background Telegram Forwarder and Control Bot threads started successfully.", flush=True)
 
-start_unified_background_engine()
+if os.getenv("WPRELAY_SKIP_WORKERS") != "1":
+    start_unified_background_engine()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
